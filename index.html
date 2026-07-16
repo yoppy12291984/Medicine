@@ -104,7 +104,10 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .kcol.done h3 .dot{background:var(--pine)}
 
 .plan-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;margin-bottom:10px;box-shadow:var(--shadow)}
-.plan-card .theme{font-weight:700;font-size:15px;margin-bottom:5px}
+.plan-card .theme-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:5px}
+.plan-card .theme-check{width:20px;height:20px;flex-shrink:0;margin-top:1px;accent-color:var(--pine);cursor:pointer}
+.plan-card .theme{font-weight:700;font-size:15px;flex:1}
+.plan-card .theme-done{text-decoration:line-through;color:var(--ink-soft)}
 .due-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px}
 .due-row .date{font-weight:700;color:var(--ink)}
 .due-row .left{font-size:11.5px;padding:1px 8px;border-radius:10px;background:var(--paper);color:var(--ink-soft)}
@@ -149,6 +152,19 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .chip.on{background:var(--pine);border-color:var(--pine);color:#fff}
 
 .case-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+/* data table (Excel/Notion風) */
+.dtable-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+table.dtable{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+table.dtable th{text-align:left;font-size:11.5px;font-weight:700;color:var(--ink-soft);padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;background:var(--surface)}
+table.dtable td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.dtable tr{cursor:pointer}
+table.dtable tbody tr:hover{background:var(--paper)}
+table.dtable .t-title{font-weight:700;color:var(--ink);max-width:280px}
+table.dtable .t-cat{color:var(--pine);font-size:12px;white-space:nowrap}
+table.dtable .t-date{color:var(--ink-soft);font-size:12px;white-space:nowrap}
+table.dtable .t-tags{display:flex;flex-wrap:wrap;gap:3px}
+table.dtable .t-tags span{font-size:10.5px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px}
+table.dtable .t-conf{white-space:nowrap}
 .case-card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 12px;box-shadow:var(--shadow);cursor:pointer}
 .case-card:hover{border-color:var(--pine)}
 .case-card .cat{font-size:11px;letter-spacing:.08em;color:var(--pine);font-weight:700;margin-bottom:2px}
@@ -344,9 +360,11 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
         <option value="updated">更新順</option>
         <option value="encounter">出会った日付順</option>
       </select>
+      <button class="icon-btn" id="caseViewToggle" onclick="toggleCaseView()">⊞ 表</button>
     </div>
     <div class="tag-chips" id="tagChips"></div>
     <div class="case-grid" id="caseGrid"></div>
+    <div id="caseTable" style="display:none"></div>
   </section>
 
   <!-- ===== notes ===== -->
@@ -779,9 +797,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.6.1
+   Med OS v2.8.0
 ========================================================= */
-const APP_VERSION = 'v2.6.1';
+const APP_VERSION = 'v2.8.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1097,6 +1115,19 @@ function togglePlanCheck(id,i){
   }
   saveState(); renderPlans();
 }
+function togglePlanDone(id){
+  const p=state.plans.find(x=>x.id===id); if(!p) return;
+  if(p.status==='done'){
+    // 完了を解除 → In Progress、チェックリストも全解除
+    p.status='doing';
+    if(Array.isArray(p.checklist)){ p.checklist=p.checklist.map(x=>({...x,done:false})); p.steps=checklistToText(p.checklist); }
+  }else{
+    // 完了に → チェックリストも全チェック
+    p.status='done';
+    if(Array.isArray(p.checklist)){ p.checklist=p.checklist.map(x=>({...x,done:true})); p.steps=checklistToText(p.checklist); }
+  }
+  p.updatedAt=now(); saveState(); renderPlans();
+}
 function renderPlans(){
   renderCalendar();
   // kind filter chips
@@ -1115,7 +1146,10 @@ function renderPlans(){
     const linked=(p.caseIds||[]).filter(id=>state.cases.some(c=>c.id===id&&!c.deleted));
     cols[PLAN_STATUS.includes(p.status)?p.status:'todo'].push(`
     <div class="plan-card">
-      <div class="theme">${esc(p.theme)}</div>
+      <div class="theme-row">
+        <input type="checkbox" class="theme-check" ${p.status==='done'?'checked':''} onclick="event.stopPropagation();togglePlanDone('${p.id}')" title="完了にする">
+        <div class="theme ${p.status==='done'?'theme-done':''}">${esc(p.theme)}</div>
+      </div>
       ${dueRow(p)}
       <div class="badges">${planBadges(p)}</div>
       ${planChecklistHtml(p)}
@@ -1207,26 +1241,55 @@ function renderCases(){
     }
     return (b.updatedAt||'')>(a.updatedAt||'')?1:-1;
   });
-  $('caseGrid').innerHTML=list.map(c=>{
-    const st=statusLabel(c.status);
-    const isConf=(c.source==='conf');
-    return `
-    <div class="case-card" onclick="openCaseDetail('${c.id}')">
-      <div class="card-top">
-        ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
-        <div class="spacer"></div>
-        ${isConf?`<div class="kind-badge kind-conf">カンファ</div>`:''}
-        ${st?`<div class="stamp ${statusStampClass(c.status)}">${esc(st)}</div>`:''}
-      </div>
-      <div class="title">${esc(c.title)}</div>
-      ${c.encounter?`<div class="pid">🗓 ${esc(fmtDue(c.encounter))}</div>`:''}
-      ${c.doctor?`<div class="pid">👤 ${esc(c.doctor)}</div>`:''}
-      ${(c.pid||c.pname)?`<div class="pid">🪪 ${esc(c.pid||'')}${c.pid&&c.pname?' / ':''}${esc(c.pname||'')}</div>`:''}
-      ${c.point?`<div class="point">${esc(c.point)}</div>`:''}
-      <div class="tags">${(c.tags||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div>
-      ${c.confidence?`<div style="margin-top:6px">${confBadge(c.confidence)}</div>`:''}
-    </div>`;
-  }).join('')||'<div class="empty">症例カードはまだありません。＋で追加。</div>';
+  const cardView = (caseViewMode!=='table');
+  $('caseGrid').style.display = cardView?'':'none';
+  $('caseTable').style.display = cardView?'none':'';
+  const tbtn=$('caseViewToggle'); if(tbtn) tbtn.textContent = cardView?'⊞ 表':'▤ カード';
+
+  if(cardView){
+    $('caseGrid').innerHTML=list.map(c=>{
+      const st=statusLabel(c.status);
+      const isConf=(c.source==='conf');
+      return `
+      <div class="case-card" onclick="openCaseDetail('${c.id}')">
+        <div class="card-top">
+          ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
+          <div class="spacer"></div>
+          ${isConf?`<div class="kind-badge kind-conf">カンファ</div>`:''}
+          ${st?`<div class="stamp ${statusStampClass(c.status)}">${esc(st)}</div>`:''}
+        </div>
+        <div class="title">${esc(c.title)}</div>
+        ${c.encounter?`<div class="pid">🗓 ${esc(fmtDue(c.encounter))}</div>`:''}
+        ${c.doctor?`<div class="pid">👤 ${esc(c.doctor)}</div>`:''}
+        ${(c.pid||c.pname)?`<div class="pid">🪪 ${esc(c.pid||'')}${c.pid&&c.pname?' / ':''}${esc(c.pname||'')}</div>`:''}
+        ${c.point?`<div class="point">${esc(c.point)}</div>`:''}
+        <div class="tags">${(c.tags||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div>
+        ${c.confidence?`<div style="margin-top:6px">${confBadge(c.confidence)}</div>`:''}
+      </div>`;
+    }).join('')||'<div class="empty">症例カードはまだありません。＋で追加。</div>';
+  }else{
+    const rows=list.map(c=>{
+      const st=statusLabel(c.status);
+      const isConf=(c.source==='conf');
+      return `<tr onclick="openCaseDetail('${c.id}')">
+        <td class="t-title">${esc(c.title)}</td>
+        <td class="t-cat">${esc(c.category||'')}</td>
+        <td>${isConf?`<span class="kind-badge kind-conf">カンファ${c.doctor?' '+esc(c.doctor):''}</span>`:'<span class="t-date">自分</span>'}</td>
+        <td>${st?`<span class="stamp ${statusStampClass(c.status)}">${esc(st)}</span>`:''}</td>
+        <td class="t-conf">${c.confidence?confBadge(c.confidence):''}</td>
+        <td class="t-date">${c.encounter?esc(fmtDue(c.encounter)):''}</td>
+        <td><div class="t-tags">${(c.tags||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div></td>
+      </tr>`;
+    }).join('');
+    $('caseTable').innerHTML = list.length ? `<div class="dtable-wrap"><table class="dtable">
+      <thead><tr><th>症例名</th><th>カテゴリ</th><th>区分</th><th>ステータス</th><th>確度</th><th>出会った日</th><th>タグ</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>` : '<div class="empty">症例カードはまだありません。＋で追加。</div>';
+  }
+}
+let caseViewMode = 'card';
+function toggleCaseView(){
+  caseViewMode = (caseViewMode==='card') ? 'table' : 'card';
+  renderCases();
 }
 function toggleTag(i){
   const t=(window._tagList||[])[i]; if(t===undefined) return;
