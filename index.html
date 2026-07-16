@@ -3,24 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>学習OS</title>
+<title>Medicine OS</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#EFF2F0;
-  --surface:#FFFFFF;
-  --ink:#1F2A30;
-  --ink-soft:#5A6A6E;
-  --line:#D8DEDC;
-  --pine:#2E6E5E;
-  --pine-soft:#E3EEEA;
-  --shu:#C2431F;
-  --shu-soft:#F8E9E3;
-  --amber:#B07A1E;
-  --amber-soft:#F6EEDD;
+  --paper:#EFF2F0; --surface:#FFFFFF; --ink:#1F2A30; --ink-soft:#5A6A6E;
+  --line:#D8DEDC; --pine:#2E6E5E; --pine-soft:#E3EEEA;
+  --shu:#C2431F; --shu-soft:#F8E9E3; --amber:#B07A1E; --amber-soft:#F6EEDD;
+  --gold:#A98B4F;
   --radius:10px;
   --font-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",sans-serif;
   --font-display:"Shippori Mincho","Hiragino Mincho ProN",serif;
@@ -30,60 +23,75 @@ html,body{background:var(--paper);color:var(--ink);font-family:var(--font-body);
 button{font-family:var(--font-body);cursor:pointer}
 input,select,textarea{font-family:var(--font-body);font-size:15px;color:var(--ink)}
 
-/* ---------- header ---------- */
-header{
-  background:var(--surface);border-bottom:1px solid var(--line);
-  padding:12px 16px;display:flex;align-items:center;gap:12px;
-  position:sticky;top:0;z-index:50;
-}
-.app-title{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:.12em}
+header{background:var(--surface);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.app-title{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:.06em}
 .app-title small{font-family:var(--font-body);font-weight:400;font-size:11px;color:var(--ink-soft);letter-spacing:.05em;margin-left:8px}
 .header-spacer{flex:1}
 .sync-status{font-size:11px;color:var(--ink-soft);text-align:right;line-height:1.3}
-.icon-btn{
-  border:1px solid var(--line);background:var(--surface);border-radius:8px;
-  padding:7px 12px;font-size:13px;font-weight:500;color:var(--ink);
-  display:inline-flex;align-items:center;gap:6px;
-}
+.icon-btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:500;color:var(--ink);display:inline-flex;align-items:center;gap:6px}
 .icon-btn:hover{background:var(--pine-soft)}
 .icon-btn.syncing{opacity:.6;pointer-events:none}
 
-/* ---------- tabs ---------- */
 nav.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:57px;z-index:40}
-nav.tabs button{
-  flex:1;padding:11px 0;background:none;border:none;font-size:14px;font-weight:500;
-  color:var(--ink-soft);border-bottom:2px solid transparent;letter-spacing:.08em;
-}
+nav.tabs button{flex:1;padding:11px 0;background:none;border:none;font-size:13.5px;font-weight:500;color:var(--ink-soft);border-bottom:2px solid transparent;letter-spacing:.06em}
 nav.tabs button.active{color:var(--pine);border-bottom-color:var(--pine);font-weight:700}
 
 main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 
-/* ---------- section heads ---------- */
-.sec-head{display:flex;align-items:baseline;gap:10px;margin:6px 2px 12px}
-.sec-head h2{font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:.1em}
-.sec-head .count{font-size:12px;color:var(--ink-soft)}
+/* ---------- calendar ---------- */
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 8px;margin-bottom:14px}
+.cal-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cal-head .title{font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:.08em;flex:1;text-align:center}
+.cal-nav{border:1px solid var(--line);background:var(--surface);border-radius:6px;width:32px;height:30px;font-size:13px}
+.cal-nav:hover{background:var(--pine-soft)}
+.cal-today-btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;font-size:11.5px;padding:5px 10px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-wd{font-size:11px;color:var(--ink-soft);text-align:center;padding:2px 0;font-weight:700}
+.cal-wd.sun{color:var(--shu)} .cal-wd.sat{color:#3D6B9E}
+.cal-cell{min-height:46px;border-radius:7px;padding:3px 4px;font-size:12px;position:relative;cursor:pointer;border:1px solid transparent}
+.cal-cell:hover{background:var(--paper)}
+.cal-cell.other{opacity:.32}
+.cal-cell.today{border-color:var(--pine);font-weight:700}
+.cal-cell.selected{background:var(--pine-soft);border-color:var(--pine)}
+.cal-cell .num{display:block;text-align:right;color:var(--ink-soft)}
+.cal-cell.today .num{color:var(--pine)}
+.cal-dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:2px}
+.cal-dots i{width:7px;height:7px;border-radius:50%;display:block}
+.cal-dots i.overdue{background:var(--shu)}
+.cal-dots i.open{background:var(--amber)}
+.cal-dots i.done{background:var(--pine)}
+.cal-day-panel{border-top:1px dashed var(--line);margin-top:8px;padding:8px 4px 4px;display:none}
+.cal-day-panel.open{display:block}
+.cal-day-panel .dp-title{font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
+.dp-item{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:6px;cursor:pointer;font-size:13.5px}
+.dp-item:hover{background:var(--paper)}
+.dp-item .st{font-size:10.5px;padding:1px 7px;border-radius:10px;flex-shrink:0}
+.dp-item .st.todo{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line)}
+.dp-item .st.doing{background:var(--amber-soft);color:var(--amber)}
+.dp-item .st.done{background:var(--pine-soft);color:var(--pine)}
 
-/* ---------- plans (kanban) ---------- */
+/* ---------- kanban ---------- */
 .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media(max-width:760px){.kanban{grid-template-columns:1fr}}
 .kcol{background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:var(--radius);padding:10px;min-height:70px}
-.kcol h3{font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--ink-soft);margin:2px 4px 10px;display:flex;align-items:center;gap:8px}
+.kcol h3{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--ink-soft);margin:2px 4px 10px;display:flex;align-items:center;gap:8px}
 .kcol h3 .dot{width:8px;height:8px;border-radius:50%}
 .kcol.todo h3 .dot{background:var(--ink-soft)}
 .kcol.doing h3 .dot{background:var(--amber)}
 .kcol.done h3 .dot{background:var(--pine)}
 
-.plan-card{
-  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
-  padding:12px 12px 10px;margin-bottom:10px;box-shadow:0 1px 2px rgba(31,42,48,.05);
-}
-.plan-card .theme{font-weight:700;font-size:15px;margin-bottom:4px}
+.plan-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;margin-bottom:10px;box-shadow:0 1px 2px rgba(31,42,48,.05)}
+.plan-card .theme{font-weight:700;font-size:15px;margin-bottom:5px}
+.due-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px}
+.due-row .date{font-weight:700;color:var(--ink)}
+.due-row .left{font-size:11.5px;padding:1px 8px;border-radius:10px;background:var(--paper);color:var(--ink-soft)}
+.due-row .left.near{background:var(--shu);color:#fff}
+.due-row .left.over{background:var(--shu-soft);color:var(--shu);font-weight:700}
 .badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
 .badge{font-size:11px;padding:1px 8px;border-radius:20px;border:1px solid var(--line);color:var(--ink-soft);background:var(--paper)}
 .badge.deadline{border-color:var(--shu);color:var(--shu);background:var(--shu-soft)}
 .badge.interest{border-color:var(--pine);color:var(--pine);background:var(--pine-soft)}
 .badge.pri-high{border-color:var(--shu);color:var(--shu)}
-.badge.due-near{background:var(--shu);color:#fff;border-color:var(--shu)}
 .plan-card .steps{font-size:12.5px;color:var(--ink-soft);white-space:pre-wrap;margin:4px 0 8px;max-height:72px;overflow:hidden}
 .plan-card .foot{display:flex;align-items:center;gap:6px;border-top:1px dashed var(--line);padding-top:8px}
 .plan-card .foot .linked{font-size:11.5px;color:var(--pine);flex:1}
@@ -92,57 +100,55 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .mini-btn.shu:hover{background:var(--shu-soft)}
 .status-sel{border:1px solid var(--line);border-radius:6px;font-size:12px;padding:3px 4px;background:var(--surface)}
 
-/* ---------- cases ---------- */
+/* ---------- shared filters/cards ---------- */
 .filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
-.filter-bar input[type=search]{
-  flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:var(--surface)
-}
+.filter-bar input[type=search]{flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:var(--surface)}
 .filter-bar select{border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--surface)}
 .tag-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
 .chip{font-size:12px;padding:3px 11px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft)}
 .chip.on{background:var(--pine);border-color:var(--pine);color:#fff}
 
 .case-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
-.case-card{
-  position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
-  padding:14px 14px 12px;box-shadow:0 1px 2px rgba(31,42,48,.05);cursor:pointer;
-}
+.case-card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 12px;box-shadow:0 1px 2px rgba(31,42,48,.05);cursor:pointer}
 .case-card:hover{border-color:var(--pine)}
 .case-card .cat{font-size:11px;letter-spacing:.08em;color:var(--pine);font-weight:700;margin-bottom:2px}
 .case-card .title{font-weight:700;font-size:15px;margin-bottom:6px;padding-right:64px}
+.case-card .pid{font-size:11.5px;color:var(--ink-soft);margin:-3px 0 5px}
 .case-card .point{font-size:13px;color:var(--ink-soft);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .case-card .tags{display:flex;flex-wrap:wrap;gap:4px}
 .case-card .tags span{font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px}
 
-/* hanko stamp — the signature element */
-.stamp{
-  position:absolute;top:10px;right:10px;width:52px;height:52px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;text-align:center;
-  font-family:var(--font-display);font-weight:700;font-size:10.5px;line-height:1.15;
-  transform:rotate(-8deg);letter-spacing:.05em;pointer-events:none;
-}
+.stamp{position:absolute;top:10px;right:10px;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--font-display);font-weight:700;font-size:10.5px;line-height:1.15;transform:rotate(-8deg);letter-spacing:.05em;pointer-events:none}
 .stamp.studying{border:2px solid var(--ink-soft);color:var(--ink-soft);opacity:.75}
 .stamp.summarized{border:2px solid var(--pine);color:var(--pine);background:var(--pine-soft)}
 .stamp.teachable{border:2.5px double var(--shu);color:var(--shu);background:var(--shu-soft);opacity:.92}
 
-/* ---------- fab ---------- */
-.fab{
-  position:fixed;right:20px;bottom:24px;z-index:60;
-  background:var(--pine);color:#fff;border:none;border-radius:50%;width:56px;height:56px;
-  font-size:28px;line-height:1;box-shadow:0 4px 14px rgba(46,110,94,.4);
-}
+/* ---------- notes ---------- */
+.note-card .folder-label{font-size:11px;letter-spacing:.06em;color:var(--gold);font-weight:700;margin-bottom:2px}
+.note-card .preview{font-size:12.5px;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+
+/* ---------- treatments ---------- */
+.tx-card .drugline{font-size:12.5px;color:var(--ink-soft)}
+.weight-box{display:flex;align-items:center;gap:8px;background:var(--pine-soft);border:1px solid var(--pine);border-radius:8px;padding:8px 12px;margin:10px 0}
+.weight-box label{font-size:13px;font-weight:700;color:var(--pine)}
+.weight-box input{width:90px;border:1px solid var(--line);border-radius:6px;padding:6px 8px;text-align:right;font-size:15px}
+.dose-table{width:100%;border-collapse:collapse;font-size:13.5px;margin:6px 0 10px}
+.dose-table th{font-size:11.5px;color:var(--ink-soft);text-align:left;border-bottom:1px solid var(--line);padding:4px 6px;font-weight:700}
+.dose-table td{border-bottom:1px dashed var(--line);padding:6px;vertical-align:top}
+.dose-table .calc{font-weight:700;color:var(--shu);white-space:nowrap}
+.dose-table .basis{font-size:11px;color:var(--ink-soft)}
+
+/* ---------- fab / modal / misc ---------- */
+.fab{position:fixed;right:20px;bottom:24px;z-index:60;background:var(--pine);color:#fff;border:none;border-radius:50%;width:56px;height:56px;font-size:28px;line-height:1;box-shadow:0 4px 14px rgba(46,110,94,.4)}
 .fab:active{transform:scale(.95)}
 
-/* ---------- modal ---------- */
 .overlay{position:fixed;inset:0;background:rgba(31,42,48,.45);z-index:100;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 12px}
 .overlay.open{display:flex}
 .modal{background:var(--surface);border-radius:14px;width:100%;max-width:640px;padding:20px 20px 16px;margin:auto 0}
 .modal h3{font-family:var(--font-display);font-size:17px;letter-spacing:.08em;margin-bottom:14px}
 .form-row{margin-bottom:12px}
 .form-row label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:4px;letter-spacing:.05em}
-.form-row input[type=text],.form-row input[type=date],.form-row input[type=url],.form-row select,.form-row textarea{
-  width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#FCFDFC
-}
+.form-row input[type=text],.form-row input[type=date],.form-row input[type=url],.form-row select,.form-row textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#FCFDFC}
 .form-row textarea{min-height:96px;resize:vertical;line-height:1.6}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:520px){.form-grid{grid-template-columns:1fr}}
@@ -154,7 +160,6 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .modal-actions .spacer{flex:1}
 .hint{font-size:11px;color:var(--ink-soft);margin-top:3px}
 
-/* ---------- case detail ---------- */
 .detail-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
 .detail-head .t{flex:1}
 .detail-head .cat{font-size:11px;letter-spacing:.08em;color:var(--pine);font-weight:700}
@@ -168,16 +173,19 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .md p{margin-bottom:6px}
 .md a{color:var(--pine)}
 .md strong{background:linear-gradient(transparent 65%,var(--amber-soft) 65%)}
+.sec-label{font-size:12px;font-weight:700;color:var(--ink-soft);letter-spacing:.05em;border-top:1px dashed var(--line);padding-top:10px;margin-top:10px}
 .detail-meta{font-size:11.5px;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:8px;margin-top:10px}
-.linked-plans{margin-top:8px}
-.linked-plans span{display:inline-block;font-size:12px;background:var(--pine-soft);color:var(--pine);border-radius:6px;padding:2px 8px;margin:0 4px 4px 0}
+.linked-plans span{display:inline-block;font-size:12px;background:var(--pine-soft);color:var(--pine);border-radius:6px;padding:2px 8px;margin:4px 4px 0 0}
+
+/* settings categories */
+.cat-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.cat-item{display:inline-flex;align-items:center;gap:6px;font-size:13px;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:3px 6px 3px 12px}
+.cat-item button{border:none;background:none;color:var(--shu);font-size:14px;line-height:1;padding:2px 6px}
+.cat-add-row{display:flex;gap:8px}
+.cat-add-row input{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
 
 .empty{color:var(--ink-soft);font-size:13px;text-align:center;padding:28px 8px}
-.toast{
-  position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:200;
-  background:var(--ink);color:#fff;font-size:13px;border-radius:20px;padding:8px 18px;
-  opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;
-}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:200;background:var(--ink);color:#fff;font-size:13px;border-radius:20px;padding:8px 18px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:.94}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -185,7 +193,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 <body>
 
 <header>
-  <div class="app-title">学習OS<small>症例と計画</small></div>
+  <div class="app-title">Medicine OS<small>症例・計画・ノート・治療</small></div>
   <div class="header-spacer"></div>
   <div class="sync-status" id="syncStatus">未同期</div>
   <button class="icon-btn" id="syncBtn" onclick="syncNow()">⇅ 同期</button>
@@ -194,23 +202,35 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 
 <nav class="tabs">
   <button id="tabPlans" class="active" onclick="switchTab('plans')">計 画</button>
-  <button id="tabCases" onclick="switchTab('cases')">症例ライブラリ</button>
+  <button id="tabCases" onclick="switchTab('cases')">症 例</button>
+  <button id="tabNotes" onclick="switchTab('notes')">ノート</button>
+  <button id="tabTx" onclick="switchTab('tx')">治 療</button>
 </nav>
 
 <main>
   <!-- ===== plans ===== -->
   <section id="viewPlans">
+    <div class="cal">
+      <div class="cal-head">
+        <button class="cal-nav" onclick="calMove(-1)">◀</button>
+        <div class="title" id="calTitle"></div>
+        <button class="cal-nav" onclick="calMove(1)">▶</button>
+        <button class="cal-today-btn" onclick="calToday()">今日</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-day-panel" id="calDayPanel"></div>
+    </div>
     <div class="kanban">
-      <div class="kcol todo"><h3><span class="dot"></span>未着手 <span class="count" id="cntTodo"></span></h3><div id="colTodo"></div></div>
-      <div class="kcol doing"><h3><span class="dot"></span>進行中 <span class="count" id="cntDoing"></span></h3><div id="colDoing"></div></div>
-      <div class="kcol done"><h3><span class="dot"></span>完了 <span class="count" id="cntDone"></span></h3><div id="colDone"></div></div>
+      <div class="kcol todo"><h3><span class="dot"></span>To Do <span class="count" id="cntTodo"></span></h3><div id="colTodo"></div></div>
+      <div class="kcol doing"><h3><span class="dot"></span>In Progress <span class="count" id="cntDoing"></span></h3><div id="colDoing"></div></div>
+      <div class="kcol done"><h3><span class="dot"></span>Done <span class="count" id="cntDone"></span></h3><div id="colDone"></div></div>
     </div>
   </section>
 
   <!-- ===== cases ===== -->
   <section id="viewCases" style="display:none">
     <div class="filter-bar">
-      <input type="search" id="caseSearch" placeholder="検索(タイトル・要点・メモ)" oninput="renderCases()">
+      <input type="search" id="caseSearch" placeholder="検索(タイトル・ID・名前・要点・メモ)" oninput="renderCases()">
       <select id="caseCatFilter" onchange="renderCases()"><option value="">全カテゴリ</option></select>
       <select id="caseStatusFilter" onchange="renderCases()">
         <option value="">全状態</option>
@@ -222,9 +242,27 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
     <div class="tag-chips" id="tagChips"></div>
     <div class="case-grid" id="caseGrid"></div>
   </section>
+
+  <!-- ===== notes ===== -->
+  <section id="viewNotes" style="display:none">
+    <div class="filter-bar">
+      <input type="search" id="noteSearch" placeholder="ノートを検索" oninput="renderNotes()">
+    </div>
+    <div class="tag-chips" id="folderChips"></div>
+    <div class="case-grid" id="noteGrid"></div>
+  </section>
+
+  <!-- ===== treatments ===== -->
+  <section id="viewTx" style="display:none">
+    <div class="filter-bar">
+      <input type="search" id="txSearch" placeholder="治療・投薬を検索" oninput="renderTx()">
+    </div>
+    <div class="tag-chips" id="txChips"></div>
+    <div class="case-grid" id="txGrid"></div>
+  </section>
 </main>
 
-<button class="fab" id="fabBtn" onclick="fabClick()" aria-label="追加">＋</button>
+<button class="fab" onclick="fabClick()" aria-label="追加">＋</button>
 
 <!-- ===== plan modal ===== -->
 <div class="overlay" id="planOverlay">
@@ -240,7 +278,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
         <select id="pPriority"><option value="high">高</option><option value="mid" selected>中</option><option value="low">低</option></select>
       </div>
       <div class="form-row"><label>状態</label>
-        <select id="pStatus"><option value="todo">未着手</option><option value="doing">進行中</option><option value="done">完了</option></select>
+        <select id="pStatus"><option value="todo">To Do</option><option value="doing">In Progress</option><option value="done">Done</option></select>
       </div>
     </div>
     <div class="form-row"><label>手順メモ(何をどの順で)</label><textarea id="pSteps" placeholder="1. ガイドライン確認&#10;2. 主要試験の原著&#10;3. 自験例と照合"></textarea></div>
@@ -259,7 +297,12 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
     <h3 id="caseModalTitle">症例カードを追加</h3>
     <div class="form-row"><label>タイトル</label><input type="text" id="cTitle" placeholder="例:食道狭窄合併NSCLCへのtepotinib投与"></div>
     <div class="form-grid">
-      <div class="form-row"><label>疾患カテゴリ</label><input type="text" id="cCategory" list="catList" placeholder="NSCLC / ILD / 感染症 …"><datalist id="catList"></datalist></div>
+      <div class="form-row"><label>患者ID</label><input type="text" id="cPid" placeholder="院内IDなど"></div>
+      <div class="form-row"><label>患者名</label><input type="text" id="cPname" placeholder="イニシャル推奨"></div>
+    </div>
+    <div class="hint" style="margin:-6px 0 10px">⚠ 外部に出ても個人が特定されない形(院内ID・イニシャル)での記載を推奨します</div>
+    <div class="form-grid">
+      <div class="form-row"><label>疾患カテゴリ</label><select id="cCategory"></select><div class="hint">カテゴリの追加・削除は⚙設定から</div></div>
       <div class="form-row"><label>状態</label>
         <select id="cStatus"><option value="studying">勉強中</option><option value="summarized">まとめ済</option><option value="teachable">教えられる</option></select>
       </div>
@@ -267,8 +310,11 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
     <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="cTags" placeholder="薬剤選択, MET, 嚥下障害"></div>
     <div class="form-row"><label>学びの要点(1〜2行)</label><input type="text" id="cPoint" placeholder="このカードの核心を一言で"></div>
     <div class="form-row"><label>詳細メモ(簡易Markdown可)</label>
-      <textarea id="cMemo" style="min-height:150px" placeholder="## 背景&#10;- 箇条書き&#10;**強調** [リンク](https://...)"></textarea>
-      <div class="hint">## 見出し / - 箇条書き / **太字** / [表示名](URL) が使えます</div>
+      <textarea id="cMemo" style="min-height:130px" placeholder="## 背景&#10;- 箇条書き&#10;**強調** [リンク](https://...)"></textarea>
+      <div class="hint">## 見出し / - 箇条書き / **太字** / [表示名](URL)</div>
+    </div>
+    <div class="form-row"><label>IC記録(日付とともに)</label>
+      <textarea id="cIc" style="min-height:80px" placeholder="2026-07-16 本人・妻同席。病状と治療選択肢(A/B)を説明、Bを選択。&#10;2026-07-20 …"></textarea>
     </div>
     <div class="form-row"><label>関連文献リンク(1行1URL)</label><textarea id="cLinks" style="min-height:56px" placeholder="https://pubmed.ncbi.nlm.nih.gov/..."></textarea></div>
     <div class="form-row"><label>関連する計画</label><select id="cPlanLink"><option value="">(なし)</option></select></div>
@@ -281,7 +327,49 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
   </div>
 </div>
 
-<!-- ===== case detail modal ===== -->
+<!-- ===== note edit modal ===== -->
+<div class="overlay" id="noteOverlay">
+  <div class="modal">
+    <h3 id="noteModalTitle">ノートを追加</h3>
+    <div class="form-grid">
+      <div class="form-row"><label>フォルダ</label><input type="text" id="nFolder" list="folderList" placeholder="例:呼吸器腫瘍 / 感染症 / 学会メモ"><datalist id="folderList"></datalist></div>
+      <div class="form-row"><label>タイトル</label><input type="text" id="nTitle" placeholder="ノートのタイトル"></div>
+    </div>
+    <div class="form-row"><label>本文(簡易Markdown可)</label>
+      <textarea id="nBody" style="min-height:220px" placeholder="## 見出し&#10;- 学んだこと&#10;**重要ポイント**"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn danger" id="nDeleteBtn" onclick="deleteNote()" style="display:none">削除</button>
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('noteOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="saveNote()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== treatment edit modal ===== -->
+<div class="overlay" id="txOverlay">
+  <div class="modal">
+    <h3 id="txModalTitle">治療・投薬を追加</h3>
+    <div class="form-row"><label>シチュエーション</label><input type="text" id="tTitle" placeholder="例:市中肺炎(中等症・入院) / 気管支喘息発作(中発作)"></div>
+    <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="tTags" placeholder="肺炎, 抗菌薬, 救急"></div>
+    <div class="form-row"><label>投薬(1行1剤: 薬剤名 | 用量 | 単位 | 投与方法 | 備考)</label>
+      <textarea id="tDoses" style="min-height:110px" placeholder="スルバクタム/アンピシリン | 3g | 固定 | 1日4回 点滴静注 | 腎機能で調整&#10;プレドニゾロン | 0.5 | mg/kg | 1日1回 経口 | 体重で自動計算"></textarea>
+      <div class="hint">単位を「mg/kg」「g/kg」「mL/kg」「単位/kg」にすると体重から自動計算されます。固定用量は単位欄に「固定」</div>
+    </div>
+    <div class="form-row"><label>詳細メモ(簡易Markdown可)</label>
+      <textarea id="tBody" style="min-height:130px" placeholder="## 適応&#10;- 条件&#10;## 注意&#10;- 腎機能、アレルギー歴 など"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn danger" id="tDeleteBtn" onclick="deleteTx()" style="display:none">削除</button>
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('txOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="saveTx()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== detail modal (shared) ===== -->
 <div class="overlay" id="detailOverlay">
   <div class="modal" id="detailBody"></div>
 </div>
@@ -295,9 +383,18 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
       <input type="url" id="gasUrl" placeholder="https://script.google.com/macros/s/…/exec">
       <div class="hint">空欄のままでも端末内(localStorage)だけで動作します</div>
     </div>
+    <div class="form-row">
+      <label>疾患カテゴリの管理</label>
+      <div class="cat-add-row">
+        <input type="text" id="newCat" placeholder="新しいカテゴリ名">
+        <button class="btn" onclick="addCategory()">追加</button>
+      </div>
+      <div class="cat-list" id="catList"></div>
+      <div class="hint">削除しても既存の症例カードのカテゴリは消えません(表示は残ります)</div>
+    </div>
     <div class="modal-actions">
       <div class="spacer"></div>
-      <button class="btn" onclick="closeOverlay('settingsOverlay')">キャンセル</button>
+      <button class="btn" onclick="closeOverlay('settingsOverlay')">閉じる</button>
       <button class="btn primary" onclick="saveSettings()">保存</button>
     </div>
   </div>
@@ -308,306 +405,361 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 <script>
 'use strict';
 /* =========================================================
-   学習OS v1 — 症例ライブラリ + 学習計画
-   構成: localStorage 永続化 + GAS 同期(updatedAt 新しい方優先)
+   Medicine OS v2 — 計画(カレンダー) / 症例(IC記録) / ノート / 治療(投与量計算)
+   localStorage + GAS同期(updatedAt新しい方優先, ソフトデリート)
 ========================================================= */
-const LS_KEY = 'studyos_v1';
+const LS_KEY = 'studyos_v1'; // 既存データ引き継ぎのためキーは変更しない
 const STATUS_LABEL = {studying:'勉強中', summarized:'まとめ済', teachable:'教えられる'};
 const PLAN_STATUS = ['todo','doing','done'];
+const PLAN_STATUS_LABEL = {todo:'To Do', doing:'In Progress', done:'Done'};
+const WD = ['日','月','火','水','木','金','土'];
 
-let state = { cases: [], plans: [], settings: { gasUrl: '', lastSync: null } };
+let state = { cases:[], plans:[], notes:[], treatments:[], meta:[], settings:{ gasUrl:'', lastSync:null, lastWeight:'' } };
 let activeTab = 'plans';
-let editingPlanId = null;
-let editingCaseId = null;
-let activeTags = new Set();
+let editingPlanId=null, editingCaseId=null, editingNoteId=null, editingTxId=null;
+let activeTags=new Set(), activeFolder='', activeTxTags=new Set();
+let calBase = new Date(); calBase.setDate(1);
+let calSelected = '';
 
 /* ---------- utils ---------- */
 const $ = id => document.getElementById(id);
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const now = () => new Date().toISOString();
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 
 function toast(msg){
-  const t = $('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._h);
-  t._h = setTimeout(() => t.classList.remove('show'), 2200);
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200);
 }
 function loadState(){
   try{
     const raw = localStorage.getItem(LS_KEY);
-    if(raw){ const s = JSON.parse(raw); state = Object.assign(state, s); }
-  }catch(e){ console.warn('load failed', e); }
+    if(raw){ const s=JSON.parse(raw); state=Object.assign(state,s); }
+  }catch(e){ console.warn(e); }
+  for(const k of ['cases','plans','notes','treatments','meta']) if(!Array.isArray(state[k])) state[k]=[];
+  if(!state.settings) state.settings={gasUrl:'',lastSync:null,lastWeight:''};
 }
 function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
-function liveCases(){ return state.cases.filter(c => !c.deleted); }
-function livePlans(){ return state.plans.filter(p => !p.deleted); }
+const live = arr => arr.filter(x => !x.deleted);
+const liveCases = () => live(state.cases);
+const livePlans = () => live(state.plans);
+const liveNotes = () => live(state.notes);
+const liveTx    = () => live(state.treatments);
+
+/* ---------- categories (meta, synced) ---------- */
+function catRecord(){
+  let r = state.meta.find(m => m.id === 'categories');
+  if(!r){ r = { id:'categories', list:[], updatedAt: now() }; state.meta.push(r); }
+  if(!Array.isArray(r.list)) r.list = [];
+  return r;
+}
+function getCategories(){
+  const set = new Set(catRecord().list);
+  liveCases().forEach(c => { if(c.category) set.add(c.category); });
+  return [...set].sort((a,b)=>a.localeCompare(b,'ja'));
+}
+function addCategory(){
+  const v = $('newCat').value.trim();
+  if(!v) return;
+  const r = catRecord();
+  if(r.list.includes(v)){ toast('既にあります'); return; }
+  r.list.push(v); r.updatedAt = now();
+  $('newCat').value=''; saveState(); renderCatList(); toast('カテゴリを追加しました');
+}
+function removeCategory(i){
+  const r = catRecord();
+  r.list.splice(i,1); r.updatedAt = now();
+  saveState(); renderCatList();
+}
+function renderCatList(){
+  $('catList').innerHTML = catRecord().list.map((c,i) =>
+    `<span class="cat-item">${esc(c)}<button onclick="removeCategory(${i})" title="削除">×</button></span>`).join('')
+    || '<span class="hint">まだカテゴリがありません</span>';
+}
 
 /* ---------- simple markdown ---------- */
 function md(src){
-  const lines = esc(src || '').split(/\r?\n/);
-  let html = '', inUl = false;
+  const lines = esc(src||'').split(/\r?\n/);
+  let html='', inUl=false;
   const inline = s => s
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
   for(const line of lines){
-    const t = line.trim();
-    if(/^[-*] /.test(t)){
-      if(!inUl){ html += '<ul>'; inUl = true; }
-      html += '<li>' + inline(t.slice(2)) + '</li>';
-      continue;
-    }
-    if(inUl){ html += '</ul>'; inUl = false; }
-    if(/^### /.test(t)) html += '<h5>' + inline(t.slice(4)) + '</h5>';
-    else if(/^## /.test(t)) html += '<h4>' + inline(t.slice(3)) + '</h4>';
-    else if(t === '') html += '';
-    else html += '<p>' + inline(t) + '</p>';
+    const t=line.trim();
+    if(/^[-*] /.test(t)){ if(!inUl){html+='<ul>';inUl=true;} html+='<li>'+inline(t.slice(2))+'</li>'; continue; }
+    if(inUl){html+='</ul>';inUl=false;}
+    if(/^### /.test(t)) html+='<h5>'+inline(t.slice(4))+'</h5>';
+    else if(/^## /.test(t)) html+='<h4>'+inline(t.slice(3))+'</h4>';
+    else if(t==='') html+='';
+    else html+='<p>'+inline(t)+'</p>';
   }
-  if(inUl) html += '</ul>';
+  if(inUl) html+='</ul>';
   return html;
 }
 
 /* ---------- tabs ---------- */
 function switchTab(tab){
-  activeTab = tab;
-  $('tabPlans').classList.toggle('active', tab === 'plans');
-  $('tabCases').classList.toggle('active', tab === 'cases');
-  $('viewPlans').style.display = tab === 'plans' ? '' : 'none';
-  $('viewCases').style.display = tab === 'cases' ? '' : 'none';
+  activeTab=tab;
+  for(const [id,t] of [['tabPlans','plans'],['tabCases','cases'],['tabNotes','notes'],['tabTx','tx']])
+    $(id).classList.toggle('active', tab===t);
+  $('viewPlans').style.display = tab==='plans'?'':'none';
+  $('viewCases').style.display = tab==='cases'?'':'none';
+  $('viewNotes').style.display = tab==='notes'?'':'none';
+  $('viewTx').style.display    = tab==='tx'?'':'none';
   render();
 }
-function fabClick(){ activeTab === 'plans' ? openPlanModal() : openCaseModal(); }
+function fabClick(){
+  if(activeTab==='plans') openPlanModal();
+  else if(activeTab==='cases') openCaseModal();
+  else if(activeTab==='notes') openNoteModal();
+  else openTxModal();
+}
 
-/* ---------- render: plans ---------- */
-function planBadges(p){
-  let h = '';
-  h += p.motive === 'deadline'
-    ? '<span class="badge deadline">期日</span>'
-    : '<span class="badge interest">興味</span>';
-  if(p.priority === 'high') h += '<span class="badge pri-high">優先度 高</span>';
-  else if(p.priority === 'low') h += '<span class="badge">優先度 低</span>';
-  if(p.due){
-    const days = Math.ceil((new Date(p.due) - new Date()) / 86400000);
-    const label = esc(p.due.slice(5).replace('-','/')) + (days >= 0 ? `(あと${days}日)` : '(超過)');
-    h += `<span class="badge ${days <= 14 ? 'due-near' : ''}">締切 ${label}</span>`;
+/* ---------- calendar ---------- */
+function fmtDue(due){
+  const d = new Date(due+'T00:00:00');
+  return (d.getMonth()+1)+'/'+d.getDate()+'('+WD[d.getDay()]+')';
+}
+function calMove(n){ calBase.setMonth(calBase.getMonth()+n); calSelected=''; renderCalendar(); }
+function calToday(){ calBase=new Date(); calBase.setDate(1); calSelected=todayStr(); renderCalendar(); }
+function calSelect(dateStr){
+  calSelected = (calSelected===dateStr) ? '' : dateStr;
+  renderCalendar();
+}
+function renderCalendar(){
+  const y=calBase.getFullYear(), m=calBase.getMonth();
+  $('calTitle').textContent = y+'年 '+(m+1)+'月';
+  const dues = {};
+  livePlans().forEach(p => { if(p.due) (dues[p.due]=dues[p.due]||[]).push(p); });
+  const first = new Date(y,m,1).getDay();
+  const dim = new Date(y,m+1,0).getDate();
+  const dimPrev = new Date(y,m,0).getDate();
+  const today = todayStr();
+  let cells = WD.map((w,i)=>`<div class="cal-wd ${i===0?'sun':i===6?'sat':''}">${w}</div>`).join('');
+  const total = Math.ceil((first+dim)/7)*7;
+  for(let i=0;i<total;i++){
+    const dayNum = i-first+1;
+    let cy=y, cm=m, cd=dayNum, other='';
+    if(dayNum<1){ other='other'; cm=m-1; cd=dimPrev+dayNum; }
+    else if(dayNum>dim){ other='other'; cm=m+1; cd=dayNum-dim; }
+    const dt = new Date(cy,cm,cd);
+    const ds = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+    const list = dues[ds]||[];
+    const dots = list.slice(0,4).map(p=>{
+      const cls = p.status==='done' ? 'done' : (ds<today ? 'overdue' : 'open');
+      return `<i class="${cls}"></i>`;
+    }).join('');
+    cells += `<div class="cal-cell ${other} ${ds===today?'today':''} ${ds===calSelected?'selected':''}" onclick="calSelect('${ds}')">
+      <span class="num">${cd}</span><span class="cal-dots">${dots}</span></div>`;
   }
+  $('calGrid').innerHTML = cells;
+  // day panel
+  const panel = $('calDayPanel');
+  if(calSelected && (dues[calSelected]||[]).length){
+    panel.classList.add('open');
+    panel.innerHTML = `<div class="dp-title">📅 ${fmtDue(calSelected)} 期日の計画</div>` +
+      dues[calSelected].map(p =>
+        `<div class="dp-item" onclick="openPlanModal('${p.id}')">
+           <span class="st ${esc(p.status)}">${PLAN_STATUS_LABEL[p.status]||''}</span>
+           <span>${esc(p.theme)}</span></div>`).join('');
+  }else if(calSelected){
+    panel.classList.add('open');
+    panel.innerHTML = `<div class="dp-title">📅 ${fmtDue(calSelected)} — 期日の計画はありません</div>`;
+  }else{
+    panel.classList.remove('open'); panel.innerHTML='';
+  }
+}
+
+/* ---------- plans ---------- */
+function dueRow(p){
+  if(!p.due) return '';
+  const days = Math.ceil((new Date(p.due+'T00:00:00') - new Date(todayStr()+'T00:00:00'))/86400000);
+  let left;
+  if(p.status==='done') left = '<span class="left">完了</span>';
+  else if(days<0) left = `<span class="left over">${-days}日超過</span>`;
+  else if(days===0) left = '<span class="left near">今日</span>';
+  else if(days<=14) left = `<span class="left near">あと${days}日</span>`;
+  else left = `<span class="left">あと${days}日</span>`;
+  return `<div class="due-row">📅 <span class="date">${fmtDue(p.due)}</span>${left}</div>`;
+}
+function planBadges(p){
+  let h = p.motive==='deadline' ? '<span class="badge deadline">期日</span>' : '<span class="badge interest">興味</span>';
+  if(p.priority==='high') h+='<span class="badge pri-high">優先度 高</span>';
+  else if(p.priority==='low') h+='<span class="badge">優先度 低</span>';
   return h;
 }
 function renderPlans(){
-  const cols = { todo: [], doing: [], done: [] };
-  const plans = livePlans().slice().sort((a, b) => {
-    const pr = { high: 0, mid: 1, low: 2 };
-    const d = (pr[a.priority] ?? 1) - (pr[b.priority] ?? 1);
-    if(d) return d;
-    return (a.due || '9999') < (b.due || '9999') ? -1 : 1;
+  renderCalendar();
+  const cols={todo:[],doing:[],done:[]};
+  const plans = livePlans().slice().sort((a,b)=>{
+    const da=a.due||'9999', db_=b.due||'9999';
+    if(da!==db_) return da<db_?-1:1;
+    const pr={high:0,mid:1,low:2};
+    return (pr[a.priority]??1)-(pr[b.priority]??1);
   });
   for(const p of plans){
-    const linked = (p.caseIds || []).filter(id => state.cases.some(c => c.id === id && !c.deleted));
-    const html = `
+    const linked=(p.caseIds||[]).filter(id=>state.cases.some(c=>c.id===id&&!c.deleted));
+    cols[PLAN_STATUS.includes(p.status)?p.status:'todo'].push(`
     <div class="plan-card">
       <div class="theme">${esc(p.theme)}</div>
+      ${dueRow(p)}
       <div class="badges">${planBadges(p)}</div>
-      ${p.steps ? `<div class="steps">${esc(p.steps)}</div>` : ''}
+      ${p.steps?`<div class="steps">${esc(p.steps)}</div>`:''}
       <div class="foot">
-        <span class="linked">${linked.length ? '📎 症例 ' + linked.length + '件' : ''}</span>
-        <select class="status-sel" onchange="quickStatus('${p.id}', this.value)">
-          ${PLAN_STATUS.map(s => `<option value="${s}" ${p.status === s ? 'selected' : ''}>${{todo:'未着手',doing:'進行中',done:'完了'}[s]}</option>`).join('')}
+        <span class="linked">${linked.length?'📎 症例 '+linked.length+'件':''}</span>
+        <select class="status-sel" onchange="quickStatus('${p.id}',this.value)">
+          ${PLAN_STATUS.map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${PLAN_STATUS_LABEL[s]}</option>`).join('')}
         </select>
         <button class="mini-btn" onclick="openPlanModal('${p.id}')">編集</button>
-        <button class="mini-btn shu" onclick="openCaseModal(null, '${p.id}')">＋症例</button>
+        <button class="mini-btn shu" onclick="openCaseModal(null,'${p.id}')">＋症例</button>
       </div>
-    </div>`;
-    cols[PLAN_STATUS.includes(p.status) ? p.status : 'todo'].push(html);
+    </div>`);
   }
-  $('colTodo').innerHTML  = cols.todo.join('')  || '<div class="empty">計画はまだありません。＋で追加。</div>';
-  $('colDoing').innerHTML = cols.doing.join('') || '<div class="empty">—</div>';
-  $('colDone').innerHTML  = cols.done.join('')  || '<div class="empty">—</div>';
-  $('cntTodo').textContent  = cols.todo.length  || '';
-  $('cntDoing').textContent = cols.doing.length || '';
-  $('cntDone').textContent  = cols.done.length  || '';
+  $('colTodo').innerHTML=cols.todo.join('')||'<div class="empty">計画はまだありません。＋で追加。</div>';
+  $('colDoing').innerHTML=cols.doing.join('')||'<div class="empty">—</div>';
+  $('colDone').innerHTML=cols.done.join('')||'<div class="empty">—</div>';
+  $('cntTodo').textContent=cols.todo.length||'';
+  $('cntDoing').textContent=cols.doing.length||'';
+  $('cntDone').textContent=cols.done.length||'';
 }
-function quickStatus(id, status){
-  const p = state.plans.find(x => x.id === id);
-  if(!p) return;
-  p.status = status; p.updatedAt = now();
+function quickStatus(id,status){
+  const p=state.plans.find(x=>x.id===id); if(!p) return;
+  p.status=status; p.updatedAt=now();
   saveState(); renderPlans();
 }
-
-/* ---------- render: cases ---------- */
-function allTags(){
-  const set = new Set();
-  liveCases().forEach(c => (c.tags || []).forEach(t => set.add(t)));
-  return [...set].sort((a, b) => a.localeCompare(b, 'ja'));
-}
-function allCategories(){
-  const set = new Set();
-  liveCases().forEach(c => { if(c.category) set.add(c.category); });
-  return [...set].sort((a, b) => a.localeCompare(b, 'ja'));
-}
-function renderCases(){
-  // category filter options
-  const cat = $('caseCatFilter');
-  const curCat = cat.value;
-  cat.innerHTML = '<option value="">全カテゴリ</option>' +
-    allCategories().map(c => `<option ${c === curCat ? 'selected' : ''}>${esc(c)}</option>`).join('');
-
-  // tag chips
-  const tags = allTags();
-  window._tagList = tags;
-  activeTags = new Set([...activeTags].filter(t => tags.includes(t)));
-  $('tagChips').innerHTML = tags.map((t, i) =>
-    `<button class="chip ${activeTags.has(t) ? 'on' : ''}" onclick="toggleTag(${i})">${esc(t)}</button>`).join('');
-
-  const q = $('caseSearch').value.trim().toLowerCase();
-  const st = $('caseStatusFilter').value;
-  const list = liveCases().filter(c => {
-    if(curCat && c.category !== curCat) return false;
-    if(st && c.status !== st) return false;
-    if(activeTags.size && ![...activeTags].every(t => (c.tags || []).includes(t))) return false;
-    if(q){
-      const hay = [c.title, c.point, c.memo, (c.tags || []).join(' '), c.category].join(' ').toLowerCase();
-      if(!hay.includes(q)) return false;
-    }
-    return true;
-  }).sort((a, b) => (b.updatedAt || '') > (a.updatedAt || '') ? 1 : -1);
-
-  $('caseGrid').innerHTML = list.map(c => `
-    <div class="case-card" onclick="openDetail('${c.id}')">
-      <div class="stamp ${esc(c.status)}">${STATUS_LABEL[c.status] || ''}</div>
-      ${c.category ? `<div class="cat">${esc(c.category)}</div>` : ''}
-      <div class="title">${esc(c.title)}</div>
-      ${c.point ? `<div class="point">${esc(c.point)}</div>` : ''}
-      <div class="tags">${(c.tags || []).map(t => `<span>${esc(t)}</span>`).join('')}</div>
-    </div>`).join('') || '<div class="empty">症例カードはまだありません。＋で追加。</div>';
-}
-function toggleTag(i){
-  const t = (window._tagList || [])[i];
-  if(t === undefined) return;
-  activeTags.has(t) ? activeTags.delete(t) : activeTags.add(t);
-  renderCases();
-}
-
-/* ---------- plan modal ---------- */
 function openPlanModal(id){
-  editingPlanId = id || null;
-  const p = id ? state.plans.find(x => x.id === id) : null;
-  $('planModalTitle').textContent = p ? '計画を編集' : '計画を追加';
-  $('pTheme').value = p?.theme || '';
-  $('pMotive').value = p?.motive || 'interest';
-  $('pDue').value = p?.due || '';
-  $('pPriority').value = p?.priority || 'mid';
-  $('pStatus').value = p?.status || 'todo';
-  $('pSteps').value = p?.steps || '';
-  $('pDeleteBtn').style.display = p ? '' : 'none';
+  editingPlanId=id||null;
+  const p=id?state.plans.find(x=>x.id===id):null;
+  $('planModalTitle').textContent=p?'計画を編集':'計画を追加';
+  $('pTheme').value=p?.theme||''; $('pMotive').value=p?.motive||'interest';
+  $('pDue').value=p?.due||''; $('pPriority').value=p?.priority||'mid';
+  $('pStatus').value=p?.status||'todo'; $('pSteps').value=p?.steps||'';
+  $('pDeleteBtn').style.display=p?'':'none';
   $('planOverlay').classList.add('open');
 }
 function savePlan(){
-  const theme = $('pTheme').value.trim();
+  const theme=$('pTheme').value.trim();
   if(!theme){ toast('テーマ名を入力してください'); return; }
-  const data = {
-    theme,
-    motive: $('pMotive').value,
-    due: $('pDue').value || '',
-    priority: $('pPriority').value,
-    status: $('pStatus').value,
-    steps: $('pSteps').value.trim(),
-    updatedAt: now()
-  };
-  if(editingPlanId){
-    Object.assign(state.plans.find(x => x.id === editingPlanId), data);
-  }else{
-    state.plans.push(Object.assign({ id: uid(), caseIds: [], createdAt: now(), deleted: false }, data));
-  }
+  const data={theme,motive:$('pMotive').value,due:$('pDue').value||'',priority:$('pPriority').value,status:$('pStatus').value,steps:$('pSteps').value.trim(),updatedAt:now()};
+  if(editingPlanId) Object.assign(state.plans.find(x=>x.id===editingPlanId),data);
+  else state.plans.push(Object.assign({id:uid(),caseIds:[],createdAt:now(),deleted:false},data));
   saveState(); closeOverlay('planOverlay'); renderPlans(); toast('保存しました');
 }
 function deletePlan(){
-  if(!editingPlanId || !confirm('この計画を削除しますか?')) return;
-  const p = state.plans.find(x => x.id === editingPlanId);
-  p.deleted = true; p.updatedAt = now();
+  if(!editingPlanId||!confirm('この計画を削除しますか?')) return;
+  const p=state.plans.find(x=>x.id===editingPlanId);
+  p.deleted=true; p.updatedAt=now();
   saveState(); closeOverlay('planOverlay'); renderPlans(); toast('削除しました');
 }
 
-/* ---------- case modal ---------- */
-function openCaseModal(id, presetPlanId){
-  editingCaseId = id || null;
-  const c = id ? state.cases.find(x => x.id === id) : null;
-  $('caseModalTitle').textContent = c ? '症例カードを編集' : '症例カードを追加';
-  $('cTitle').value = c?.title || '';
-  $('cCategory').value = c?.category || '';
-  $('cStatus').value = c?.status || 'studying';
-  $('cTags').value = (c?.tags || []).join(', ');
-  $('cPoint').value = c?.point || '';
-  $('cMemo').value = c?.memo || '';
-  $('cLinks').value = (c?.links || []).join('\n');
-  $('catList').innerHTML = allCategories().map(x => `<option value="${esc(x)}">`).join('');
-
-  // plan link select
-  const sel = $('cPlanLink');
-  const linkedPlan = c ? livePlans().find(p => (p.caseIds || []).includes(c.id)) : null;
-  const preId = presetPlanId || linkedPlan?.id || '';
-  sel.innerHTML = '<option value="">(なし)</option>' +
-    livePlans().map(p => `<option value="${p.id}" ${p.id === preId ? 'selected' : ''}>${esc(p.theme)}</option>`).join('');
-
-  $('cDeleteBtn').style.display = c ? '' : 'none';
+/* ---------- cases ---------- */
+function allTags(){
+  const s=new Set(); liveCases().forEach(c=>(c.tags||[]).forEach(t=>s.add(t)));
+  return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
+}
+function renderCases(){
+  const cat=$('caseCatFilter'); const cur=cat.value;
+  cat.innerHTML='<option value="">全カテゴリ</option>'+getCategories().map(c=>`<option ${c===cur?'selected':''}>${esc(c)}</option>`).join('');
+  const tags=allTags(); window._tagList=tags;
+  activeTags=new Set([...activeTags].filter(t=>tags.includes(t)));
+  $('tagChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeTags.has(t)?'on':''}" onclick="toggleTag(${i})">${esc(t)}</button>`).join('');
+  const q=$('caseSearch').value.trim().toLowerCase();
+  const st=$('caseStatusFilter').value;
+  const list=liveCases().filter(c=>{
+    if(cur&&c.category!==cur) return false;
+    if(st&&c.status!==st) return false;
+    if(activeTags.size&&![...activeTags].every(t=>(c.tags||[]).includes(t))) return false;
+    if(q){
+      const hay=[c.title,c.point,c.memo,c.pid,c.pname,c.ic,(c.tags||[]).join(' '),c.category].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b)=>(b.updatedAt||'')>(a.updatedAt||'')?1:-1);
+  $('caseGrid').innerHTML=list.map(c=>`
+    <div class="case-card" onclick="openCaseDetail('${c.id}')">
+      <div class="stamp ${esc(c.status)}">${STATUS_LABEL[c.status]||''}</div>
+      ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
+      <div class="title">${esc(c.title)}</div>
+      ${(c.pid||c.pname)?`<div class="pid">🪪 ${esc(c.pid||'')}${c.pid&&c.pname?' / ':''}${esc(c.pname||'')}</div>`:''}
+      ${c.point?`<div class="point">${esc(c.point)}</div>`:''}
+      <div class="tags">${(c.tags||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div>
+    </div>`).join('')||'<div class="empty">症例カードはまだありません。＋で追加。</div>';
+}
+function toggleTag(i){
+  const t=(window._tagList||[])[i]; if(t===undefined) return;
+  activeTags.has(t)?activeTags.delete(t):activeTags.add(t);
+  renderCases();
+}
+function openCaseModal(id,presetPlanId){
+  editingCaseId=id||null;
+  const c=id?state.cases.find(x=>x.id===id):null;
+  $('caseModalTitle').textContent=c?'症例カードを編集':'症例カードを追加';
+  $('cTitle').value=c?.title||''; $('cPid').value=c?.pid||''; $('cPname').value=c?.pname||'';
+  $('cStatus').value=c?.status||'studying';
+  $('cTags').value=(c?.tags||[]).join(', ');
+  $('cPoint').value=c?.point||''; $('cMemo').value=c?.memo||''; $('cIc').value=c?.ic||'';
+  $('cLinks').value=(c?.links||[]).join('\n');
+  const cats=getCategories();
+  const curCat=c?.category||'';
+  $('cCategory').innerHTML='<option value="">(未分類)</option>'+
+    cats.map(x=>`<option ${x===curCat?'selected':''}>${esc(x)}</option>`).join('')+
+    (curCat&&!cats.includes(curCat)?`<option selected>${esc(curCat)}</option>`:'');
+  const sel=$('cPlanLink');
+  const linkedPlan=c?livePlans().find(p=>(p.caseIds||[]).includes(c.id)):null;
+  const preId=presetPlanId||linkedPlan?.id||'';
+  sel.innerHTML='<option value="">(なし)</option>'+livePlans().map(p=>`<option value="${p.id}" ${p.id===preId?'selected':''}>${esc(p.theme)}</option>`).join('');
+  $('cDeleteBtn').style.display=c?'':'none';
   closeOverlay('detailOverlay');
   $('caseOverlay').classList.add('open');
 }
 function saveCase(){
-  const title = $('cTitle').value.trim();
+  const title=$('cTitle').value.trim();
   if(!title){ toast('タイトルを入力してください'); return; }
-  const data = {
-    title,
-    category: $('cCategory').value.trim(),
-    status: $('cStatus').value,
-    tags: $('cTags').value.split(/[,、，]/).map(s => s.trim()).filter(Boolean),
-    point: $('cPoint').value.trim(),
-    memo: $('cMemo').value,
-    links: $('cLinks').value.split(/\n/).map(s => s.trim()).filter(Boolean),
-    updatedAt: now()
+  const data={
+    title, pid:$('cPid').value.trim(), pname:$('cPname').value.trim(),
+    category:$('cCategory').value, status:$('cStatus').value,
+    tags:$('cTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
+    point:$('cPoint').value.trim(), memo:$('cMemo').value, ic:$('cIc').value,
+    links:$('cLinks').value.split(/\n/).map(s=>s.trim()).filter(Boolean),
+    updatedAt:now()
   };
-  let caseId = editingCaseId;
-  if(editingCaseId){
-    Object.assign(state.cases.find(x => x.id === editingCaseId), data);
-  }else{
-    caseId = uid();
-    state.cases.push(Object.assign({ id: caseId, createdAt: now(), deleted: false }, data));
-  }
-  // plan link (single-select: remove from others, add to chosen)
-  const planId = $('cPlanLink').value;
+  let caseId=editingCaseId;
+  if(editingCaseId) Object.assign(state.cases.find(x=>x.id===editingCaseId),data);
+  else{ caseId=uid(); state.cases.push(Object.assign({id:caseId,createdAt:now(),deleted:false},data)); }
+  const planId=$('cPlanLink').value;
   for(const p of state.plans){
-    const has = (p.caseIds || []).includes(caseId);
-    if(p.id === planId && !has){ (p.caseIds = p.caseIds || []).push(caseId); p.updatedAt = now(); }
-    if(p.id !== planId && has){ p.caseIds = p.caseIds.filter(x => x !== caseId); p.updatedAt = now(); }
+    const has=(p.caseIds||[]).includes(caseId);
+    if(p.id===planId&&!has){ (p.caseIds=p.caseIds||[]).push(caseId); p.updatedAt=now(); }
+    if(p.id!==planId&&has){ p.caseIds=p.caseIds.filter(x=>x!==caseId); p.updatedAt=now(); }
   }
   saveState(); closeOverlay('caseOverlay'); render(); toast('保存しました');
 }
 function deleteCase(){
-  if(!editingCaseId || !confirm('この症例カードを削除しますか?')) return;
-  const c = state.cases.find(x => x.id === editingCaseId);
-  c.deleted = true; c.updatedAt = now();
+  if(!editingCaseId||!confirm('この症例カードを削除しますか?')) return;
+  const c=state.cases.find(x=>x.id===editingCaseId);
+  c.deleted=true; c.updatedAt=now();
   saveState(); closeOverlay('caseOverlay'); render(); toast('削除しました');
 }
-
-/* ---------- case detail ---------- */
-function openDetail(id){
-  const c = state.cases.find(x => x.id === id);
-  if(!c) return;
-  const plans = livePlans().filter(p => (p.caseIds || []).includes(id));
-  $('detailBody').innerHTML = `
+function openCaseDetail(id){
+  const c=state.cases.find(x=>x.id===id); if(!c) return;
+  const plans=livePlans().filter(p=>(p.caseIds||[]).includes(id));
+  $('detailBody').innerHTML=`
     <div class="detail-head">
       <div class="t">
-        ${c.category ? `<div class="cat">${esc(c.category)}</div>` : ''}
+        ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
         <h3>${esc(c.title)}</h3>
-        <div class="tags" style="display:flex;flex-wrap:wrap;gap:4px">${(c.tags || []).map(t => `<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(t)}</span>`).join('')}</div>
+        ${(c.pid||c.pname)?`<div style="font-size:12.5px;color:var(--ink-soft)">🪪 ID: ${esc(c.pid||'—')} ／ ${esc(c.pname||'—')}</div>`:''}
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(c.tags||[]).map(t=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(t)}</span>`).join('')}</div>
       </div>
-      <div class="stamp detail-stamp ${esc(c.status)}">${STATUS_LABEL[c.status] || ''}</div>
+      <div class="stamp detail-stamp ${esc(c.status)}">${STATUS_LABEL[c.status]||''}</div>
     </div>
-    ${c.point ? `<p style="font-weight:700;font-size:14px">${esc(c.point)}</p>` : ''}
+    ${c.point?`<p style="font-weight:700;font-size:14px">${esc(c.point)}</p>`:''}
     <div class="md">${md(c.memo)}</div>
-    ${(c.links || []).length ? '<div class="form-row"><label>文献</label>' + c.links.map(u => `<div style="font-size:13px;overflow-wrap:anywhere">🔗 <a href="${esc(u)}" target="_blank" rel="noopener" style="color:var(--pine)">${esc(u)}</a></div>`).join('') + '</div>' : ''}
-    ${plans.length ? `<div class="linked-plans"><label style="font-size:12px;font-weight:700;color:var(--ink-soft)">関連する計画</label><br>${plans.map(p => `<span>${esc(p.theme)}</span>`).join('')}</div>` : ''}
-    <div class="detail-meta">作成 ${esc((c.createdAt || '').slice(0,10))} ／ 更新 ${esc((c.updatedAt || '').slice(0,10))}</div>
+    ${c.ic?`<div class="sec-label">🖋 IC記録</div><div class="md">${md(c.ic)}</div>`:''}
+    ${(c.links||[]).length?'<div class="sec-label">文献</div>'+c.links.map(u=>`<div style="font-size:13px;overflow-wrap:anywhere">🔗 <a href="${esc(u)}" target="_blank" rel="noopener" style="color:var(--pine)">${esc(u)}</a></div>`).join(''):''}
+    ${plans.length?`<div class="sec-label">関連する計画</div><div class="linked-plans">${plans.map(p=>`<span>${esc(p.theme)}</span>`).join('')}</div>`:''}
+    <div class="detail-meta">作成 ${esc((c.createdAt||'').slice(0,10))} ／ 更新 ${esc((c.updatedAt||'').slice(0,10))}</div>
     <div class="modal-actions">
       <div class="spacer"></div>
       <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
@@ -616,58 +768,252 @@ function openDetail(id){
   $('detailOverlay').classList.add('open');
 }
 
+/* ---------- notes ---------- */
+function allFolders(){
+  const s=new Set(); liveNotes().forEach(n=>{ if(n.folder) s.add(n.folder); });
+  return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
+}
+function renderNotes(){
+  const folders=allFolders(); window._folderList=folders;
+  if(activeFolder&&!folders.includes(activeFolder)) activeFolder='';
+  $('folderChips').innerHTML=
+    `<button class="chip ${activeFolder===''?'on':''}" onclick="selectFolder(-1)">すべて</button>`+
+    folders.map((f,i)=>`<button class="chip ${activeFolder===f?'on':''}" onclick="selectFolder(${i})">📁 ${esc(f)}</button>`).join('');
+  const q=$('noteSearch').value.trim().toLowerCase();
+  const list=liveNotes().filter(n=>{
+    if(activeFolder&&n.folder!==activeFolder) return false;
+    if(q&&![n.title,n.body,n.folder].join(' ').toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a,b)=>(b.updatedAt||'')>(a.updatedAt||'')?1:-1);
+  $('noteGrid').innerHTML=list.map(n=>`
+    <div class="case-card note-card" onclick="openNoteDetail('${n.id}')">
+      ${n.folder?`<div class="folder-label">📁 ${esc(n.folder)}</div>`:''}
+      <div class="title">${esc(n.title)}</div>
+      <div class="preview">${esc((n.body||'').slice(0,140))}</div>
+    </div>`).join('')||'<div class="empty">ノートはまだありません。＋で追加。</div>';
+}
+function selectFolder(i){
+  activeFolder = i<0 ? '' : ((window._folderList||[])[i] ?? '');
+  renderNotes();
+}
+function openNoteModal(id){
+  editingNoteId=id||null;
+  const n=id?state.notes.find(x=>x.id===id):null;
+  $('noteModalTitle').textContent=n?'ノートを編集':'ノートを追加';
+  $('nFolder').value=n?.folder||activeFolder||'';
+  $('nTitle').value=n?.title||''; $('nBody').value=n?.body||'';
+  $('folderList').innerHTML=allFolders().map(f=>`<option value="${esc(f)}">`).join('');
+  $('nDeleteBtn').style.display=n?'':'none';
+  closeOverlay('detailOverlay');
+  $('noteOverlay').classList.add('open');
+}
+function saveNote(){
+  const title=$('nTitle').value.trim();
+  if(!title){ toast('タイトルを入力してください'); return; }
+  const data={folder:$('nFolder').value.trim(),title,body:$('nBody').value,updatedAt:now()};
+  if(editingNoteId) Object.assign(state.notes.find(x=>x.id===editingNoteId),data);
+  else state.notes.push(Object.assign({id:uid(),createdAt:now(),deleted:false},data));
+  saveState(); closeOverlay('noteOverlay'); renderNotes(); toast('保存しました');
+}
+function deleteNote(){
+  if(!editingNoteId||!confirm('このノートを削除しますか?')) return;
+  const n=state.notes.find(x=>x.id===editingNoteId);
+  n.deleted=true; n.updatedAt=now();
+  saveState(); closeOverlay('noteOverlay'); renderNotes(); toast('削除しました');
+}
+function openNoteDetail(id){
+  const n=state.notes.find(x=>x.id===id); if(!n) return;
+  $('detailBody').innerHTML=`
+    <div class="detail-head"><div class="t">
+      ${n.folder?`<div class="cat" style="color:var(--gold)">📁 ${esc(n.folder)}</div>`:''}
+      <h3>${esc(n.title)}</h3>
+    </div></div>
+    <div class="md">${md(n.body)}</div>
+    <div class="detail-meta">作成 ${esc((n.createdAt||'').slice(0,10))} ／ 更新 ${esc((n.updatedAt||'').slice(0,10))}</div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
+      <button class="btn primary" onclick="openNoteModal('${n.id}')">編集</button>
+    </div>`;
+  $('detailOverlay').classList.add('open');
+}
+
+/* ---------- treatments & dose calc ---------- */
+function parseDoses(text){
+  return (text||'').split(/\n/).map(l=>l.trim()).filter(Boolean).map(l=>{
+    const parts=l.split('|').map(s=>s.trim());
+    return { drug:parts[0]||'', dose:parts[1]||'', unit:parts[2]||'', route:parts[3]||'', note:parts[4]||'' };
+  });
+}
+function isPerKg(unit){ return /\/kg$/i.test(unit||''); }
+function calcDose(d, weight){
+  if(!isPerKg(d.unit)) return null;
+  const perKg=parseFloat(d.dose);
+  if(!isFinite(perKg)||!isFinite(weight)||weight<=0) return null;
+  const v=perKg*weight;
+  const rounded=v>=100?Math.round(v):Math.round(v*10)/10;
+  return rounded+' '+d.unit.replace(/\/kg$/i,'');
+}
+function allTxTags(){
+  const s=new Set(); liveTx().forEach(t=>(t.tags||[]).forEach(x=>s.add(x)));
+  return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
+}
+function renderTx(){
+  const tags=allTxTags(); window._txTagList=tags;
+  activeTxTags=new Set([...activeTxTags].filter(t=>tags.includes(t)));
+  $('txChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeTxTags.has(t)?'on':''}" onclick="toggleTxTag(${i})">${esc(t)}</button>`).join('');
+  const q=$('txSearch').value.trim().toLowerCase();
+  const list=liveTx().filter(t=>{
+    if(activeTxTags.size&&![...activeTxTags].every(x=>(t.tags||[]).includes(x))) return false;
+    if(q&&![t.title,t.body,t.doses,(t.tags||[]).join(' ')].join(' ').toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a,b)=>(b.updatedAt||'')>(a.updatedAt||'')?1:-1);
+  $('txGrid').innerHTML=list.map(t=>{
+    const ds=parseDoses(t.doses);
+    return `
+    <div class="case-card tx-card" onclick="openTxDetail('${t.id}')">
+      <div class="cat" style="color:var(--shu)">💊 治療・投薬</div>
+      <div class="title" style="padding-right:0">${esc(t.title)}</div>
+      ${ds.slice(0,3).map(d=>`<div class="drugline">・${esc(d.drug)} ${esc(d.dose)}${esc(d.unit==='固定'?'':' '+d.unit)}</div>`).join('')}
+      ${ds.length>3?`<div class="drugline">…ほか${ds.length-3}剤</div>`:''}
+      <div class="tags" style="margin-top:6px">${(t.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
+    </div>`;
+  }).join('')||'<div class="empty">治療・投薬はまだありません。＋で追加。</div>';
+}
+function toggleTxTag(i){
+  const t=(window._txTagList||[])[i]; if(t===undefined) return;
+  activeTxTags.has(t)?activeTxTags.delete(t):activeTxTags.add(t);
+  renderTx();
+}
+function openTxModal(id){
+  editingTxId=id||null;
+  const t=id?state.treatments.find(x=>x.id===id):null;
+  $('txModalTitle').textContent=t?'治療・投薬を編集':'治療・投薬を追加';
+  $('tTitle').value=t?.title||''; $('tTags').value=(t?.tags||[]).join(', ');
+  $('tDoses').value=t?.doses||''; $('tBody').value=t?.body||'';
+  $('tDeleteBtn').style.display=t?'':'none';
+  closeOverlay('detailOverlay');
+  $('txOverlay').classList.add('open');
+}
+function saveTx(){
+  const title=$('tTitle').value.trim();
+  if(!title){ toast('シチュエーションを入力してください'); return; }
+  const data={
+    title, tags:$('tTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
+    doses:$('tDoses').value, body:$('tBody').value, updatedAt:now()
+  };
+  if(editingTxId) Object.assign(state.treatments.find(x=>x.id===editingTxId),data);
+  else state.treatments.push(Object.assign({id:uid(),createdAt:now(),deleted:false},data));
+  saveState(); closeOverlay('txOverlay'); renderTx(); toast('保存しました');
+}
+function deleteTx(){
+  if(!editingTxId||!confirm('この治療・投薬を削除しますか?')) return;
+  const t=state.treatments.find(x=>x.id===editingTxId);
+  t.deleted=true; t.updatedAt=now();
+  saveState(); closeOverlay('txOverlay'); renderTx(); toast('削除しました');
+}
+function doseTableHtml(t, weight){
+  const ds=parseDoses(t.doses);
+  if(!ds.length) return '';
+  const rows=ds.map(d=>{
+    const calc=calcDose(d,weight);
+    const doseCell = calc
+      ? `<span class="calc">${esc(calc)}</span><br><span class="basis">${esc(d.dose)} ${esc(d.unit)} × ${weight}kg</span>`
+      : `${esc(d.dose)}${d.unit&&d.unit!=='固定'?' '+esc(d.unit):''}`;
+    return `<tr><td>${esc(d.drug)}${d.note?`<br><span class="basis">${esc(d.note)}</span>`:''}</td><td>${doseCell}</td><td>${esc(d.route)}</td></tr>`;
+  }).join('');
+  return `<table class="dose-table"><tr><th>薬剤</th><th>用量</th><th>投与方法</th></tr>${rows}</table>`;
+}
+function openTxDetail(id){
+  const t=state.treatments.find(x=>x.id===id); if(!t) return;
+  const w=parseFloat(state.settings.lastWeight)||'';
+  $('detailBody').innerHTML=`
+    <div class="detail-head"><div class="t">
+      <div class="cat" style="color:var(--shu)">💊 治療・投薬</div>
+      <h3>${esc(t.title)}</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(t.tags||[]).map(x=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(x)}</span>`).join('')}</div>
+    </div></div>
+    <div class="weight-box">
+      <label>体重</label>
+      <input type="number" id="dwWeight" min="1" max="300" step="0.1" value="${w}" placeholder="60" oninput="updateDoseTable('${t.id}')"> kg
+      <span class="hint" style="margin:0">入力するとmg/kg等の薬剤を自動計算</span>
+    </div>
+    <div id="doseTableWrap">${doseTableHtml(t, parseFloat(w)||NaN)}</div>
+    <div class="md">${md(t.body)}</div>
+    <div class="hint">⚠ 計算結果は参考値です。投与前に必ず添付文書・院内プロトコルで確認してください。</div>
+    <div class="detail-meta">作成 ${esc((t.createdAt||'').slice(0,10))} ／ 更新 ${esc((t.updatedAt||'').slice(0,10))}</div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
+      <button class="btn primary" onclick="openTxModal('${t.id}')">編集</button>
+    </div>`;
+  $('detailOverlay').classList.add('open');
+}
+function updateDoseTable(id){
+  const t=state.treatments.find(x=>x.id===id); if(!t) return;
+  const w=parseFloat($('dwWeight').value);
+  state.settings.lastWeight=$('dwWeight').value; saveState();
+  $('doseTableWrap').innerHTML=doseTableHtml(t, w);
+}
+
 /* ---------- settings / sync ---------- */
 function openSettings(){
-  $('gasUrl').value = state.settings.gasUrl || '';
+  $('gasUrl').value=state.settings.gasUrl||'';
+  renderCatList();
   $('settingsOverlay').classList.add('open');
 }
 function saveSettings(){
-  state.settings.gasUrl = $('gasUrl').value.trim();
+  state.settings.gasUrl=$('gasUrl').value.trim();
   saveState(); closeOverlay('settingsOverlay'); toast('設定を保存しました');
-  updateSyncStatus();
+  updateSyncStatus(); if(activeTab==='cases') renderCases();
 }
 function updateSyncStatus(){
-  const s = $('syncStatus');
-  if(!state.settings.gasUrl){ s.textContent = 'ローカルのみ'; return; }
-  s.textContent = state.settings.lastSync
-    ? '最終同期 ' + new Date(state.settings.lastSync).toLocaleString('ja-JP', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })
+  const s=$('syncStatus');
+  if(!state.settings.gasUrl){ s.textContent='ローカルのみ'; return; }
+  s.textContent=state.settings.lastSync
+    ? '最終同期 '+new Date(state.settings.lastSync).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})
     : '未同期';
 }
 async function syncNow(){
   if(!state.settings.gasUrl){ toast('設定でGASのURLを入力してください'); openSettings(); return; }
-  const btn = $('syncBtn');
-  btn.classList.add('syncing'); btn.textContent = '同期中…';
+  const btn=$('syncBtn');
+  btn.classList.add('syncing'); btn.textContent='同期中…';
   try{
-    const res = await fetch(state.settings.gasUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // preflight回避
-      body: JSON.stringify({ cases: state.cases, plans: state.plans })
+    const res=await fetch(state.settings.gasUrl,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({cases:state.cases,plans:state.plans,notes:state.notes,treatments:state.treatments,meta:state.meta})
     });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const merged = await res.json();
-    if(!merged || !Array.isArray(merged.cases)) throw new Error('不正な応答');
-    state.cases = merged.cases;
-    state.plans = merged.plans;
-    state.settings.lastSync = now();
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const merged=await res.json();
+    if(!merged||!Array.isArray(merged.cases)) throw new Error('不正な応答(GASのコード更新と再デプロイを確認)');
+    state.cases=merged.cases; state.plans=merged.plans;
+    state.notes=merged.notes||[]; state.treatments=merged.treatments||[]; state.meta=merged.meta||[];
+    state.settings.lastSync=now();
     saveState(); render(); updateSyncStatus();
     toast('同期しました');
   }catch(e){
     console.error(e);
-    toast('同期に失敗しました: ' + e.message);
+    toast('同期に失敗しました: '+e.message);
   }finally{
-    btn.classList.remove('syncing'); btn.textContent = '⇅ 同期';
+    btn.classList.remove('syncing'); btn.textContent='⇅ 同期';
   }
 }
 
 /* ---------- misc ---------- */
 function closeOverlay(id){ $(id).classList.remove('open'); }
-document.querySelectorAll('.overlay').forEach(ov => {
-  ov.addEventListener('mousedown', e => { if(e.target === ov) ov.classList.remove('open'); });
+document.querySelectorAll('.overlay').forEach(ov=>{
+  ov.addEventListener('mousedown',e=>{ if(e.target===ov) ov.classList.remove('open'); });
 });
-document.addEventListener('keydown', e => {
-  if(e.key === 'Escape') document.querySelectorAll('.overlay.open').forEach(o => o.classList.remove('open'));
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open'));
 });
-function render(){ activeTab === 'plans' ? renderPlans() : renderCases(); }
+function render(){
+  if(activeTab==='plans') renderPlans();
+  else if(activeTab==='cases') renderCases();
+  else if(activeTab==='notes') renderNotes();
+  else renderTx();
+}
 
 loadState();
 updateSyncStatus();
