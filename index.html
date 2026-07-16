@@ -779,9 +779,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.6.0
+   Med OS v2.6.1
 ========================================================= */
-const APP_VERSION = 'v2.6.0';
+const APP_VERSION = 'v2.6.1';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1089,6 +1089,12 @@ function togglePlanCheck(id,i){
   if(!list[i]) return;
   list[i].done=!list[i].done;
   p.checklist=list; p.steps=checklistToText(list); p.updatedAt=now();
+  // 全項目チェック済みなら自動でDone、それ以外はdoneから戻す
+  if(list.length){
+    const allDone=list.every(x=>x.done);
+    if(allDone) p.status='done';
+    else if(p.status==='done') p.status='doing';
+  }
   saveState(); renderPlans();
 }
 function renderPlans(){
