@@ -54,8 +54,9 @@ header{background:var(--surface);border-bottom:1px solid var(--line);padding:12p
 .icon-btn:hover{background:var(--pine-soft)}
 .icon-btn.syncing{opacity:.6;pointer-events:none}
 
-nav.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:57px;z-index:40}
-nav.tabs button{flex:1;padding:11px 0;background:none;border:none;font-size:13.5px;font-weight:500;color:var(--ink-soft);border-bottom:2px solid transparent;letter-spacing:.06em}
+nav.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:57px;z-index:40;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{flex:1 0 auto;min-width:72px;padding:11px 14px;background:none;border:none;font-size:13.5px;font-weight:500;color:var(--ink-soft);border-bottom:2px solid transparent;letter-spacing:.06em;white-space:nowrap}
 nav.tabs button.active{color:var(--pine);border-bottom-color:var(--pine);font-weight:700}
 
 main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
@@ -114,7 +115,17 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .badge.deadline{border-color:var(--shu);color:var(--shu);background:var(--shu-soft)}
 .badge.interest{border-color:var(--pine);color:var(--pine);background:var(--pine-soft)}
 .badge.pri-high{border-color:var(--shu);color:var(--shu)}
-.plan-card .steps{font-size:12.5px;color:var(--ink-soft);white-space:pre-wrap;margin:4px 0 8px;max-height:72px;overflow:hidden}
+.plan-card .checklist{margin:6px 0 8px;display:flex;flex-direction:column;gap:3px}
+.plan-card .ck{display:flex;align-items:flex-start;gap:7px;font-size:13px;line-height:1.4;cursor:pointer;padding:2px 0}
+.plan-card .ck input{margin-top:2px;flex-shrink:0;width:auto;accent-color:var(--pine)}
+.plan-card .ck.done span{text-decoration:line-through;color:var(--ink-soft)}
+.plan-card .ck-progress{font-size:11.5px;color:var(--ink-soft);margin-bottom:4px}
+.kind-badge{font-size:11px;padding:1px 8px;border-radius:20px;font-weight:700}
+.kind-study{background:var(--pine-soft);color:var(--pine)}
+.kind-opd{background:var(--amber-soft);color:var(--amber)}
+.kind-conf{background:var(--shu-soft);color:var(--shu)}
+.kind-surg{background:var(--pine-soft);color:var(--pine)}
+.kind-other{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line)}
 .plan-card .foot{display:flex;align-items:center;gap:6px;border-top:1px dashed var(--line);padding-top:8px}
 .plan-card .foot .linked{font-size:11.5px;color:var(--pine);flex:1}
 .mini-btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:3px 9px;font-size:12px;color:var(--ink)}
@@ -180,6 +191,20 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 
 /* ---------- treatments ---------- */
 .tx-card .drugline{font-size:12.5px;color:var(--ink-soft)}
+
+/* ddx */
+.ddx-card .killer-row{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 6px}
+.ddx-card .killer-row span{font-size:11px;padding:2px 8px;border-radius:6px;background:var(--shu-soft);color:var(--shu);font-weight:700}
+.ddx-card .ddx-count{font-size:12px;color:var(--ink-soft)}
+.ddx-block{margin:12px 0}
+.ddx-block h4{font-size:13px;font-weight:700;letter-spacing:.03em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.ddx-killer h4{color:var(--shu)}
+.ddx-redflag h4{color:var(--shu)}
+.ddx-items{display:flex;flex-direction:column;gap:4px}
+.ddx-items .it{font-size:14px;padding:6px 10px;border-radius:7px;background:var(--paper);border:1px solid var(--line)}
+.ddx-killer .it{background:var(--shu-soft);border-color:var(--shu);color:var(--shu);font-weight:600}
+.ddx-redflag .it{background:var(--shu-soft);border-color:transparent;color:var(--shu)}
+.ddx-num{display:inline-block;min-width:20px;color:var(--ink-soft);font-size:12px}
 .weight-box{display:flex;align-items:center;gap:8px;background:var(--pine-soft);border:1px solid var(--pine);border-radius:8px;padding:8px 12px;margin:10px 0}
 .weight-box label{font-size:13px;font-weight:700;color:var(--pine)}
 .weight-box input{width:90px;border:1px solid var(--line);border-radius:6px;padding:6px 8px;text-align:right;font-size:15px;background:var(--surface);color:var(--ink)}
@@ -264,6 +289,9 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
   <button id="tabCases" onclick="switchTab('cases')">症 例</button>
   <button id="tabNotes" onclick="switchTab('notes')">ノート</button>
   <button id="tabTx" onclick="switchTab('tx')">治 療</button>
+  <button id="tabDdx" onclick="switchTab('ddx')">鑑 別</button>
+  <button id="tabPapers" onclick="switchTab('papers')">論 文</button>
+  <button id="tabImg" onclick="switchTab('img')">画 像</button>
 </nav>
 
 <main>
@@ -279,6 +307,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
       <div class="cal-grid" id="calGrid"></div>
       <div class="cal-day-panel" id="calDayPanel"></div>
     </div>
+    <div class="tag-chips" id="planKindChips"></div>
     <div class="kanban">
       <div class="kcol todo"><h3><span class="dot"></span>To Do <span class="count" id="cntTodo"></span></h3><div id="colTodo"></div></div>
       <div class="kcol doing"><h3><span class="dot"></span>In Progress <span class="count" id="cntDoing"></span></h3><div id="colDoing"></div></div>
@@ -293,6 +322,10 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
       <select id="caseCatFilter" onchange="renderCases()"><option value="">全カテゴリ</option></select>
       <select id="caseStatusFilter" onchange="renderCases()">
         <option value="">全ステータス</option>
+      </select>
+      <select id="caseSort" onchange="renderCases()">
+        <option value="updated">更新順</option>
+        <option value="encounter">出会った日付順</option>
       </select>
     </div>
     <div class="tag-chips" id="tagChips"></div>
@@ -322,6 +355,45 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
     <div class="tag-chips" id="txChips"></div>
     <div class="case-grid" id="txGrid"></div>
   </section>
+
+  <!-- ===== ddx (主訴からの鑑別) ===== -->
+  <section id="viewDdx" style="display:none">
+    <div class="filter-bar">
+      <input type="search" id="ddxSearch" placeholder="主訴・鑑別を検索(失神, 腹痛 …)" oninput="renderDdx()">
+    </div>
+    <div class="tag-chips" id="ddxChips"></div>
+    <div class="case-grid" id="ddxGrid"></div>
+  </section>
+
+  <!-- ===== papers (論文読破メモ) ===== -->
+  <section id="viewPapers" style="display:none">
+    <div class="filter-bar">
+      <input type="search" id="paperSearch" placeholder="論文を検索(タイトル・結論・タグ)" oninput="renderPapers()">
+      <select id="paperStatusFilter" onchange="renderPapers()">
+        <option value="">全ステータス</option>
+        <option value="unread">未読</option>
+        <option value="read">読了</option>
+        <option value="jc">抄読会候補</option>
+      </select>
+    </div>
+    <div class="tag-chips" id="paperChips"></div>
+    <div class="case-grid" id="paperGrid"></div>
+  </section>
+
+  <!-- ===== img (画像所見スタック) ===== -->
+  <section id="viewImg" style="display:none">
+    <div class="filter-bar">
+      <input type="search" id="imgSearch" placeholder="画像所見を検索(所見・診断・タグ)" oninput="renderImg()">
+      <select id="imgModalityFilter" onchange="renderImg()"><option value="">全モダリティ</option></select>
+      <select id="imgUseFilter" onchange="renderImg()">
+        <option value="">全用途</option>
+        <option value="typical">典型例</option>
+        <option value="mine">自分用</option>
+      </select>
+    </div>
+    <div class="tag-chips" id="imgChips"></div>
+    <div class="case-grid" id="imgGrid"></div>
+  </section>
 </main>
 
 <button class="fab" onclick="fabClick()" aria-label="追加">＋</button>
@@ -332,6 +404,15 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
     <h3 id="planModalTitle">計画を追加</h3>
     <div class="form-row"><label>テーマ名</label><input type="text" id="pTheme" placeholder="例:MET exon 14 skipping NSCLCの薬剤整理"></div>
     <div class="form-grid">
+      <div class="form-row"><label>種別</label>
+        <select id="pKind">
+          <option value="study">学習</option>
+          <option value="opd">外来予習</option>
+          <option value="conf">カンファ提出</option>
+          <option value="surg">外科相談</option>
+          <option value="other">その他</option>
+        </select>
+      </div>
       <div class="form-row"><label>動機</label>
         <select id="pMotive"><option value="interest">興味ドリブン</option><option value="deadline">期日ドリブン</option></select>
       </div>
@@ -343,7 +424,10 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
         <select id="pStatus"><option value="todo">To Do</option><option value="doing">In Progress</option><option value="done">Done</option></select>
       </div>
     </div>
-    <div class="form-row"><label>手順メモ(何をどの順で)</label><textarea id="pSteps" placeholder="1. ガイドライン確認&#10;2. 主要試験の原著&#10;3. 自験例と照合"></textarea></div>
+    <div class="form-row"><label>チェックリスト(調べること・やること / 1行1項目)</label>
+      <textarea id="pSteps" placeholder="肺機能の推移を調べる&#10;前回CTと比較&#10;病理を確認&#10;外科に切除可否を相談"></textarea>
+      <div class="hint">1行=1項目。カード上でチェックを付けられます。行頭の [x] は完了済みとして取り込まれます</div>
+    </div>
     <div class="modal-actions">
       <button class="btn danger" id="pDeleteBtn" onclick="deletePlan()" style="display:none">削除</button>
       <div class="spacer"></div>
@@ -363,6 +447,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
       <div class="form-row"><label>患者名</label><input type="text" id="cPname" placeholder="イニシャル推奨"></div>
     </div>
     <div class="hint" style="margin:-6px 0 10px">⚠ 外部に出ても個人が特定されない形(院内ID・イニシャル)での記載を推奨します</div>
+    <div class="form-row"><label>出会った日付</label><input type="date" id="cEncounter"></div>
     <div class="form-grid">
       <div class="form-row"><label>疾患カテゴリ</label><select id="cCategory"></select><div class="hint">カテゴリの追加・削除は⚙設定から</div></div>
       <div class="form-row"><label>状態</label>
@@ -437,6 +522,99 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
   </div>
 </div>
 
+<!-- ===== ddx edit modal ===== -->
+<div class="overlay" id="ddxOverlay">
+  <div class="modal">
+    <h3 id="ddxModalTitle">主訴の鑑別を追加</h3>
+    <div class="form-row"><label>主訴</label><input type="text" id="dTitle" placeholder="例:失神 / 急性腹痛 / 胸痛 / 呼吸困難"></div>
+    <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="dTags" placeholder="ER, 循環器, 見逃し注意"></div>
+    <div class="form-row"><label>🚨 危険な鑑別 / Killer(1行1つ)</label>
+      <textarea id="dKiller" style="min-height:90px" placeholder="肺塞栓&#10;大動脈解離&#10;くも膜下出血&#10;消化管出血"></textarea>
+      <div class="hint">最初に否定すべき致死的疾患。赤く強調表示されます</div>
+    </div>
+    <div class="form-row"><label>鑑別リスト(1行1つ)</label>
+      <textarea id="dList" style="min-height:100px" placeholder="血管迷走神経性失神&#10;起立性低血圧&#10;不整脈&#10;…"></textarea>
+    </div>
+    <div class="form-row"><label>初期対応・アプローチ(簡易Markdown可)</label>
+      <textarea id="dApproach" style="min-height:110px" placeholder="## 初期対応&#10;- バイタル、モニタ、12誘導心電図&#10;- ルート確保、採血&#10;## 問診&#10;- 前駆症状、体位、動悸"></textarea>
+    </div>
+    <div class="form-row"><label>🚩 Red flag(1行1つ)</label>
+      <textarea id="dRedflag" style="min-height:80px" placeholder="労作時失神&#10;突然死の家族歴&#10;心疾患の既往&#10;高齢"></textarea>
+    </div>
+    <div class="form-row"><label>メモ・出典(簡易Markdown可)</label>
+      <textarea id="dBody" style="min-height:80px" placeholder="## スコア&#10;- San Francisco Syncope Rule など"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn danger" id="dDeleteBtn" onclick="deleteDdx()" style="display:none">削除</button>
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('ddxOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="saveDdx()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== paper edit modal ===== -->
+<div class="overlay" id="paperOverlay">
+  <div class="modal">
+    <h3 id="paperModalTitle">論文を追加</h3>
+    <div class="form-row"><label>タイトル</label><input type="text" id="ppTitle" placeholder="論文タイトル"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>書誌(著者・雑誌・年)</label><input type="text" id="ppCitation" placeholder="Smith et al. NEJM 2024"></div>
+      <div class="form-row"><label>ステータス</label>
+        <select id="ppStatus"><option value="unread">未読</option><option value="read">読了</option><option value="jc">抄読会候補</option></select>
+      </div>
+    </div>
+    <div class="form-row"><label>リンク(PMID/DOI/URL, 1行1つ)</label><textarea id="ppLinks" style="min-height:56px" placeholder="https://pubmed.ncbi.nlm.nih.gov/..."></textarea></div>
+    <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="ppTags" placeholder="IPF, RCT, 呼吸器"></div>
+    <div class="form-row"><label>一言結論(最重要)</label><input type="text" id="ppConclusion" placeholder="この論文のtake-home messageを1行で"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>P(対象)</label><input type="text" id="ppP" placeholder="どんな患者"></div>
+      <div class="form-row"><label>I(介入)</label><input type="text" id="ppI" placeholder="介入・曝露"></div>
+      <div class="form-row"><label>C(対照)</label><input type="text" id="ppC" placeholder="比較対照"></div>
+      <div class="form-row"><label>O(アウトカム)</label><input type="text" id="ppO" placeholder="主要評価項目"></div>
+    </div>
+    <div class="form-row"><label>主要結果(数値・簡易Markdown可)</label><textarea id="ppResults" style="min-height:90px" placeholder="## 主要結果&#10;- HR 0.75 (95%CI ...)"></textarea></div>
+    <div class="form-row"><label>臨床への示唆(簡易Markdown可)</label><textarea id="ppImplication" style="min-height:70px" placeholder="自分の診療にどう活かすか"></textarea></div>
+    <div class="form-row"><label>抄読会メモ(簡易Markdown可)</label><textarea id="ppJc" style="min-height:70px" placeholder="批判的吟味・limitation・議論したい点"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn danger" id="ppDeleteBtn" onclick="deletePaper()" style="display:none">削除</button>
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('paperOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="savePaper()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== img edit modal ===== -->
+<div class="overlay" id="imgOverlay">
+  <div class="modal">
+    <h3 id="imgModalTitle">画像所見を追加</h3>
+    <div class="form-row"><label>タイトル</label><input type="text" id="imTitle" placeholder="例:多発肺結節 / びまん性すりガラス影"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>モダリティ</label><input type="text" id="imModality" list="modalityList" placeholder="胸部CT / 胸部X線 / 腹部CT / 頭部CT"><datalist id="modalityList"></datalist></div>
+      <div class="form-row"><label>部位</label><input type="text" id="imRegion" placeholder="両下肺野 など"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>用途</label>
+        <select id="imUse"><option value="typical">典型例(指導用)</option><option value="mine">自分用(悩んだ症例)</option></select>
+      </div>
+      <div class="form-row"><label>患者ID(任意)</label><input type="text" id="imPid" placeholder="院内IDなど(自分用のとき)"></div>
+    </div>
+    <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="imTags" placeholder="間質性肺炎, UIP, すりガラス"></div>
+    <div class="form-row"><label>画像所見(テキストで)</label><textarea id="imFindings" style="min-height:110px" placeholder="## 所見&#10;- 小葉間隔壁肥厚&#10;- 胸膜直下優位のすりガラス影&#10;- 蜂巣肺あり"></textarea></div>
+    <div class="form-row"><label>鑑別(1行1つ)</label><textarea id="imDdx" style="min-height:70px" placeholder="UIP&#10;NSIP&#10;過敏性肺炎"></textarea></div>
+    <div class="form-row"><label>診断・結論</label><input type="text" id="imDx" placeholder="最終診断や読影の結論"></div>
+    <div class="form-row"><label>メモ(簡易Markdown可)</label><textarea id="imBody" style="min-height:70px" placeholder="読影のポイント、鑑別の決め手など"></textarea></div>
+    <div class="form-row"><label>出会った日付</label><input type="date" id="imEncounter"></div>
+    <div class="modal-actions">
+      <button class="btn danger" id="imDeleteBtn" onclick="deleteImg()" style="display:none">削除</button>
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('imgOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="saveImg()">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== detail modal (shared) ===== -->
 <div class="overlay" id="detailOverlay">
   <div class="modal" id="detailBody"></div>
@@ -450,8 +628,8 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
       <label>固定形式テキストを貼り付け</label>
       <textarea id="importText" style="min-height:220px;font-family:monospace;font-size:13px" placeholder="@case&#10;title: タイトル&#10;category: NSCLC&#10;tags: 薬剤選択, MET&#10;confidence: 要確認&#10;point: 要点&#10;memo:&#10;## 背景&#10;- ...&#10;---&#10;@treatment&#10;title: 市中肺炎&#10;..."></textarea>
       <div class="import-hint">
-        1行目に <code>@case</code> / <code>@note</code> / <code>@treatment</code> でタブ指定。<code>---</code> 行で複数カードを区切り。<br>
-        キー: <code>title</code> <code>category</code> <code>folder</code> <code>tags</code> <code>confidence</code> <code>point</code> <code>memo</code> <code>ic</code> <code>links</code> <code>doses</code> <code>body</code>(複数行OK)
+        1行目に <code>@case</code> / <code>@note</code> / <code>@treatment</code> / <code>@ddx</code> / <code>@paper</code> / <code>@image</code> でタブ指定。<code>---</code> 行で複数カードを区切り。<br>
+        主なキー: <code>title</code> <code>tags</code> <code>confidence</code> ／ 症例:<code>category</code> <code>point</code> <code>memo</code> <code>ic</code> <code>encounter</code> ／ 治療:<code>doses</code> ／ 鑑別:<code>killer</code> <code>list</code> <code>approach</code> <code>redflag</code> ／ 論文:<code>citation</code> <code>conclusion</code> <code>p</code> <code>i</code> <code>c</code> <code>o</code> <code>results</code> <code>implication</code> <code>jc</code> ／ 画像:<code>modality</code> <code>findings</code> <code>ddx</code> <code>dx</code>
       </div>
     </div>
     <div id="importPreview" class="import-hint"></div>
@@ -518,9 +696,9 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.1.0
+   Med OS v2.5.0
 ========================================================= */
-const APP_VERSION = 'v2.1.0';
+const APP_VERSION = 'v2.5.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -554,9 +732,28 @@ const CONF_LABEL = {confirmed:'確定', review:'要確認', ai:'AI初期知識'}
 const CONF_ALIAS = {'確定':'confirmed','裏取り済':'confirmed','確定(裏取り済)':'confirmed','要確認':'review','ai初期知識':'ai','ai':'ai','初期知識':'ai'};
 const PLAN_STATUS = ['todo','doing','done'];
 const PLAN_STATUS_LABEL = {todo:'To Do', doing:'In Progress', done:'Done'};
+const PLAN_KIND_LABEL = {study:'学習', opd:'外来予習', conf:'カンファ提出', surg:'外科相談', other:'その他'};
+const PLAN_KIND_CLASS = {study:'kind-study', opd:'kind-opd', conf:'kind-conf', surg:'kind-surg', other:'kind-other'};
+let activePlanKind = '';
+// checklist: parse text lines into [{text,done}], and serialize back
+function parseChecklist(text){
+  return (text||'').split(/\n/).map(l=>l.trim()).filter(Boolean).map(l=>{
+    const m=l.match(/^\[([ xX])\]\s*(.*)$/);
+    if(m) return {text:m[2], done:/x/i.test(m[1])};
+    return {text:l, done:false};
+  });
+}
+function checklistToText(list){
+  return (list||[]).map(it=>`[${it.done?'x':' '}] ${it.text}`).join('\n');
+}
+// 既存データ互換: checklist配列が無ければ steps テキストから生成
+function planChecklist(p){
+  if(Array.isArray(p.checklist)) return p.checklist;
+  return parseChecklist(p.steps||'');
+}
 const WD = ['日','月','火','水','木','金','土'];
 
-let state = { cases:[], plans:[], notes:[], treatments:[], meta:[], settings:{ gasUrl:'', lastSync:null, lastWeight:'', globalWeight:'', theme:'', autoSync:true } };
+let state = { cases:[], plans:[], notes:[], treatments:[], ddx:[], papers:[], images:[], meta:[], settings:{ gasUrl:'', lastSync:null, lastWeight:'', globalWeight:'', theme:'', autoSync:true } };
 let activeTab = 'plans';
 let editingPlanId=null, editingCaseId=null, editingNoteId=null, editingTxId=null;
 let activeTags=new Set(), activeFolder='', activeTxTags=new Set();
@@ -579,7 +776,7 @@ function loadState(){
     const raw = localStorage.getItem(LS_KEY);
     if(raw){ const s=JSON.parse(raw); state=Object.assign(state,s); }
   }catch(e){ console.warn(e); }
-  for(const k of ['cases','plans','notes','treatments','meta']) if(!Array.isArray(state[k])) state[k]=[];
+  for(const k of ['cases','plans','notes','treatments','ddx','papers','images','meta']) if(!Array.isArray(state[k])) state[k]=[];
   if(!state.settings) state.settings={gasUrl:'',lastSync:null,lastWeight:'',globalWeight:'',theme:'',autoSync:true};
   if(state.settings.autoSync===undefined) state.settings.autoSync=true;
 }
@@ -588,6 +785,9 @@ const liveCases = () => live(state.cases);
 const livePlans = () => live(state.plans);
 const liveNotes = () => live(state.notes);
 const liveTx    = () => live(state.treatments);
+const liveDdx   = () => live(state.ddx);
+const livePapers= () => live(state.papers);
+const liveImages= () => live(state.images);
 
 /* ---------- categories (meta, synced) ---------- */
 function catRecord(){
@@ -690,19 +890,25 @@ function md(src){
 /* ---------- tabs ---------- */
 function switchTab(tab){
   activeTab=tab;
-  for(const [id,t] of [['tabPlans','plans'],['tabCases','cases'],['tabNotes','notes'],['tabTx','tx']])
+  for(const [id,t] of [['tabPlans','plans'],['tabCases','cases'],['tabNotes','notes'],['tabTx','tx'],['tabDdx','ddx'],['tabPapers','papers'],['tabImg','img']])
     $(id).classList.toggle('active', tab===t);
   $('viewPlans').style.display = tab==='plans'?'':'none';
   $('viewCases').style.display = tab==='cases'?'':'none';
   $('viewNotes').style.display = tab==='notes'?'':'none';
   $('viewTx').style.display    = tab==='tx'?'':'none';
+  $('viewDdx').style.display   = tab==='ddx'?'':'none';
+  $('viewPapers').style.display= tab==='papers'?'':'none';
+  $('viewImg').style.display   = tab==='img'?'':'none';
   render();
 }
 function fabClick(){
   if(activeTab==='plans') openPlanModal();
   else if(activeTab==='cases') openCaseModal();
   else if(activeTab==='notes') openNoteModal();
-  else openTxModal();
+  else if(activeTab==='tx') openTxModal();
+  else if(activeTab==='ddx') openDdxModal();
+  else if(activeTab==='papers') openPaperModal();
+  else openImgModal();
 }
 
 /* ---------- calendar ---------- */
@@ -773,15 +979,41 @@ function dueRow(p){
   return `<div class="due-row">📅 <span class="date">${fmtDue(p.due)}</span>${left}</div>`;
 }
 function planBadges(p){
-  let h = p.motive==='deadline' ? '<span class="badge deadline">期日</span>' : '<span class="badge interest">興味</span>';
+  let h='';
+  if(p.kind&&PLAN_KIND_LABEL[p.kind]) h+=`<span class="kind-badge ${PLAN_KIND_CLASS[p.kind]}">${PLAN_KIND_LABEL[p.kind]}</span>`;
+  h += p.motive==='deadline' ? '<span class="badge deadline">期日</span>' : '<span class="badge interest">興味</span>';
   if(p.priority==='high') h+='<span class="badge pri-high">優先度 高</span>';
   else if(p.priority==='low') h+='<span class="badge">優先度 低</span>';
   return h;
 }
+function planChecklistHtml(p){
+  const list=planChecklist(p);
+  if(!list.length) return '';
+  const done=list.filter(x=>x.done).length;
+  const rows=list.map((it,i)=>`
+    <label class="ck ${it.done?'done':''}" onclick="event.stopPropagation()">
+      <input type="checkbox" ${it.done?'checked':''} onchange="togglePlanCheck('${p.id}',${i})">
+      <span>${esc(it.text)}</span>
+    </label>`).join('');
+  return `<div class="ck-progress">✓ ${done}/${list.length} 完了</div><div class="checklist">${rows}</div>`;
+}
+function togglePlanCheck(id,i){
+  const p=state.plans.find(x=>x.id===id); if(!p) return;
+  const list=planChecklist(p).map(x=>({...x}));
+  if(!list[i]) return;
+  list[i].done=!list[i].done;
+  p.checklist=list; p.steps=checklistToText(list); p.updatedAt=now();
+  saveState(); renderPlans();
+}
 function renderPlans(){
   renderCalendar();
+  // kind filter chips
+  const kinds=['study','opd','conf','surg','other'];
+  const counts={}; livePlans().forEach(p=>{ const k=p.kind||'study'; counts[k]=(counts[k]||0)+1; });
+  $('planKindChips').innerHTML=`<button class="chip ${activePlanKind===''?'on':''}" onclick="setPlanKind('')">すべて</button>`+
+    kinds.filter(k=>counts[k]).map(k=>`<button class="chip ${activePlanKind===k?'on':''}" onclick="setPlanKind('${k}')">${PLAN_KIND_LABEL[k]} ${counts[k]}</button>`).join('');
   const cols={todo:[],doing:[],done:[]};
-  const plans = livePlans().slice().sort((a,b)=>{
+  const plans = livePlans().filter(p=>!activePlanKind||(p.kind||'study')===activePlanKind).slice().sort((a,b)=>{
     const da=a.due||'9999', db_=b.due||'9999';
     if(da!==db_) return da<db_?-1:1;
     const pr={high:0,mid:1,low:2};
@@ -794,7 +1026,7 @@ function renderPlans(){
       <div class="theme">${esc(p.theme)}</div>
       ${dueRow(p)}
       <div class="badges">${planBadges(p)}</div>
-      ${p.steps?`<div class="steps">${esc(p.steps)}</div>`:''}
+      ${planChecklistHtml(p)}
       <div class="foot">
         <span class="linked">${linked.length?'📎 症例 '+linked.length+'件':''}</span>
         <select class="status-sel" onchange="quickStatus('${p.id}',this.value)">
@@ -812,6 +1044,7 @@ function renderPlans(){
   $('cntDoing').textContent=cols.doing.length||'';
   $('cntDone').textContent=cols.done.length||'';
 }
+function setPlanKind(k){ activePlanKind=k; renderPlans(); }
 function quickStatus(id,status){
   const p=state.plans.find(x=>x.id===id); if(!p) return;
   p.status=status; p.updatedAt=now();
@@ -821,16 +1054,20 @@ function openPlanModal(id){
   editingPlanId=id||null;
   const p=id?state.plans.find(x=>x.id===id):null;
   $('planModalTitle').textContent=p?'計画を編集':'計画を追加';
-  $('pTheme').value=p?.theme||''; $('pMotive').value=p?.motive||'interest';
+  $('pTheme').value=p?.theme||''; $('pKind').value=p?.kind||'study';
+  $('pMotive').value=p?.motive||'interest';
   $('pDue').value=p?.due||''; $('pPriority').value=p?.priority||'mid';
-  $('pStatus').value=p?.status||'todo'; $('pSteps').value=p?.steps||'';
+  $('pStatus').value=p?.status||'todo';
+  // checklistを [x] 形式のテキストに展開して編集
+  $('pSteps').value = p ? checklistToText(planChecklist(p)) : '';
   $('pDeleteBtn').style.display=p?'':'none';
   $('planOverlay').classList.add('open');
 }
 function savePlan(){
   const theme=$('pTheme').value.trim();
   if(!theme){ toast('テーマ名を入力してください'); return; }
-  const data={theme,motive:$('pMotive').value,due:$('pDue').value||'',priority:$('pPriority').value,status:$('pStatus').value,steps:$('pSteps').value.trim(),updatedAt:now()};
+  const checklist=parseChecklist($('pSteps').value);
+  const data={theme,kind:$('pKind').value,motive:$('pMotive').value,due:$('pDue').value||'',priority:$('pPriority').value,status:$('pStatus').value,checklist,steps:checklistToText(checklist),updatedAt:now()};
   if(editingPlanId) Object.assign(state.plans.find(x=>x.id===editingPlanId),data);
   else state.plans.push(Object.assign({id:uid(),caseIds:[],createdAt:now(),deleted:false},data));
   saveState(); closeOverlay('planOverlay'); renderPlans(); toast('保存しました');
@@ -857,16 +1094,26 @@ function renderCases(){
   $('tagChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeTags.has(t)?'on':''}" onclick="toggleTag(${i})">${esc(t)}</button>`).join('');
   const q=$('caseSearch').value.trim().toLowerCase();
   const st=$('caseStatusFilter').value;
+  const sortBy=$('caseSort').value;
   const list=liveCases().filter(c=>{
     if(cur&&c.category!==cur) return false;
     if(st&&c.status!==st) return false;
     if(activeTags.size&&![...activeTags].every(t=>(c.tags||[]).includes(t))) return false;
     if(q){
-      const hay=[c.title,c.point,c.memo,c.pid,c.pname,c.ic,(c.tags||[]).join(' '),c.category].join(' ').toLowerCase();
+      const hay=[c.title,c.point,c.memo,c.pid,c.pname,c.ic,c.encounter,(c.tags||[]).join(' '),c.category].join(' ').toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
-  }).sort((a,b)=>(b.updatedAt||'')>(a.updatedAt||'')?1:-1);
+  }).sort((a,b)=>{
+    if(sortBy==='encounter'){
+      // 日付ありを新しい順に、日付なしは末尾
+      const ea=a.encounter||'', eb=b.encounter||'';
+      if(ea&&eb) return ea<eb?1:-1;
+      if(ea&&!eb) return -1;
+      if(!ea&&eb) return 1;
+    }
+    return (b.updatedAt||'')>(a.updatedAt||'')?1:-1;
+  });
   $('caseGrid').innerHTML=list.map(c=>{
     const st=statusLabel(c.status);
     return `
@@ -877,6 +1124,7 @@ function renderCases(){
         ${st?`<div class="stamp ${statusStampClass(c.status)}">${esc(st)}</div>`:''}
       </div>
       <div class="title">${esc(c.title)}</div>
+      ${c.encounter?`<div class="pid">🗓 ${esc(fmtDue(c.encounter))} に対応</div>`:''}
       ${(c.pid||c.pname)?`<div class="pid">🪪 ${esc(c.pid||'')}${c.pid&&c.pname?' / ':''}${esc(c.pname||'')}</div>`:''}
       ${c.point?`<div class="point">${esc(c.point)}</div>`:''}
       <div class="tags">${(c.tags||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div>
@@ -894,6 +1142,7 @@ function openCaseModal(id,presetPlanId){
   const c=id?state.cases.find(x=>x.id===id):null;
   $('caseModalTitle').textContent=c?'症例カードを編集':'症例カードを追加';
   $('cTitle').value=c?.title||''; $('cPid').value=c?.pid||''; $('cPname').value=c?.pname||'';
+  $('cEncounter').value=c?.encounter||'';
   const sts=getStatuses();
   const curSt=c?.status||(sts[0]?.id||'');
   $('cStatus').innerHTML = sts.length
@@ -920,7 +1169,7 @@ function saveCase(){
   const title=$('cTitle').value.trim();
   if(!title){ toast('タイトルを入力してください'); return; }
   const data={
-    title, pid:$('cPid').value.trim(), pname:$('cPname').value.trim(),
+    title, pid:$('cPid').value.trim(), pname:$('cPname').value.trim(), encounter:$('cEncounter').value||'',
     category:$('cCategory').value, status:$('cStatus').value, confidence:$('cConfidence').value,
     tags:$('cTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
     point:$('cPoint').value.trim(), memo:$('cMemo').value, ic:$('cIc').value,
@@ -953,6 +1202,7 @@ function openCaseDetail(id){
         ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
         <h3>${esc(c.title)}</h3>
         ${(c.pid||c.pname)?`<div style="font-size:12.5px;color:var(--ink-soft)">🪪 ID: ${esc(c.pid||'—')} ／ ${esc(c.pname||'—')}</div>`:''}
+        ${c.encounter?`<div style="font-size:12.5px;color:var(--ink-soft)">🗓 出会った日: ${esc(fmtDue(c.encounter))}</div>`:''}
         ${c.confidence?`<div style="margin-top:4px">${confBadge(c.confidence)}</div>`:''}
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(c.tags||[]).map(t=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(t)}</span>`).join('')}</div>
       </div>
@@ -1169,6 +1419,322 @@ function onGlobalWeight(){
 function clearGlobalWeight(){
   setGlobalWeight(''); $('globalWeight').value=''; renderTx();
 }
+
+/* ---------- ddx (主訴からの鑑別) ---------- */
+let editingDdxId=null, activeDdxTags=new Set();
+const splitLines = s => (s||'').split(/\n/).map(x=>x.trim()).filter(Boolean);
+function allDdxTags(){
+  const s=new Set(); liveDdx().forEach(d=>(d.tags||[]).forEach(x=>s.add(x)));
+  return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
+}
+function renderDdx(){
+  const tags=allDdxTags(); window._ddxTagList=tags;
+  activeDdxTags=new Set([...activeDdxTags].filter(t=>tags.includes(t)));
+  $('ddxChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeDdxTags.has(t)?'on':''}" onclick="toggleDdxTag(${i})">${esc(t)}</button>`).join('');
+  const q=$('ddxSearch').value.trim().toLowerCase();
+  const list=liveDdx().filter(d=>{
+    if(activeDdxTags.size&&![...activeDdxTags].every(t=>(d.tags||[]).includes(t))) return false;
+    if(q){
+      const hay=[d.title,(d.killer||[]).join(' '),(d.list||[]).join(' '),d.approach,(d.redflag||[]).join(' '),d.body,(d.tags||[]).join(' ')].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b)=>(a.title||'').localeCompare(b.title||'','ja'));
+  $('ddxGrid').innerHTML=list.map(d=>{
+    const killers=(d.killer||[]);
+    return `
+    <div class="case-card ddx-card" onclick="openDdxDetail('${d.id}')">
+      <div class="cat" style="color:var(--shu)">🩺 主訴</div>
+      <div class="title" style="padding-right:0">${esc(d.title)}</div>
+      ${killers.length?`<div class="killer-row">${killers.slice(0,4).map(k=>`<span>🚨 ${esc(k)}</span>`).join('')}${killers.length>4?`<span style="background:none;color:var(--ink-soft)">+${killers.length-4}</span>`:''}</div>`:''}
+      <div class="ddx-count">鑑別 ${(d.list||[]).length}件${(d.redflag||[]).length?` ／ 🚩${(d.redflag||[]).length}`:''}</div>
+      <div class="tags" style="margin-top:6px">${(d.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
+    </div>`;
+  }).join('')||'<div class="empty">主訴の鑑別はまだありません。＋で追加。</div>';
+}
+function toggleDdxTag(i){
+  const t=(window._ddxTagList||[])[i]; if(t===undefined) return;
+  activeDdxTags.has(t)?activeDdxTags.delete(t):activeDdxTags.add(t);
+  renderDdx();
+}
+function openDdxModal(id){
+  editingDdxId=id||null;
+  const d=id?state.ddx.find(x=>x.id===id):null;
+  $('ddxModalTitle').textContent=d?'主訴の鑑別を編集':'主訴の鑑別を追加';
+  $('dTitle').value=d?.title||''; $('dTags').value=(d?.tags||[]).join(', ');
+  $('dKiller').value=(d?.killer||[]).join('\n');
+  $('dList').value=(d?.list||[]).join('\n');
+  $('dApproach').value=d?.approach||'';
+  $('dRedflag').value=(d?.redflag||[]).join('\n');
+  $('dBody').value=d?.body||'';
+  $('dDeleteBtn').style.display=d?'':'none';
+  closeOverlay('detailOverlay');
+  $('ddxOverlay').classList.add('open');
+}
+function saveDdx(){
+  const title=$('dTitle').value.trim();
+  if(!title){ toast('主訴を入力してください'); return; }
+  const data={
+    title, tags:$('dTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
+    killer:splitLines($('dKiller').value), list:splitLines($('dList').value),
+    approach:$('dApproach').value, redflag:splitLines($('dRedflag').value),
+    body:$('dBody').value, updatedAt:now()
+  };
+  if(editingDdxId) Object.assign(state.ddx.find(x=>x.id===editingDdxId),data);
+  else state.ddx.push(Object.assign({id:uid(),createdAt:now(),deleted:false},data));
+  saveState(); closeOverlay('ddxOverlay'); renderDdx(); toast('保存しました');
+}
+function deleteDdx(){
+  if(!editingDdxId||!confirm('この主訴の鑑別を削除しますか?')) return;
+  const d=state.ddx.find(x=>x.id===editingDdxId);
+  d.deleted=true; d.updatedAt=now();
+  saveState(); closeOverlay('ddxOverlay'); renderDdx(); toast('削除しました');
+}
+function openDdxDetail(id){
+  const d=state.ddx.find(x=>x.id===id); if(!d) return;
+  const listBlock=(title,arr,cls,icon)=> (arr&&arr.length)?`
+    <div class="ddx-block ${cls}"><h4>${icon} ${title}</h4><div class="ddx-items">${arr.map((x,i)=>`<div class="it">${cls==='ddx-normal'?`<span class="ddx-num">${i+1}.</span>`:''}${esc(x)}</div>`).join('')}</div></div>`:'';
+  $('detailBody').innerHTML=`
+    <div class="detail-head"><div class="t">
+      <div class="cat" style="color:var(--shu)">🩺 主訴からの鑑別</div>
+      <h3>${esc(d.title)}</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(d.tags||[]).map(x=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(x)}</span>`).join('')}</div>
+    </div></div>
+    ${listBlock('危険な鑑別 / Killer', d.killer, 'ddx-killer', '🚨')}
+    ${d.approach?`<div class="ddx-block"><h4>🔧 初期対応・アプローチ</h4><div class="md">${md(d.approach)}</div></div>`:''}
+    ${listBlock('鑑別リスト', d.list, 'ddx-normal', '📋')}
+    ${listBlock('Red flag', d.redflag, 'ddx-redflag', '🚩')}
+    ${d.body?`<div class="ddx-block"><h4>📝 メモ・出典</h4><div class="md">${md(d.body)}</div></div>`:''}
+    <div class="detail-meta">作成 ${esc((d.createdAt||'').slice(0,10))} ／ 更新 ${esc((d.updatedAt||'').slice(0,10))}</div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
+      <button class="btn primary" onclick="openDdxModal('${d.id}')">編集</button>
+    </div>`;
+  $('detailOverlay').classList.add('open');
+}
+
+/* ---------- papers (論文読破メモ) ---------- */
+let editingPaperId=null, activePaperTags=new Set();
+const PAPER_STATUS_LABEL={unread:'未読', read:'読了', jc:'抄読会候補'};
+const PAPER_STATUS_CLASS={unread:'st-0', read:'st-1', jc:'st-2'};
+function allPaperTags(){
+  const s=new Set(); livePapers().forEach(p=>(p.tags||[]).forEach(x=>s.add(x)));
+  return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
+}
+function renderPapers(){
+  const tags=allPaperTags(); window._paperTagList=tags;
+  activePaperTags=new Set([...activePaperTags].filter(t=>tags.includes(t)));
+  $('paperChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activePaperTags.has(t)?'on':''}" onclick="togglePaperTag(${i})">${esc(t)}</button>`).join('');
+  const q=$('paperSearch').value.trim().toLowerCase();
+  const sf=$('paperStatusFilter').value;
+  const list=livePapers().filter(p=>{
+    if(sf&&p.status!==sf) return false;
+    if(activePaperTags.size&&![...activePaperTags].every(t=>(p.tags||[]).includes(t))) return false;
+    if(q){
+      const hay=[p.title,p.citation,p.conclusion,p.p,p.i,p.c,p.o,p.results,p.implication,p.jc,(p.tags||[]).join(' ')].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b)=>{
+    if(!!b.star!==!!a.star) return b.star?1:-1;
+    return (b.updatedAt||'')>(a.updatedAt||'')?1:-1;
+  });
+  $('paperGrid').innerHTML=list.map(p=>`
+    <div class="case-card ${p.star?'pinned':''}" onclick="openPaperDetail('${p.id}')">
+      <button class="pin-btn card-pin ${p.star?'on':''}" onclick="event.stopPropagation();togglePaperStar('${p.id}')" title="スター">★</button>
+      <div class="card-top">
+        <div class="cat" style="color:var(--gold)">📄 論文</div>
+        <div class="spacer"></div>
+        ${p.status?`<div class="stamp ${PAPER_STATUS_CLASS[p.status]||'st-0'}">${PAPER_STATUS_LABEL[p.status]||''}</div>`:''}
+      </div>
+      <div class="title" style="padding-right:24px">${esc(p.title)}</div>
+      ${p.citation?`<div class="pid">${esc(p.citation)}</div>`:''}
+      ${p.conclusion?`<div class="point">💡 ${esc(p.conclusion)}</div>`:''}
+      <div class="tags" style="margin-top:6px">${(p.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
+    </div>`).join('')||'<div class="empty">論文はまだありません。＋で追加。</div>';
+}
+function togglePaperTag(i){
+  const t=(window._paperTagList||[])[i]; if(t===undefined) return;
+  activePaperTags.has(t)?activePaperTags.delete(t):activePaperTags.add(t);
+  renderPapers();
+}
+function togglePaperStar(id){
+  const p=state.papers.find(x=>x.id===id); if(!p) return;
+  p.star=!p.star; p.updatedAt=now(); saveState(); renderPapers();
+}
+function openPaperModal(id){
+  editingPaperId=id||null;
+  const p=id?state.papers.find(x=>x.id===id):null;
+  $('paperModalTitle').textContent=p?'論文を編集':'論文を追加';
+  $('ppTitle').value=p?.title||''; $('ppCitation').value=p?.citation||'';
+  $('ppStatus').value=p?.status||'unread';
+  $('ppLinks').value=(p?.links||[]).join('\n'); $('ppTags').value=(p?.tags||[]).join(', ');
+  $('ppConclusion').value=p?.conclusion||'';
+  $('ppP').value=p?.p||''; $('ppI').value=p?.i||''; $('ppC').value=p?.c||''; $('ppO').value=p?.o||'';
+  $('ppResults').value=p?.results||''; $('ppImplication').value=p?.implication||''; $('ppJc').value=p?.jc||'';
+  $('ppDeleteBtn').style.display=p?'':'none';
+  closeOverlay('detailOverlay'); $('paperOverlay').classList.add('open');
+}
+function savePaper(){
+  const title=$('ppTitle').value.trim();
+  if(!title){ toast('タイトルを入力してください'); return; }
+  const data={
+    title, citation:$('ppCitation').value.trim(), status:$('ppStatus').value,
+    links:$('ppLinks').value.split(/\n/).map(s=>s.trim()).filter(Boolean),
+    tags:$('ppTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
+    conclusion:$('ppConclusion').value.trim(),
+    p:$('ppP').value.trim(), i:$('ppI').value.trim(), c:$('ppC').value.trim(), o:$('ppO').value.trim(),
+    results:$('ppResults').value, implication:$('ppImplication').value, jc:$('ppJc').value,
+    updatedAt:now()
+  };
+  if(editingPaperId) Object.assign(state.papers.find(x=>x.id===editingPaperId),data);
+  else state.papers.push(Object.assign({id:uid(),star:false,createdAt:now(),deleted:false},data));
+  saveState(); closeOverlay('paperOverlay'); renderPapers(); toast('保存しました');
+}
+function deletePaper(){
+  if(!editingPaperId||!confirm('この論文を削除しますか?')) return;
+  const p=state.papers.find(x=>x.id===editingPaperId);
+  p.deleted=true; p.updatedAt=now(); saveState(); closeOverlay('paperOverlay'); renderPapers(); toast('削除しました');
+}
+function openPaperDetail(id){
+  const p=state.papers.find(x=>x.id===id); if(!p) return;
+  const pico = (p.p||p.i||p.c||p.o) ? `
+    <div class="ddx-block"><h4>🔬 PICO</h4>
+    <table class="dose-table">
+      ${p.p?`<tr><td style="width:64px"><b>P</b></td><td>${esc(p.p)}</td></tr>`:''}
+      ${p.i?`<tr><td><b>I</b></td><td>${esc(p.i)}</td></tr>`:''}
+      ${p.c?`<tr><td><b>C</b></td><td>${esc(p.c)}</td></tr>`:''}
+      ${p.o?`<tr><td><b>O</b></td><td>${esc(p.o)}</td></tr>`:''}
+    </table></div>`:'';
+  $('detailBody').innerHTML=`
+    <div class="detail-head"><div class="t">
+      <div class="cat" style="color:var(--gold)">📄 論文 ${p.status?`<span class="conf ${PAPER_STATUS_CLASS[p.status]==='st-1'?'confirmed':PAPER_STATUS_CLASS[p.status]==='st-2'?'review':''}">${PAPER_STATUS_LABEL[p.status]}</span>`:''}</div>
+      <h3>${esc(p.title)}</h3>
+      ${p.citation?`<div style="font-size:12.5px;color:var(--ink-soft)">${esc(p.citation)}</div>`:''}
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(p.tags||[]).map(x=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(x)}</span>`).join('')}</div>
+    </div>
+    <button class="pin-btn ${p.star?'on':''}" onclick="togglePaperStar('${p.id}');openPaperDetail('${p.id}')" title="スター" style="font-size:22px">★</button>
+    </div>
+    ${p.conclusion?`<p style="font-weight:700;font-size:15px;background:var(--amber-soft);padding:8px 12px;border-radius:8px">💡 ${esc(p.conclusion)}</p>`:''}
+    ${pico}
+    ${p.results?`<div class="ddx-block"><h4>📊 主要結果</h4><div class="md">${md(p.results)}</div></div>`:''}
+    ${p.implication?`<div class="ddx-block"><h4>🩺 臨床への示唆</h4><div class="md">${md(p.implication)}</div></div>`:''}
+    ${p.jc?`<div class="ddx-block"><h4>🗣 抄読会メモ</h4><div class="md">${md(p.jc)}</div></div>`:''}
+    ${(p.links||[]).length?'<div class="sec-label">リンク</div>'+p.links.map(u=>`<div style="font-size:13px;overflow-wrap:anywhere">🔗 <a href="${esc(u)}" target="_blank" rel="noopener" style="color:var(--pine)">${esc(u)}</a></div>`).join(''):''}
+    <div class="detail-meta">作成 ${esc((p.createdAt||'').slice(0,10))} ／ 更新 ${esc((p.updatedAt||'').slice(0,10))}</div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
+      <button class="btn primary" onclick="openPaperModal('${p.id}')">編集</button>
+    </div>`;
+  $('detailOverlay').classList.add('open');
+}
+
+/* ---------- images (画像所見スタック) ---------- */
+let editingImgId=null, activeImgTags=new Set();
+const IMG_USE_LABEL={typical:'典型例', mine:'自分用'};
+function allImgTags(){
+  const s=new Set(); liveImages().forEach(im=>(im.tags||[]).forEach(x=>s.add(x)));
+  return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
+}
+function allModalities(){
+  const s=new Set(); liveImages().forEach(im=>{ if(im.modality) s.add(im.modality); });
+  return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
+}
+function renderImg(){
+  const mf=$('imgModalityFilter'); const curM=mf.value;
+  mf.innerHTML='<option value="">全モダリティ</option>'+allModalities().map(m=>`<option ${m===curM?'selected':''}>${esc(m)}</option>`).join('');
+  const tags=allImgTags(); window._imgTagList=tags;
+  activeImgTags=new Set([...activeImgTags].filter(t=>tags.includes(t)));
+  $('imgChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeImgTags.has(t)?'on':''}" onclick="toggleImgTag(${i})">${esc(t)}</button>`).join('');
+  const q=$('imgSearch').value.trim().toLowerCase();
+  const uf=$('imgUseFilter').value;
+  const list=liveImages().filter(im=>{
+    if(curM&&im.modality!==curM) return false;
+    if(uf&&im.use!==uf) return false;
+    if(activeImgTags.size&&![...activeImgTags].every(t=>(im.tags||[]).includes(t))) return false;
+    if(q){
+      const hay=[im.title,im.modality,im.region,im.findings,(im.ddx||[]).join(' '),im.dx,im.body,(im.tags||[]).join(' ')].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b)=>(b.updatedAt||'')>(a.updatedAt||'')?1:-1);
+  $('imgGrid').innerHTML=list.map(im=>`
+    <div class="case-card" onclick="openImgDetail('${im.id}')">
+      <div class="card-top">
+        <div class="cat" style="color:var(--pine)">🖼 ${esc(im.modality||'画像')}</div>
+        <div class="spacer"></div>
+        <div class="stamp ${im.use==='typical'?'st-1':'st-0'}">${IMG_USE_LABEL[im.use]||''}</div>
+      </div>
+      <div class="title">${esc(im.title)}</div>
+      ${im.findings?`<div class="point">${esc(im.findings.replace(/[#*]/g,'').slice(0,120))}</div>`:''}
+      ${im.dx?`<div class="pid">Dx: ${esc(im.dx)}</div>`:''}
+      <div class="tags" style="margin-top:6px">${(im.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
+    </div>`).join('')||'<div class="empty">画像所見はまだありません。＋で追加。</div>';
+}
+function toggleImgTag(i){
+  const t=(window._imgTagList||[])[i]; if(t===undefined) return;
+  activeImgTags.has(t)?activeImgTags.delete(t):activeImgTags.add(t);
+  renderImg();
+}
+function openImgModal(id){
+  editingImgId=id||null;
+  const im=id?state.images.find(x=>x.id===id):null;
+  $('imgModalTitle').textContent=im?'画像所見を編集':'画像所見を追加';
+  $('imTitle').value=im?.title||''; $('imModality').value=im?.modality||''; $('imRegion').value=im?.region||'';
+  $('imUse').value=im?.use||'typical'; $('imPid').value=im?.pid||'';
+  $('imTags').value=(im?.tags||[]).join(', ');
+  $('imFindings').value=im?.findings||''; $('imDdx').value=(im?.ddx||[]).join('\n');
+  $('imDx').value=im?.dx||''; $('imBody').value=im?.body||''; $('imEncounter').value=im?.encounter||'';
+  $('modalityList').innerHTML=allModalities().map(m=>`<option value="${esc(m)}">`).join('');
+  $('imDeleteBtn').style.display=im?'':'none';
+  closeOverlay('detailOverlay'); $('imgOverlay').classList.add('open');
+}
+function saveImg(){
+  const title=$('imTitle').value.trim();
+  if(!title){ toast('タイトルを入力してください'); return; }
+  const data={
+    title, modality:$('imModality').value.trim(), region:$('imRegion').value.trim(),
+    use:$('imUse').value, pid:$('imPid').value.trim(),
+    tags:$('imTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
+    findings:$('imFindings').value, ddx:splitLines($('imDdx').value),
+    dx:$('imDx').value.trim(), body:$('imBody').value, encounter:$('imEncounter').value||'',
+    updatedAt:now()
+  };
+  if(editingImgId) Object.assign(state.images.find(x=>x.id===editingImgId),data);
+  else state.images.push(Object.assign({id:uid(),createdAt:now(),deleted:false},data));
+  saveState(); closeOverlay('imgOverlay'); renderImg(); toast('保存しました');
+}
+function deleteImg(){
+  if(!editingImgId||!confirm('この画像所見を削除しますか?')) return;
+  const im=state.images.find(x=>x.id===editingImgId);
+  im.deleted=true; im.updatedAt=now(); saveState(); closeOverlay('imgOverlay'); renderImg(); toast('削除しました');
+}
+function openImgDetail(id){
+  const im=state.images.find(x=>x.id===id); if(!im) return;
+  $('detailBody').innerHTML=`
+    <div class="detail-head"><div class="t">
+      <div class="cat" style="color:var(--pine)">🖼 ${esc(im.modality||'画像')} ／ ${IMG_USE_LABEL[im.use]||''}</div>
+      <h3>${esc(im.title)}</h3>
+      ${im.region?`<div style="font-size:12.5px;color:var(--ink-soft)">部位: ${esc(im.region)}</div>`:''}
+      ${im.pid?`<div style="font-size:12.5px;color:var(--ink-soft)">🪪 ${esc(im.pid)}</div>`:''}
+      ${im.encounter?`<div style="font-size:12.5px;color:var(--ink-soft)">🗓 ${esc(fmtDue(im.encounter))}</div>`:''}
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(im.tags||[]).map(x=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(x)}</span>`).join('')}</div>
+    </div></div>
+    ${im.findings?`<div class="ddx-block"><h4>🔍 画像所見</h4><div class="md">${md(im.findings)}</div></div>`:''}
+    ${(im.ddx||[]).length?`<div class="ddx-block ddx-normal"><h4>📋 鑑別</h4><div class="ddx-items">${im.ddx.map((x,i)=>`<div class="it"><span class="ddx-num">${i+1}.</span>${esc(x)}</div>`).join('')}</div></div>`:''}
+    ${im.dx?`<p style="font-weight:700;font-size:15px;background:var(--pine-soft);color:var(--pine);padding:8px 12px;border-radius:8px">診断: ${esc(im.dx)}</p>`:''}
+    ${im.body?`<div class="ddx-block"><h4>📝 メモ</h4><div class="md">${md(im.body)}</div></div>`:''}
+    <div class="detail-meta">作成 ${esc((im.createdAt||'').slice(0,10))} ／ 更新 ${esc((im.updatedAt||'').slice(0,10))}</div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
+      <button class="btn primary" onclick="openImgModal('${im.id}')">編集</button>
+    </div>`;
+  $('detailOverlay').classList.add('open');
+}
+
 function doseTableHtml(t, weight){
   const ds=parseDoses(t.doses);
   if(!ds.length) return '';
@@ -1264,8 +1830,8 @@ function updateDoseTable(id){
 }
 
 /* ---------- import (fixed format) ---------- */
-const IMPORT_KEYS = ['title','category','folder','tags','confidence','point','memo','ic','links','doses','body'];
-const MULTILINE_KEYS = new Set(['memo','ic','links','doses','body']);
+const IMPORT_KEYS = ['title','category','folder','tags','confidence','point','memo','ic','links','doses','body','encounter','killer','list','approach','redflag','citation','conclusion','p','i','c','o','results','implication','jc','modality','region','findings','ddx','dx','use'];
+const MULTILINE_KEYS = new Set(['memo','ic','links','doses','body','killer','list','approach','redflag','results','implication','jc','findings','ddx']);
 function parseImport(text){
   const blocks = text.split(/^\s*---\s*$/m).map(b=>b.trim()).filter(Boolean);
   const records = [];
@@ -1277,8 +1843,8 @@ function parseImport(text){
     for(let i=0;i<lines.length;i++){
       const line = lines[i];
       const trimmed = line.trim();
-      if(i===0 && /^@(case|note|treatment)\b/i.test(trimmed)){
-        type = trimmed.slice(1).toLowerCase().match(/^(case|note|treatment)/)[1];
+      if(i===0 && /^@(case|note|treatment|ddx|paper|image)\b/i.test(trimmed)){
+        type = trimmed.slice(1).toLowerCase().match(/^(case|note|treatment|ddx|paper|image)/)[1];
         continue;
       }
       const km = line.match(/^([a-zA-Z]+):\s?(.*)$/);
@@ -1300,7 +1866,7 @@ function recToEntity(type, rec){
   if(type==='case'){
     return {kind:'case', data:{
       id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
-      title:(rec.title||'').trim(), pid:'', pname:'',
+      title:(rec.title||'').trim(), pid:'', pname:'', encounter:(rec.encounter||'').trim(),
       category:(rec.category||'').trim(), status:(getStatuses()[0]?.id||''), confidence:conf,
       tags, point:(rec.point||'').trim(), memo:(rec.memo||'').trim(),
       ic:(rec.ic||'').trim(),
@@ -1322,6 +1888,34 @@ function recToEntity(type, rec){
       pinned:false
     }};
   }
+  if(type==='ddx'){
+    return {kind:'ddx', data:{
+      id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
+      title:(rec.title||'').trim(), tags,
+      killer:splitLines(rec.killer||''), list:splitLines(rec.list||''),
+      approach:(rec.approach||'').trim(), redflag:splitLines(rec.redflag||''),
+      body:(rec.body||rec.memo||'').trim()
+    }};
+  }
+  if(type==='paper'){
+    return {kind:'paper', data:{
+      id:uid(), createdAt:now(), updatedAt:now(), deleted:false, star:false,
+      title:(rec.title||'').trim(), citation:(rec.citation||'').trim(),
+      status:'unread', links:splitLines(rec.links||''), tags,
+      conclusion:(rec.conclusion||'').trim(),
+      p:(rec.p||'').trim(), i:(rec.i||'').trim(), c:(rec.c||'').trim(), o:(rec.o||'').trim(),
+      results:(rec.results||'').trim(), implication:(rec.implication||'').trim(), jc:(rec.jc||'').trim()
+    }};
+  }
+  if(type==='image'){
+    return {kind:'image', data:{
+      id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
+      title:(rec.title||'').trim(), modality:(rec.modality||'').trim(), region:(rec.region||'').trim(),
+      use:(rec.use==='mine'?'mine':'typical'), pid:'',
+      tags, findings:(rec.findings||rec.memo||'').trim(), ddx:splitLines(rec.ddx||''),
+      dx:(rec.dx||'').trim(), body:(rec.body||'').trim(), encounter:(rec.encounter||'').trim()
+    }};
+  }
   return null;
 }
 let _importQueue = [];
@@ -1339,7 +1933,7 @@ function previewImport(){
     $('importDoBtn').style.display='none';
     return;
   }
-  const label={case:'症例',note:'ノート',treatment:'治療'};
+  const label={case:'症例',note:'ノート',treatment:'治療',ddx:'鑑別',paper:'論文',image:'画像'};
   const norm = s => (s||'').trim();
   $('importPreview').innerHTML='<b>'+_importQueue.length+'件を取り込みます:</b><br>'+
     _importQueue.map(e=>{
@@ -1359,6 +1953,9 @@ function doImport(){
   for(const e of _importQueue){
     if(e.kind==='case'){ state.cases.push(e.data); added++; }
     else if(e.kind==='treatment'){ state.treatments.push(e.data); added++; }
+    else if(e.kind==='ddx'){ state.ddx.push(e.data); added++; }
+    else if(e.kind==='paper'){ state.papers.push(e.data); added++; }
+    else if(e.kind==='image'){ state.images.push(e.data); added++; }
     else if(e.kind==='note'){
       // 同フォルダ・同タイトルの既存ノートがあれば追記
       const existing = state.notes.find(x => !x.deleted
@@ -1457,14 +2054,14 @@ async function cloudSync(mode){
     const res=await fetch(state.settings.gasUrl,{
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({cases:state.cases,plans:state.plans,notes:state.notes,treatments:state.treatments,meta:state.meta})
+      body:JSON.stringify({cases:state.cases,plans:state.plans,notes:state.notes,treatments:state.treatments,ddx:state.ddx,papers:state.papers,images:state.images,meta:state.meta})
     });
     if(!res.ok) throw new Error('HTTP '+res.status);
     const merged=await res.json();
     if(!merged||!Array.isArray(merged.cases)) throw new Error('不正な応答(GAS再デプロイを確認)');
     // マージ結果をローカルに反映(updatedAtで既にサーバ側マージ済み)
     state.cases=merged.cases; state.plans=merged.plans;
-    state.notes=merged.notes||[]; state.treatments=merged.treatments||[]; state.meta=merged.meta||[];
+    state.notes=merged.notes||[]; state.treatments=merged.treatments||[]; state.ddx=merged.ddx||[]; state.papers=merged.papers||[]; state.images=merged.images||[]; state.meta=merged.meta||[];
     state.settings.lastSync=now();
     localStorage.setItem(LS_KEY, JSON.stringify(state)); // 再帰予約を避け直接保存
     render();
@@ -1498,7 +2095,10 @@ function render(){
   if(activeTab==='plans') renderPlans();
   else if(activeTab==='cases') renderCases();
   else if(activeTab==='notes') renderNotes();
-  else renderTx();
+  else if(activeTab==='tx') renderTx();
+  else if(activeTab==='ddx') renderDdx();
+  else if(activeTab==='papers') renderPapers();
+  else renderImg();
 }
 
 /* ---------- theme ---------- */
@@ -1536,7 +2136,7 @@ setInterval(autoPull, AUTO_PULL_INTERVAL);
 // 離脱直前に保存待ちがあれば流す(ベストエフォート)
 window.addEventListener('beforeunload', ()=>{
   if(_pendingSave && state.settings.gasUrl && state.settings.autoSync && navigator.sendBeacon){
-    try{ navigator.sendBeacon(state.settings.gasUrl, JSON.stringify({cases:state.cases,plans:state.plans,notes:state.notes,treatments:state.treatments,meta:state.meta})); }catch(e){}
+    try{ navigator.sendBeacon(state.settings.gasUrl, JSON.stringify({cases:state.cases,plans:state.plans,notes:state.notes,treatments:state.treatments,ddx:state.ddx,papers:state.papers,images:state.images,meta:state.meta})); }catch(e){}
   }
 });
 </script>
