@@ -135,9 +135,9 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .case-card .tags span{font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px}
 
 .stamp{position:absolute;top:10px;right:10px;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--font-stamp);font-weight:700;font-size:10.5px;line-height:1.15;transform:rotate(-8deg);letter-spacing:.05em;pointer-events:none}
-.stamp.studying{border:2px solid var(--ink-soft);color:var(--ink-soft);opacity:.75}
-.stamp.summarized{border:2px solid var(--pine);color:var(--pine);background:var(--pine-soft)}
-.stamp.teachable{border:2.5px double var(--shu);color:var(--shu);background:var(--shu-soft);opacity:.92}
+.stamp.st-0{border:2px solid var(--ink-soft);color:var(--ink-soft);opacity:.75}
+.stamp.st-1{border:2px solid var(--pine);color:var(--pine);background:var(--pine-soft)}
+.stamp.st-2{border:2.5px double var(--shu);color:var(--shu);background:var(--shu-soft);opacity:.92}
 
 /* confidence badge */
 .conf{font-size:10.5px;padding:1px 8px;border-radius:10px;font-weight:700;display:inline-block}
@@ -275,10 +275,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
       <input type="search" id="caseSearch" placeholder="検索(タイトル・ID・名前・要点・メモ)" oninput="renderCases()">
       <select id="caseCatFilter" onchange="renderCases()"><option value="">全カテゴリ</option></select>
       <select id="caseStatusFilter" onchange="renderCases()">
-        <option value="">全状態</option>
-        <option value="studying">勉強中</option>
-        <option value="summarized">まとめ済</option>
-        <option value="teachable">教えられる</option>
+        <option value="">全ステータス</option>
       </select>
     </div>
     <div class="tag-chips" id="tagChips"></div>
@@ -352,7 +349,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
     <div class="form-grid">
       <div class="form-row"><label>疾患カテゴリ</label><select id="cCategory"></select><div class="hint">カテゴリの追加・削除は⚙設定から</div></div>
       <div class="form-row"><label>状態</label>
-        <select id="cStatus"><option value="studying">勉強中</option><option value="summarized">まとめ済</option><option value="teachable">教えられる</option></select>
+        <select id="cStatus"></select>
       </div>
     </div>
     <div class="form-row"><label>確度(情報の裏取り状況)</label>
@@ -474,6 +471,15 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
       <div class="cat-list" id="catList"></div>
       <div class="hint">削除しても既存の症例カードのカテゴリは消えません(表示は残ります)</div>
     </div>
+    <div class="form-row">
+      <label>症例ステータスの管理</label>
+      <div class="cat-add-row">
+        <input type="text" id="newStatus" placeholder="新しいステータス名(例 Learning)">
+        <button class="btn" onclick="addStatus()">追加</button>
+      </div>
+      <div class="cat-list" id="statusList"></div>
+      <div class="hint">症例カードの判子に表示されます。名前をタップで編集、×で削除。全部消すと判子が非表示になります。色は上から順に3色で自動割当。</div>
+    </div>
     <div class="modal-actions">
       <div class="spacer"></div>
       <button class="btn" onclick="closeOverlay('settingsOverlay')">閉じる</button>
@@ -491,7 +497,28 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
    localStorage + GAS同期(updatedAt新しい方優先, ソフトデリート)
 ========================================================= */
 const LS_KEY = 'studyos_v1'; // 既存データ引き継ぎのためキーは変更しない
-const STATUS_LABEL = {studying:'勉強中', summarized:'まとめ済', teachable:'教えられる'};
+const DEFAULT_STATUSES = [
+  {id:'studying',   label:'Learning'},
+  {id:'summarized', label:'Reviewed'},
+  {id:'teachable',  label:'Mastered'}
+];
+// 3色をローテーションで割り当て(0=neutral,1=pine,2=shu)
+function statusRecord(){
+  let r = state.meta.find(m => m.id === 'statuses');
+  if(!r){ r = { id:'statuses', list:DEFAULT_STATUSES.map(s=>({...s})), updatedAt: now() }; state.meta.push(r); }
+  if(!Array.isArray(r.list)) r.list = DEFAULT_STATUSES.map(s=>({...s}));
+  return r;
+}
+function getStatuses(){ return statusRecord().list; }
+function statusLabel(id){
+  const s=getStatuses().find(x=>x.id===id);
+  return s ? s.label : '';
+}
+function statusStampClass(id){
+  const list=getStatuses();
+  const i=list.findIndex(x=>x.id===id);
+  return i<0 ? 'st-0' : 'st-'+(i%3);
+}
 const CONF_LABEL = {confirmed:'確定', review:'要確認', ai:'AI初期知識'};
 const CONF_ALIAS = {'確定':'confirmed','裏取り済':'confirmed','確定(裏取り済)':'confirmed','要確認':'review','ai初期知識':'ai','ai':'ai','初期知識':'ai'};
 const PLAN_STATUS = ['todo','doing','done'];
@@ -560,6 +587,41 @@ function renderCatList(){
   $('catList').innerHTML = catRecord().list.map((c,i) =>
     `<span class="cat-item">${esc(c)}<button onclick="removeCategory(${i})" title="削除">×</button></span>`).join('')
     || '<span class="hint">まだカテゴリがありません</span>';
+}
+
+/* ---------- status management ---------- */
+function slugId(label){
+  const base = (label||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  return (base||'st') + '-' + Math.random().toString(36).slice(2,6);
+}
+function addStatus(){
+  const v=$('newStatus').value.trim();
+  if(!v) return;
+  const r=statusRecord();
+  r.list.push({id:slugId(v), label:v}); r.updatedAt=now();
+  $('newStatus').value=''; saveState(); renderStatusList(); if(activeTab==='cases') renderCases();
+  toast('ステータスを追加しました');
+}
+function removeStatus(i){
+  const r=statusRecord();
+  r.list.splice(i,1); r.updatedAt=now();
+  saveState(); renderStatusList(); if(activeTab==='cases') renderCases();
+}
+function editStatus(i){
+  const r=statusRecord();
+  const cur=r.list[i]; if(!cur) return;
+  const v=prompt('ステータス名を編集', cur.label);
+  if(v===null) return;
+  const nv=v.trim(); if(!nv) return;
+  cur.label=nv; r.updatedAt=now();
+  saveState(); renderStatusList(); if(activeTab==='cases') renderCases();
+}
+const STAMP_COLORS=['グレー','緑','朱'];
+function renderStatusList(){
+  const list=statusRecord().list;
+  $('statusList').innerHTML = list.map((s,i) =>
+    `<span class="cat-item"><span style="cursor:pointer" onclick="editStatus(${i})" title="タップで編集">${esc(s.label)}</span> <span class="hint" style="margin:0">${STAMP_COLORS[i%3]}</span><button onclick="removeStatus(${i})" title="削除">×</button></span>`).join('')
+    || '<span class="hint">ステータスなし(判子は非表示)</span>';
 }
 
 /* ---------- confidence ---------- */
@@ -757,6 +819,8 @@ function allTags(){
 function renderCases(){
   const cat=$('caseCatFilter'); const cur=cat.value;
   cat.innerHTML='<option value="">全カテゴリ</option>'+getCategories().map(c=>`<option ${c===cur?'selected':''}>${esc(c)}</option>`).join('');
+  const stf=$('caseStatusFilter'); const curStf=stf.value;
+  stf.innerHTML='<option value="">全ステータス</option>'+getStatuses().map(s=>`<option value="${esc(s.id)}" ${s.id===curStf?'selected':''}>${esc(s.label)}</option>`).join('');
   const tags=allTags(); window._tagList=tags;
   activeTags=new Set([...activeTags].filter(t=>tags.includes(t)));
   $('tagChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeTags.has(t)?'on':''}" onclick="toggleTag(${i})">${esc(t)}</button>`).join('');
@@ -774,7 +838,7 @@ function renderCases(){
   }).sort((a,b)=>(b.updatedAt||'')>(a.updatedAt||'')?1:-1);
   $('caseGrid').innerHTML=list.map(c=>`
     <div class="case-card" onclick="openCaseDetail('${c.id}')">
-      <div class="stamp ${esc(c.status)}">${STATUS_LABEL[c.status]||''}</div>
+      <div class="stamp ${statusStampClass(c.status)}">${esc(statusLabel(c.status))}</div>
       ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
       <div class="title">${esc(c.title)}</div>
       ${(c.pid||c.pname)?`<div class="pid">🪪 ${esc(c.pid||'')}${c.pid&&c.pname?' / ':''}${esc(c.pname||'')}</div>`:''}
@@ -793,7 +857,11 @@ function openCaseModal(id,presetPlanId){
   const c=id?state.cases.find(x=>x.id===id):null;
   $('caseModalTitle').textContent=c?'症例カードを編集':'症例カードを追加';
   $('cTitle').value=c?.title||''; $('cPid').value=c?.pid||''; $('cPname').value=c?.pname||'';
-  $('cStatus').value=c?.status||'studying';
+  const sts=getStatuses();
+  const curSt=c?.status||(sts[0]?.id||'');
+  $('cStatus').innerHTML = sts.length
+    ? sts.map(s=>`<option value="${esc(s.id)}" ${s.id===curSt?'selected':''}>${esc(s.label)}</option>`).join('')
+    : '<option value="">(ステータスなし)</option>';
   $('cConfidence').value=c?.confidence||'';
   $('cTags').value=(c?.tags||[]).join(', ');
   $('cPoint').value=c?.point||''; $('cMemo').value=c?.memo||''; $('cIc').value=c?.ic||'';
@@ -851,7 +919,7 @@ function openCaseDetail(id){
         ${c.confidence?`<div style="margin-top:4px">${confBadge(c.confidence)}</div>`:''}
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(c.tags||[]).map(t=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(t)}</span>`).join('')}</div>
       </div>
-      <div class="stamp detail-stamp ${esc(c.status)}">${STATUS_LABEL[c.status]||''}</div>
+      <div class="stamp detail-stamp ${statusStampClass(c.status)}">${esc(statusLabel(c.status))}</div>
     </div>
     ${c.point?`<p style="font-weight:700;font-size:14px">${esc(c.point)}</p>`:''}
     <div class="md">${md(c.memo)}</div>
@@ -1196,7 +1264,7 @@ function recToEntity(type, rec){
     return {kind:'case', data:{
       id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
       title:(rec.title||'').trim(), pid:'', pname:'',
-      category:(rec.category||'').trim(), status:'studying', confidence:conf,
+      category:(rec.category||'').trim(), status:(getStatuses()[0]?.id||''), confidence:conf,
       tags, point:(rec.point||'').trim(), memo:(rec.memo||'').trim(),
       ic:(rec.ic||'').trim(),
       links:(rec.links||'').split(/\n/).map(s=>s.trim()).filter(Boolean)
@@ -1265,6 +1333,7 @@ function openSettings(){
   $('gasUrl').value=state.settings.gasUrl||'';
   $('autoSyncChk').checked=!!state.settings.autoSync;
   renderCatList();
+  renderStatusList();
   $('settingsOverlay').classList.add('open');
 }
 function saveSettings(){
