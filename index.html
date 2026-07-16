@@ -128,16 +128,24 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .case-card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 12px;box-shadow:var(--shadow);cursor:pointer}
 .case-card:hover{border-color:var(--pine)}
 .case-card .cat{font-size:11px;letter-spacing:.08em;color:var(--pine);font-weight:700;margin-bottom:2px}
-.case-card .title{font-weight:700;font-size:15px;margin-bottom:6px;padding-right:64px}
+.case-card .title{font-weight:700;font-size:15px;margin-bottom:6px}
+.card-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;min-height:20px}
+.card-top .cat{margin:0}
+.card-top .spacer{flex:1}
+.card-top .stamp{position:static}
 .case-card .pid{font-size:11.5px;color:var(--ink-soft);margin:-3px 0 5px}
 .case-card .point{font-size:13px;color:var(--ink-soft);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .case-card .tags{display:flex;flex-wrap:wrap;gap:4px}
 .case-card .tags span{font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px}
 
-.stamp{position:absolute;top:10px;right:10px;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--font-stamp);font-weight:700;font-size:10.5px;line-height:1.15;transform:rotate(-8deg);letter-spacing:.05em;pointer-events:none}
-.stamp.st-0{border:2px solid var(--ink-soft);color:var(--ink-soft);opacity:.75}
-.stamp.st-1{border:2px solid var(--pine);color:var(--pine);background:var(--pine-soft)}
-.stamp.st-2{border:2.5px double var(--shu);color:var(--shu);background:var(--shu-soft);opacity:.92}
+.stamp{position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 8px;border-radius:7px;font-family:var(--font-display);font-weight:600;font-size:10.5px;line-height:1;letter-spacing:.02em;pointer-events:none;white-space:nowrap;text-transform:uppercase}
+.stamp::before{content:"";width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.stamp.st-0{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line)}
+.stamp.st-0::before{background:var(--ink-soft)}
+.stamp.st-1{background:var(--pine-soft);color:var(--pine)}
+.stamp.st-1::before{background:var(--pine)}
+.stamp.st-2{background:var(--shu-soft);color:var(--shu)}
+.stamp.st-2::before{background:var(--shu)}
 
 /* confidence badge */
 .conf{font-size:10.5px;padding:1px 8px;border-radius:10px;font-weight:700;display:inline-block}
@@ -204,7 +212,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .detail-head .t{flex:1}
 .detail-head .cat{font-size:11px;letter-spacing:.08em;color:var(--pine);font-weight:700}
 .detail-head h3{margin-bottom:2px}
-.detail-stamp{position:static;transform:rotate(-8deg);flex-shrink:0}
+.detail-stamp{position:static;flex-shrink:0}
 .md{font-size:14px;margin:10px 0}
 .md h4{font-size:15px;margin:12px 0 4px;padding-left:8px;border-left:3px solid var(--pine)}
 .md h5{font-size:14px;margin:10px 0 3px;color:var(--ink-soft)}
@@ -223,6 +231,9 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .cat-item button{border:none;background:none;color:var(--shu);font-size:14px;line-height:1;padding:2px 6px}
 .cat-add-row{display:flex;gap:8px}
 .cat-add-row input{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:none;background:var(--surface);padding:8px 18px;font-size:13.5px;font-weight:600;color:var(--ink-soft)}
+.seg button.on{background:var(--pine);color:#fff}
 
 .empty{color:var(--ink-soft);font-size:13px;text-align:center;padding:28px 8px}
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:200;background:var(--pine);color:#fff;font-size:13px;border-radius:20px;padding:8px 18px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow-lg)}
@@ -451,6 +462,13 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 <div class="overlay" id="settingsOverlay">
   <div class="modal">
     <h3>設定</h3>
+    <div class="form-row">
+      <label>表示テーマ</label>
+      <div class="seg" id="themeSeg">
+        <button type="button" data-theme="light" onclick="setThemeFromSettings('light')">☀️ ライト</button>
+        <button type="button" data-theme="dark" onclick="setThemeFromSettings('dark')">🌙 ダーク</button>
+      </div>
+    </div>
     <div class="form-row">
       <label>GAS WebアプリURL</label>
       <input type="url" id="gasUrl" placeholder="https://script.google.com/macros/s/…/exec">
@@ -836,16 +854,22 @@ function renderCases(){
     }
     return true;
   }).sort((a,b)=>(b.updatedAt||'')>(a.updatedAt||'')?1:-1);
-  $('caseGrid').innerHTML=list.map(c=>`
+  $('caseGrid').innerHTML=list.map(c=>{
+    const st=statusLabel(c.status);
+    return `
     <div class="case-card" onclick="openCaseDetail('${c.id}')">
-      <div class="stamp ${statusStampClass(c.status)}">${esc(statusLabel(c.status))}</div>
-      ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
+      <div class="card-top">
+        ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
+        <div class="spacer"></div>
+        ${st?`<div class="stamp ${statusStampClass(c.status)}">${esc(st)}</div>`:''}
+      </div>
       <div class="title">${esc(c.title)}</div>
       ${(c.pid||c.pname)?`<div class="pid">🪪 ${esc(c.pid||'')}${c.pid&&c.pname?' / ':''}${esc(c.pname||'')}</div>`:''}
       ${c.point?`<div class="point">${esc(c.point)}</div>`:''}
       <div class="tags">${(c.tags||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div>
       ${c.confidence?`<div style="margin-top:6px">${confBadge(c.confidence)}</div>`:''}
-    </div>`).join('')||'<div class="empty">症例カードはまだありません。＋で追加。</div>';
+    </div>`;
+  }).join('')||'<div class="empty">症例カードはまだありません。＋で追加。</div>';
 }
 function toggleTag(i){
   const t=(window._tagList||[])[i]; if(t===undefined) return;
@@ -1332,6 +1356,7 @@ function globalWeight(){ return parseFloat(state.settings.globalWeight||state.se
 function openSettings(){
   $('gasUrl').value=state.settings.gasUrl||'';
   $('autoSyncChk').checked=!!state.settings.autoSync;
+  applyTheme(state.settings.theme||'light');
   renderCatList();
   renderStatusList();
   $('settingsOverlay').classList.add('open');
@@ -1440,11 +1465,17 @@ function applyTheme(t){
   document.documentElement.setAttribute('data-theme', t==='dark'?'dark':'light');
   const btn=$('themeBtn'); if(btn) btn.textContent = t==='dark' ? '☀️' : '🌙';
   const meta=$('themeColorMeta'); if(meta) meta.setAttribute('content', t==='dark' ? '#1B2228' : '#FFFFFF');
+  const seg=$('themeSeg');
+  if(seg) seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.getAttribute('data-theme')===(t==='dark'?'dark':'light')));
 }
 function toggleTheme(){
   const cur=state.settings.theme==='dark'?'dark':'light';
-  const next=cur==='dark'?'light':'dark';
-  state.settings.theme=next; saveState(); applyTheme(next);
+  setThemeFromSettings(cur==='dark'?'light':'dark');
+}
+function setThemeFromSettings(t){
+  state.settings.theme=t;
+  localStorage.setItem(LS_KEY, JSON.stringify(state));
+  applyTheme(t);
 }
 
 loadState();
