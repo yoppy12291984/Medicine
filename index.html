@@ -319,6 +319,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   <button id="tabTx" onclick="switchTab('tx')">治 療</button>
   <button id="tabDdx" onclick="switchTab('ddx')">鑑 別</button>
   <button id="tabPapers" onclick="switchTab('papers')">論 文</button>
+  <button id="tabGallery" onclick="switchTab('gallery')">症例集</button>
   <button id="tabImg" onclick="switchTab('img')">画 像</button>
   <button id="tabSafety" onclick="switchTab('safety')">安 全</button>
 </nav>
@@ -428,18 +429,27 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
     <div id="paperTable" style="display:none"></div>
   </section>
 
-  <!-- ===== img (画像所見スタック) ===== -->
+  <!-- ===== gallery (画像症例集: 研修医に見せる典型例) ===== -->
+  <section id="viewGallery" style="display:none">
+    <div class="filter-bar">
+      <input type="search" id="gallerySearch" placeholder="画像症例集を検索(所見・診断・タグ)" oninput="renderGallery()">
+      <select id="galleryModalityFilter" onchange="renderGallery()"><option value="">全モダリティ</option></select>
+      <button class="icon-btn" id="galleryViewToggle" onclick="toggleView('gallery')">⊞ 表</button>
+    </div>
+    <div class="hint" style="margin:-4px 0 8px">研修医に見せる典型例の画像集。所見を教えるためのラベル集です。</div>
+    <div class="tag-chips" id="galleryChips"></div>
+    <div class="case-grid" id="galleryGrid"></div>
+    <div id="galleryTable" style="display:none"></div>
+  </section>
+
+  <!-- ===== img (画像: 自分用の読影・鑑別の思考) ===== -->
   <section id="viewImg" style="display:none">
     <div class="filter-bar">
-      <input type="search" id="imgSearch" placeholder="画像所見を検索(所見・診断・タグ)" oninput="renderImg()">
+      <input type="search" id="imgSearch" placeholder="自分の読影記録を検索(所見・診断・タグ)" oninput="renderImg()">
       <select id="imgModalityFilter" onchange="renderImg()"><option value="">全モダリティ</option></select>
-      <select id="imgUseFilter" onchange="renderImg()">
-        <option value="">全用途</option>
-        <option value="typical">典型例</option>
-        <option value="mine">自分用</option>
-      </select>
       <button class="icon-btn" id="imgViewToggle" onclick="toggleView('img')">⊞ 表</button>
     </div>
+    <div class="hint" style="margin:-4px 0 8px">自分が悩んだ症例・所見から鑑別を考える読影の記録です。</div>
     <div class="tag-chips" id="imgChips"></div>
     <div class="case-grid" id="imgGrid"></div>
     <div id="imgTable" style="display:none"></div>
@@ -673,10 +683,10 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <div class="form-row"><label>部位</label><input type="text" id="imRegion" placeholder="両下肺野 など"></div>
     </div>
     <div class="form-grid">
-      <div class="form-row"><label>用途</label>
-        <select id="imUse"><option value="typical">典型例(指導用)</option><option value="mine">自分用(悩んだ症例)</option></select>
+      <div class="form-row"><label>用途(どちらのタブに入れるか)</label>
+        <select id="imUse"><option value="typical">画像症例集(研修医に見せる典型例)</option><option value="mine">画像(自分の読影・鑑別の思考)</option></select>
       </div>
-      <div class="form-row"><label>患者ID(任意)</label><input type="text" id="imPid" placeholder="院内IDなど(自分用のとき)"></div>
+      <div class="form-row"><label>患者ID(任意)</label><input type="text" id="imPid" placeholder="院内IDなど"></div>
     </div>
     <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="imTags" placeholder="間質性肺炎, UIP, すりガラス"></div>
     <div class="form-row"><label>画像所見(テキストで)</label><textarea id="imFindings" style="min-height:110px" placeholder="## 所見&#10;- 小葉間隔壁肥厚&#10;- 胸膜直下優位のすりガラス影&#10;- 蜂巣肺あり"></textarea></div>
@@ -814,9 +824,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.12.0
+   Med OS v2.13.0
 ========================================================= */
-const APP_VERSION = 'v2.12.0';
+const APP_VERSION = 'v2.13.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1009,7 +1019,7 @@ function md(src){
 /* ---------- tabs ---------- */
 function switchTab(tab){
   activeTab=tab;
-  for(const [id,t] of [['tabPlans','plans'],['tabCases','cases'],['tabNotes','notes'],['tabTx','tx'],['tabDdx','ddx'],['tabPapers','papers'],['tabImg','img'],['tabSafety','safety']])
+  for(const [id,t] of [['tabPlans','plans'],['tabCases','cases'],['tabNotes','notes'],['tabTx','tx'],['tabDdx','ddx'],['tabPapers','papers'],['tabGallery','gallery'],['tabImg','img'],['tabSafety','safety']])
     $(id).classList.toggle('active', tab===t);
   $('viewPlans').style.display = tab==='plans'?'':'none';
   $('viewCases').style.display = tab==='cases'?'':'none';
@@ -1017,6 +1027,7 @@ function switchTab(tab){
   $('viewTx').style.display    = tab==='tx'?'':'none';
   $('viewDdx').style.display   = tab==='ddx'?'':'none';
   $('viewPapers').style.display= tab==='papers'?'':'none';
+  $('viewGallery').style.display= tab==='gallery'?'':'none';
   $('viewImg').style.display   = tab==='img'?'':'none';
   $('viewSafety').style.display= tab==='safety'?'':'none';
   render();
@@ -1028,7 +1039,8 @@ function fabClick(){
   else if(activeTab==='tx') openTxModal();
   else if(activeTab==='ddx') openDdxModal();
   else if(activeTab==='papers') openPaperModal();
-  else if(activeTab==='img') openImgModal();
+  else if(activeTab==='gallery') openImgModal(null,'typical');
+  else if(activeTab==='img') openImgModal(null,'mine');
   else openSafetyModal();
 }
 
@@ -1346,8 +1358,8 @@ function toggleCaseView(){
   renderCases();
 }
 // 他タブ共通の表/カード切替
-const viewModes = { tx:'card', ddx:'card', paper:'card', img:'card', safety:'card', plan:'card', note:'card' };
-const _renderByTab = { tx:()=>renderTx(), ddx:()=>renderDdx(), paper:()=>renderPapers(), img:()=>renderImg(), safety:()=>renderSafety(), plan:()=>renderPlans(), note:()=>renderNotes() };
+const viewModes = { tx:'card', ddx:'card', paper:'card', img:'card', safety:'card', plan:'card', note:'card', gallery:'card' };
+const _renderByTab = { tx:()=>renderTx(), ddx:()=>renderDdx(), paper:()=>renderPapers(), img:()=>renderImg(), safety:()=>renderSafety(), plan:()=>renderPlans(), note:()=>renderNotes(), gallery:()=>renderGallery() };
 function toggleView(tab){
   viewModes[tab] = (viewModes[tab]==='card') ? 'table' : 'card';
   (_renderByTab[tab]||function(){})();
@@ -1918,81 +1930,103 @@ function openPaperDetail(id){
   $('detailOverlay').classList.add('open');
 }
 
-/* ---------- images (画像所見スタック) ---------- */
-let editingImgId=null, activeImgTags=new Set();
+/* ---------- images: 症例集(typical) と 自分の読影(mine) ---------- */
+let editingImgId=null, activeImgTags=new Set(), activeGalleryTags=new Set();
 const IMG_USE_LABEL={typical:'典型例', mine:'自分用'};
-function allImgTags(){
-  const s=new Set(); liveImages().forEach(im=>(im.tags||[]).forEach(x=>s.add(x)));
+function imagesOf(useMode){ return liveImages().filter(im=>(im.use||'typical')===useMode); }
+function allImgTagsFor(useMode){
+  const s=new Set(); imagesOf(useMode).forEach(im=>(im.tags||[]).forEach(x=>s.add(x)));
   return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
 }
-function allModalities(){
-  const s=new Set(); liveImages().forEach(im=>{ if(im.modality) s.add(im.modality); });
+function allModalitiesFor(useMode){
+  const s=new Set(); imagesOf(useMode).forEach(im=>{ if(im.modality) s.add(im.modality); });
   return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
 }
-function renderImg(){
-  const mf=$('imgModalityFilter'); const curM=mf.value;
-  mf.innerHTML='<option value="">全モダリティ</option>'+allModalities().map(m=>`<option ${m===curM?'selected':''}>${esc(m)}</option>`).join('');
-  const tags=allImgTags(); window._imgTagList=tags;
-  activeImgTags=new Set([...activeImgTags].filter(t=>tags.includes(t)));
-  $('imgChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeImgTags.has(t)?'on':''}" onclick="toggleImgTag(${i})">${esc(t)}</button>`).join('');
-  const q=$('imgSearch').value.trim().toLowerCase();
-  const uf=$('imgUseFilter').value;
-  const list=liveImages().filter(im=>{
+// 共通描画。cfgでタブ(gallery/img)ごとのDOM idと状態を渡す
+function renderImages(cfg){
+  const mf=$(cfg.modFilter); const curM=mf.value;
+  mf.innerHTML='<option value="">全モダリティ</option>'+allModalitiesFor(cfg.use).map(m=>`<option ${m===curM?'selected':''}>${esc(m)}</option>`).join('');
+  const tags=allImgTagsFor(cfg.use); window[cfg.tagListVar]=tags;
+  const activeSet=cfg.getActive();
+  const filtered=new Set([...activeSet].filter(t=>tags.includes(t))); cfg.setActive(filtered);
+  $(cfg.chips).innerHTML=tags.map((t,i)=>`<button class="chip ${filtered.has(t)?'on':''}" onclick="${cfg.toggleFn}(${i})">${esc(t)}</button>`).join('');
+  const q=$(cfg.search).value.trim().toLowerCase();
+  const list=imagesOf(cfg.use).filter(im=>{
     if(curM&&im.modality!==curM) return false;
-    if(uf&&im.use!==uf) return false;
-    if(activeImgTags.size&&![...activeImgTags].every(t=>(im.tags||[]).includes(t))) return false;
+    if(filtered.size&&![...filtered].every(t=>(im.tags||[]).includes(t))) return false;
     if(q){
       const hay=[im.title,im.modality,im.region,im.findings,(im.ddx||[]).join(' '),im.dx,im.body,(im.tags||[]).join(' ')].join(' ').toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
   }).sort((a,b)=>(b.updatedAt||'')>(a.updatedAt||'')?1:-1);
-  const cardView=applyViewMode('img','imgGrid','imgTable','imgViewToggle');
+  const cardView=applyViewMode(cfg.mode,cfg.grid,cfg.table,cfg.toggle);
+  const accent = cfg.use==='typical' ? 'var(--amber)' : 'var(--pine)';
   if(cardView){
-  $('imgGrid').innerHTML=list.map(im=>`
+    $(cfg.grid).innerHTML=list.map(im=>`
     <div class="case-card" onclick="openImgDetail('${im.id}')">
       <div class="card-top">
-        <div class="cat" style="color:var(--pine)">🖼 ${esc(im.modality||'画像')}</div>
+        <div class="cat" style="color:${accent}">🖼 ${esc(im.modality||'画像')}</div>
         <div class="spacer"></div>
-        <div class="stamp ${im.use==='typical'?'st-1':'st-0'}">${IMG_USE_LABEL[im.use]||''}</div>
+        ${im.dx?`<div class="stamp st-1">${esc(im.dx.slice(0,16))}</div>`:''}
       </div>
       <div class="title">${esc(im.title)}</div>
       ${im.pid?`<div class="pid">🪪 ${esc(displayPid(im))}</div>`:''}
       ${im.findings?`<div class="point">${esc(im.findings.replace(/[#*]/g,'').slice(0,120))}</div>`:''}
       ${im.dx?`<div class="pid">Dx: ${esc(im.dx)}</div>`:''}
       <div class="tags" style="margin-top:6px">${(im.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
-    </div>`).join('')||'<div class="empty">画像所見はまだありません。＋で追加。</div>';
+    </div>`).join('')||`<div class="empty">${cfg.use==='typical'?'画像症例集はまだありません。＋で追加。':'自分の読影記録はまだありません。＋で追加。'}</div>`;
   }else{
     const rows=list.map(im=>`<tr onclick="openImgDetail('${im.id}')">
       <td class="t-title">${esc(im.title)}</td>
       <td class="t-date">${im.pid?esc(displayPid(im)):''}</td>
       <td class="t-cat">${esc(im.modality||'')}</td>
-      <td class="t-date">${IMG_USE_LABEL[im.use]||''}</td>
       <td class="t-title">${esc(im.dx||'')}</td>
       <td class="t-date">${im.encounter?esc(fmtDue(im.encounter)):''}</td>
       <td><div class="t-tags">${(im.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
     </tr>`);
-    $('imgTable').innerHTML=dtable(['タイトル','院内ID','モダリティ','用途','診断','出会った日','タグ'],rows);
+    $(cfg.table).innerHTML=dtable(['タイトル','院内ID','モダリティ','診断','出会った日','タグ'],rows);
   }
+}
+function renderGallery(){
+  renderImages({use:'typical', mode:'gallery',
+    search:'gallerySearch', modFilter:'galleryModalityFilter', chips:'galleryChips',
+    grid:'galleryGrid', table:'galleryTable', toggle:'galleryViewToggle',
+    tagListVar:'_galleryTagList', toggleFn:'toggleGalleryTag',
+    getActive:()=>activeGalleryTags, setActive:(s)=>{activeGalleryTags=s;} });
+}
+function renderImg(){
+  renderImages({use:'mine', mode:'img',
+    search:'imgSearch', modFilter:'imgModalityFilter', chips:'imgChips',
+    grid:'imgGrid', table:'imgTable', toggle:'imgViewToggle',
+    tagListVar:'_imgTagList', toggleFn:'toggleImgTag',
+    getActive:()=>activeImgTags, setActive:(s)=>{activeImgTags=s;} });
+}
+function toggleGalleryTag(i){
+  const t=(window._galleryTagList||[])[i]; if(t===undefined) return;
+  activeGalleryTags.has(t)?activeGalleryTags.delete(t):activeGalleryTags.add(t);
+  renderGallery();
 }
 function toggleImgTag(i){
   const t=(window._imgTagList||[])[i]; if(t===undefined) return;
   activeImgTags.has(t)?activeImgTags.delete(t):activeImgTags.add(t);
   renderImg();
 }
-function openImgModal(id){
+function openImgModal(id, defUse){
   editingImgId=id||null;
   const im=id?state.images.find(x=>x.id===id):null;
-  $('imgModalTitle').textContent=im?'画像所見を編集':'画像所見を追加';
+  $('imgModalTitle').textContent=im?'画像を編集':(defUse==='mine'?'自分の読影を追加':'画像症例集に追加');
   $('imTitle').value=im?.title||''; $('imModality').value=im?.modality||''; $('imRegion').value=im?.region||'';
-  $('imUse').value=im?.use||'typical'; $('imPid').value=im?.pid||'';
+  $('imUse').value=im?.use||defUse||'typical'; $('imPid').value=im?.pid||'';
   $('imTags').value=(im?.tags||[]).join(', ');
   $('imFindings').value=im?.findings||''; $('imDdx').value=(im?.ddx||[]).join('\n');
   $('imDx').value=im?.dx||''; $('imBody').value=im?.body||''; $('imEncounter').value=im?.encounter||'';
-  $('modalityList').innerHTML=allModalities().map(m=>`<option value="${esc(m)}">`).join('');
+  const allMods=[...new Set(liveImages().map(x=>x.modality).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'));
+  $('modalityList').innerHTML=allMods.map(m=>`<option value="${esc(m)}">`).join('');
   $('imDeleteBtn').style.display=im?'':'none';
   closeOverlay('detailOverlay'); $('imgOverlay').classList.add('open');
 }
+function reRenderImages(){ renderGallery(); renderImg(); }
 function saveImg(){
   const title=$('imTitle').value.trim();
   if(!title){ toast('タイトルを入力してください'); return; }
@@ -2006,12 +2040,12 @@ function saveImg(){
   };
   if(editingImgId) Object.assign(state.images.find(x=>x.id===editingImgId),data);
   else state.images.push(Object.assign({id:uid(),createdAt:now(),deleted:false},data));
-  saveState(); closeOverlay('imgOverlay'); renderImg(); toast('保存しました');
+  saveState(); closeOverlay('imgOverlay'); reRenderImages(); toast('保存しました');
 }
 function deleteImg(){
-  if(!editingImgId||!confirm('この画像所見を削除しますか?')) return;
+  if(!editingImgId||!confirm('この画像を削除しますか?')) return;
   const im=state.images.find(x=>x.id===editingImgId);
-  im.deleted=true; im.updatedAt=now(); saveState(); closeOverlay('imgOverlay'); renderImg(); toast('削除しました');
+  im.deleted=true; im.updatedAt=now(); saveState(); closeOverlay('imgOverlay'); reRenderImages(); toast('削除しました');
 }
 function openImgDetail(id){
   const im=state.images.find(x=>x.id===id); if(!im) return;
@@ -2537,6 +2571,7 @@ function render(){
   else if(activeTab==='tx') renderTx();
   else if(activeTab==='ddx') renderDdx();
   else if(activeTab==='papers') renderPapers();
+  else if(activeTab==='gallery') renderGallery();
   else if(activeTab==='img') renderImg();
   else renderSafety();
 }
