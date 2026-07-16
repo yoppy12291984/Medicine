@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#FFFFFF" id="themeColorMeta">
-<title>Medicine OS</title>
+<title>Med OS</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,10 +37,16 @@ html{transition:none}
 body{transition:background .25s,color .25s}
 button{font-family:var(--font-body);cursor:pointer;color:var(--ink)}
 input,select,textarea{font-family:var(--font-body);font-size:15px;color:var(--ink)}
+input[type=text],input[type=number],input[type=date],input[type=url],input[type=search],select,textarea{background:var(--surface);color:var(--ink)}
+input::placeholder,textarea::placeholder{color:var(--ink-soft);opacity:.7}
 
 header{background:var(--surface);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
 .app-title{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
 .app-title::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--pine);box-shadow:0 0 0 3px var(--pine-soft);flex-shrink:0}
+.ver-badge{font-family:var(--font-body);font-weight:500;font-size:10px;color:var(--ink-soft);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:1px 6px;letter-spacing:0;cursor:pointer}
+.ver-badge:hover{color:var(--pine);border-color:var(--pine)}
+#themeBtn{display:inline-flex;align-items:center;justify-content:center;padding:7px 10px}
+#themeBtn svg{display:block}
 .app-title small{font-family:var(--font-body);font-weight:400;font-size:11px;color:var(--ink-soft);letter-spacing:.02em;margin-left:2px}
 .header-spacer{flex:1}
 .sync-status{font-size:11px;color:var(--ink-soft);text-align:right;line-height:1.3}
@@ -176,7 +182,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .tx-card .drugline{font-size:12.5px;color:var(--ink-soft)}
 .weight-box{display:flex;align-items:center;gap:8px;background:var(--pine-soft);border:1px solid var(--pine);border-radius:8px;padding:8px 12px;margin:10px 0}
 .weight-box label{font-size:13px;font-weight:700;color:var(--pine)}
-.weight-box input{width:90px;border:1px solid var(--line);border-radius:6px;padding:6px 8px;text-align:right;font-size:15px}
+.weight-box input{width:90px;border:1px solid var(--line);border-radius:6px;padding:6px 8px;text-align:right;font-size:15px;background:var(--surface);color:var(--ink)}
 .dose-table{width:100%;border-collapse:collapse;font-size:13.5px;margin:6px 0 10px}
 .dose-table th{font-size:11.5px;color:var(--ink-soft);text-align:left;border-bottom:1px solid var(--line);padding:4px 6px;font-weight:700}
 .dose-table td{border-bottom:1px dashed var(--line);padding:6px;vertical-align:top}
@@ -244,12 +250,12 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 <body>
 
 <header>
-  <div class="app-title">Medicine OS<small>症例・計画・ノート・治療</small></div>
+  <div class="app-title">Med OS<span class="ver-badge" id="verBadge" onclick="openSettings()"></span></div>
   <div class="header-spacer"></div>
   <div class="sync-status" id="syncStatus">未同期</div>
-  <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="テーマ切替">🌙</button>
-  <button class="icon-btn" onclick="openImport()">📥 取込</button>
-  <button class="icon-btn" id="syncBtn" onclick="syncNow()">⇅ 同期</button>
+  <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="テーマ切替"></button>
+  <button class="icon-btn" onclick="openImport()">Import</button>
+  <button class="icon-btn" id="syncBtn" onclick="syncNow()">⇅ Sync</button>
   <button class="icon-btn" onclick="openSettings()">⚙</button>
 </header>
 
@@ -439,7 +445,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 <!-- ===== import modal ===== -->
 <div class="overlay" id="importOverlay">
   <div class="modal">
-    <h3>📥 取り込み(インポート)</h3>
+    <h3>Import</h3>
     <div class="form-row">
       <label>固定形式テキストを貼り付け</label>
       <textarea id="importText" style="min-height:220px;font-family:monospace;font-size:13px" placeholder="@case&#10;title: タイトル&#10;category: NSCLC&#10;tags: 薬剤選択, MET&#10;confidence: 要確認&#10;point: 要点&#10;memo:&#10;## 背景&#10;- ...&#10;---&#10;@treatment&#10;title: 市中肺炎&#10;..."></textarea>
@@ -498,7 +504,8 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
       <div class="cat-list" id="statusList"></div>
       <div class="hint">症例カードの判子に表示されます。名前をタップで編集、×で削除。全部消すと判子が非表示になります。色は上から順に3色で自動割当。</div>
     </div>
-    <div class="modal-actions">
+    <div class="modal-actions" style="align-items:center">
+      <span class="hint" id="settingsVer" style="margin:0"></span>
       <div class="spacer"></div>
       <button class="btn" onclick="closeOverlay('settingsOverlay')">閉じる</button>
       <button class="btn primary" onclick="saveSettings()">保存</button>
@@ -510,6 +517,12 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 
 <script>
 'use strict';
+/* =========================================================
+   Med OS v2.1.0
+========================================================= */
+const APP_VERSION = 'v2.1.0';
+const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
    Medicine OS v2 — 計画(カレンダー) / 症例(IC記録) / ノート / 治療(投与量計算)
    localStorage + GAS同期(updatedAt新しい方優先, ソフトデリート)
@@ -1327,21 +1340,48 @@ function previewImport(){
     return;
   }
   const label={case:'症例',note:'ノート',treatment:'治療'};
+  const norm = s => (s||'').trim();
   $('importPreview').innerHTML='<b>'+_importQueue.length+'件を取り込みます:</b><br>'+
-    _importQueue.map(e=>`・[${label[e.kind]}] ${esc(e.data.title||'(無題)')}${e.data.confidence?' 〈'+CONF_LABEL[e.data.confidence]+'〉':''}`).join('<br>');
+    _importQueue.map(e=>{
+      let tail = e.data.confidence?' 〈'+CONF_LABEL[e.data.confidence]+'〉':'';
+      if(e.kind==='note'){
+        const dup = state.notes.some(x=>!x.deleted && norm(x.folder)===norm(e.data.folder) && norm(x.title)===norm(e.data.title));
+        if(dup) tail += ' <span style="color:var(--pine)">→ 既存ノートに追記</span>';
+      }
+      return `・[${label[e.kind]}] ${esc(e.data.title||'(無題)')}${tail}`;
+    }).join('<br>');
   $('importDoBtn').style.display='';
 }
 function doImport(){
   if(!_importQueue.length) return;
-  let n=0;
+  let added=0, appended=0;
+  const norm = s => (s||'').trim();
   for(const e of _importQueue){
-    if(e.kind==='case') state.cases.push(e.data);
-    else if(e.kind==='note') state.notes.push(e.data);
-    else if(e.kind==='treatment') state.treatments.push(e.data);
-    n++;
+    if(e.kind==='case'){ state.cases.push(e.data); added++; }
+    else if(e.kind==='treatment'){ state.treatments.push(e.data); added++; }
+    else if(e.kind==='note'){
+      // 同フォルダ・同タイトルの既存ノートがあれば追記
+      const existing = state.notes.find(x => !x.deleted
+        && norm(x.folder)===norm(e.data.folder)
+        && norm(x.title)===norm(e.data.title));
+      if(existing){
+        const stamp = todayStr();
+        const addition = e.data.body ? e.data.body.trim() : '';
+        if(addition){
+          existing.body = (existing.body ? existing.body.trimEnd()+'\n\n' : '')
+            + '---\n### 追記 '+stamp+'\n' + addition;
+          existing.updatedAt = now();
+          appended++;
+        }
+      }else{
+        state.notes.push(e.data); added++;
+      }
+    }
   }
   saveState(); closeOverlay('importOverlay'); render();
-  toast(n+'件を取り込みました');
+  let msg = added ? added+'件を取り込みました' : '';
+  if(appended) msg += (msg?' / ':'') + appended+'件を既存ノートに追記';
+  toast(msg || '取り込みました');
 }
 
 /* ---------- global weight ---------- */
@@ -1356,6 +1396,7 @@ function globalWeight(){ return parseFloat(state.settings.globalWeight||state.se
 function openSettings(){
   $('gasUrl').value=state.settings.gasUrl||'';
   $('autoSyncChk').checked=!!state.settings.autoSync;
+  const sv=$('settingsVer'); if(sv) sv.textContent='Med OS '+APP_VERSION;
   applyTheme(state.settings.theme||'light');
   renderCatList();
   renderStatusList();
@@ -1410,7 +1451,7 @@ async function cloudSync(mode){
   if(_syncing){ return; }
   _syncing=true; _pendingSave=false;
   const btn=$('syncBtn');
-  if(mode==='manual'){ btn.classList.add('syncing'); btn.textContent='同期中…'; }
+  if(mode==='manual'){ btn.classList.add('syncing'); btn.textContent='Syncing…'; }
   updateSyncStatus();
   try{
     const res=await fetch(state.settings.gasUrl,{
@@ -1434,7 +1475,7 @@ async function cloudSync(mode){
     else _pendingSave=true; // 自動時は失敗を保存待ちに戻す
   }finally{
     _syncing=false;
-    if(mode==='manual'){ btn.classList.remove('syncing'); btn.textContent='⇅ 同期'; }
+    if(mode==='manual'){ btn.classList.remove('syncing'); btn.textContent='⇅ Sync'; }
     updateSyncStatus();
   }
 }
@@ -1463,7 +1504,8 @@ function render(){
 /* ---------- theme ---------- */
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme', t==='dark'?'dark':'light');
-  const btn=$('themeBtn'); if(btn) btn.textContent = t==='dark' ? '☀️' : '🌙';
+  const btn=$('themeBtn');
+  if(btn) btn.innerHTML = t==='dark' ? ICON_SUN : ICON_MOON;
   const meta=$('themeColorMeta'); if(meta) meta.setAttribute('content', t==='dark' ? '#1B2228' : '#FFFFFF');
   const seg=$('themeSeg');
   if(seg) seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.getAttribute('data-theme')===(t==='dark'?'dark':'light')));
@@ -1479,6 +1521,7 @@ function setThemeFromSettings(t){
 }
 
 loadState();
+const _vb=$('verBadge'); if(_vb) _vb.textContent=APP_VERSION;
 applyTheme(state.settings.theme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 updateSyncStatus();
 render();
