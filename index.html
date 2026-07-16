@@ -123,6 +123,27 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .stamp.summarized{border:2px solid var(--pine);color:var(--pine);background:var(--pine-soft)}
 .stamp.teachable{border:2.5px double var(--shu);color:var(--shu);background:var(--shu-soft);opacity:.92}
 
+/* confidence badge */
+.conf{font-size:10.5px;padding:1px 8px;border-radius:10px;font-weight:700;display:inline-block}
+.conf.confirmed{background:var(--pine-soft);color:var(--pine)}
+.conf.review{background:var(--shu-soft);color:var(--shu)}
+.conf.ai{background:var(--amber-soft);color:var(--amber)}
+.card-conf{position:absolute;left:12px;bottom:10px}
+
+/* pin */
+.pin-btn{background:none;border:none;font-size:16px;cursor:pointer;opacity:.3;padding:2px 4px;line-height:1}
+.pin-btn.on{opacity:1}
+.case-card.pinned{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber-soft)}
+.tx-card .card-pin{position:absolute;top:8px;right:8px}
+
+/* import */
+.import-hint{font-size:11px;color:var(--ink-soft);margin-top:6px;line-height:1.5}
+.import-hint code{background:var(--paper);border-radius:4px;padding:1px 5px;font-size:11px}
+.gbar{display:flex;align-items:center;gap:8px;background:var(--pine-soft);border:1px solid var(--pine);border-radius:8px;padding:7px 12px;margin-bottom:12px}
+.gbar label{font-size:12.5px;font-weight:700;color:var(--pine)}
+.gbar input{width:74px;border:1px solid var(--line);border-radius:6px;padding:5px 8px;text-align:right;font-size:14px}
+.gbar .clear{margin-left:auto;font-size:11.5px;color:var(--ink-soft);border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 8px}
+
 /* ---------- notes ---------- */
 .note-card .folder-label{font-size:11px;letter-spacing:.06em;color:var(--gold);font-weight:700;margin-bottom:2px}
 .note-card .preview{font-size:12.5px;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
@@ -137,6 +158,9 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .dose-table td{border-bottom:1px dashed var(--line);padding:6px;vertical-align:top}
 .dose-table .calc{font-weight:700;color:var(--shu);white-space:nowrap}
 .dose-table .basis{font-size:11px;color:var(--ink-soft)}
+.rate-conv{margin-top:6px;background:var(--amber-soft);border-radius:6px;padding:5px 8px}
+.rate-conv .rc-line{font-size:12.5px;color:var(--ink);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.rate-conv input{width:66px;border:1px solid var(--line);border-radius:5px;padding:3px 6px;text-align:right;font-size:13px;background:#fff}
 
 /* ---------- fab / modal / misc ---------- */
 .fab{position:fixed;right:20px;bottom:24px;z-index:60;background:var(--pine);color:#fff;border:none;border-radius:50%;width:56px;height:56px;font-size:28px;line-height:1;box-shadow:0 4px 14px rgba(46,110,94,.4)}
@@ -196,6 +220,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
   <div class="app-title">Medicine OS<small>症例・計画・ノート・治療</small></div>
   <div class="header-spacer"></div>
   <div class="sync-status" id="syncStatus">未同期</div>
+  <button class="icon-btn" onclick="openImport()">📥 取込</button>
   <button class="icon-btn" id="syncBtn" onclick="syncNow()">⇅ 同期</button>
   <button class="icon-btn" onclick="openSettings()">⚙</button>
 </header>
@@ -254,6 +279,12 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 
   <!-- ===== treatments ===== -->
   <section id="viewTx" style="display:none">
+    <div class="gbar">
+      <label>共通体重</label>
+      <input type="number" id="globalWeight" min="1" max="300" step="0.1" placeholder="kg" oninput="onGlobalWeight()"> kg
+      <span class="hint" style="margin:0">全カードの計算に反映</span>
+      <button class="clear" onclick="clearGlobalWeight()">クリア</button>
+    </div>
     <div class="filter-bar">
       <input type="search" id="txSearch" placeholder="治療・投薬を検索" oninput="renderTx()">
     </div>
@@ -307,6 +338,9 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
         <select id="cStatus"><option value="studying">勉強中</option><option value="summarized">まとめ済</option><option value="teachable">教えられる</option></select>
       </div>
     </div>
+    <div class="form-row"><label>確度(情報の裏取り状況)</label>
+      <select id="cConfidence"><option value="">—</option><option value="confirmed">確定(裏取り済)</option><option value="review">要確認</option><option value="ai">AI初期知識</option></select>
+    </div>
     <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="cTags" placeholder="薬剤選択, MET, 嚥下障害"></div>
     <div class="form-row"><label>学びの要点(1〜2行)</label><input type="text" id="cPoint" placeholder="このカードの核心を一言で"></div>
     <div class="form-row"><label>詳細メモ(簡易Markdown可)</label>
@@ -352,10 +386,13 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
   <div class="modal">
     <h3 id="txModalTitle">治療・投薬を追加</h3>
     <div class="form-row"><label>シチュエーション</label><input type="text" id="tTitle" placeholder="例:市中肺炎(中等症・入院) / 気管支喘息発作(中発作)"></div>
+    <div class="form-row"><label>確度(情報の裏取り状況)</label>
+      <select id="tConfidence"><option value="">—</option><option value="confirmed">確定(裏取り済)</option><option value="review">要確認</option><option value="ai">AI初期知識</option></select>
+    </div>
     <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="tTags" placeholder="肺炎, 抗菌薬, 救急"></div>
     <div class="form-row"><label>投薬(1行1剤: 薬剤名 | 用量 | 単位 | 投与方法 | 備考)</label>
-      <textarea id="tDoses" style="min-height:110px" placeholder="スルバクタム/アンピシリン | 3g | 固定 | 1日4回 点滴静注 | 腎機能で調整&#10;プレドニゾロン | 0.5 | mg/kg | 1日1回 経口 | 体重で自動計算"></textarea>
-      <div class="hint">単位を「mg/kg」「g/kg」「mL/kg」「単位/kg」にすると体重から自動計算されます。固定用量は単位欄に「固定」</div>
+      <textarea id="tDoses" style="min-height:110px" placeholder="スルバクタム/アンピシリン | 3 | 固定 | 1日4回 点滴静注 | 腎機能で調整&#10;プレドニゾロン | 0.5 | mg/kg | 1日1回 経口 | 体重で自動計算&#10;ノルアドレナリン | 0.05 | γ | 持続静注 | 濃度:0.06mg/mL"></textarea>
+      <div class="hint">単位を「mg/kg」「g/kg」「mL/kg」「単位/kg」にするとボーラス量を体重から自動計算。持続は「γ」(=μg/kg/min)か「mg/kg/hr」。備考に「濃度:3mg/mL」と書くと流量(mL/hr)も計算。固定用量は単位欄に「固定」</div>
     </div>
     <div class="form-row"><label>詳細メモ(簡易Markdown可)</label>
       <textarea id="tBody" style="min-height:130px" placeholder="## 適応&#10;- 条件&#10;## 注意&#10;- 腎機能、アレルギー歴 など"></textarea>
@@ -372,6 +409,28 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 <!-- ===== detail modal (shared) ===== -->
 <div class="overlay" id="detailOverlay">
   <div class="modal" id="detailBody"></div>
+</div>
+
+<!-- ===== import modal ===== -->
+<div class="overlay" id="importOverlay">
+  <div class="modal">
+    <h3>📥 取り込み(インポート)</h3>
+    <div class="form-row">
+      <label>固定形式テキストを貼り付け</label>
+      <textarea id="importText" style="min-height:220px;font-family:monospace;font-size:13px" placeholder="@case&#10;title: タイトル&#10;category: NSCLC&#10;tags: 薬剤選択, MET&#10;confidence: 要確認&#10;point: 要点&#10;memo:&#10;## 背景&#10;- ...&#10;---&#10;@treatment&#10;title: 市中肺炎&#10;..."></textarea>
+      <div class="import-hint">
+        1行目に <code>@case</code> / <code>@note</code> / <code>@treatment</code> でタブ指定。<code>---</code> 行で複数カードを区切り。<br>
+        キー: <code>title</code> <code>category</code> <code>folder</code> <code>tags</code> <code>confidence</code> <code>point</code> <code>memo</code> <code>ic</code> <code>links</code> <code>doses</code> <code>body</code>(複数行OK)
+      </div>
+    </div>
+    <div id="importPreview" class="import-hint"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="previewImport()">解析</button>
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('importOverlay')">キャンセル</button>
+      <button class="btn primary" id="importDoBtn" onclick="doImport()" style="display:none">取り込む</button>
+    </div>
+  </div>
 </div>
 
 <!-- ===== settings modal ===== -->
@@ -410,11 +469,13 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 ========================================================= */
 const LS_KEY = 'studyos_v1'; // 既存データ引き継ぎのためキーは変更しない
 const STATUS_LABEL = {studying:'勉強中', summarized:'まとめ済', teachable:'教えられる'};
+const CONF_LABEL = {confirmed:'確定', review:'要確認', ai:'AI初期知識'};
+const CONF_ALIAS = {'確定':'confirmed','裏取り済':'confirmed','確定(裏取り済)':'confirmed','要確認':'review','ai初期知識':'ai','ai':'ai','初期知識':'ai'};
 const PLAN_STATUS = ['todo','doing','done'];
 const PLAN_STATUS_LABEL = {todo:'To Do', doing:'In Progress', done:'Done'};
 const WD = ['日','月','火','水','木','金','土'];
 
-let state = { cases:[], plans:[], notes:[], treatments:[], meta:[], settings:{ gasUrl:'', lastSync:null, lastWeight:'' } };
+let state = { cases:[], plans:[], notes:[], treatments:[], meta:[], settings:{ gasUrl:'', lastSync:null, lastWeight:'', globalWeight:'' } };
 let activeTab = 'plans';
 let editingPlanId=null, editingCaseId=null, editingNoteId=null, editingTxId=null;
 let activeTags=new Set(), activeFolder='', activeTxTags=new Set();
@@ -476,6 +537,18 @@ function renderCatList(){
   $('catList').innerHTML = catRecord().list.map((c,i) =>
     `<span class="cat-item">${esc(c)}<button onclick="removeCategory(${i})" title="削除">×</button></span>`).join('')
     || '<span class="hint">まだカテゴリがありません</span>';
+}
+
+/* ---------- confidence ---------- */
+function confBadge(c){
+  if(!c||!CONF_LABEL[c]) return '';
+  return `<span class="conf ${c}">${CONF_LABEL[c]}</span>`;
+}
+function normConf(s){
+  if(!s) return '';
+  const k=s.trim().toLowerCase();
+  if(CONF_LABEL[k]) return k;
+  return CONF_ALIAS[s.trim()]||CONF_ALIAS[k]||'';
 }
 
 /* ---------- simple markdown ---------- */
@@ -684,6 +757,7 @@ function renderCases(){
       ${(c.pid||c.pname)?`<div class="pid">🪪 ${esc(c.pid||'')}${c.pid&&c.pname?' / ':''}${esc(c.pname||'')}</div>`:''}
       ${c.point?`<div class="point">${esc(c.point)}</div>`:''}
       <div class="tags">${(c.tags||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div>
+      ${c.confidence?`<div style="margin-top:6px">${confBadge(c.confidence)}</div>`:''}
     </div>`).join('')||'<div class="empty">症例カードはまだありません。＋で追加。</div>';
 }
 function toggleTag(i){
@@ -697,6 +771,7 @@ function openCaseModal(id,presetPlanId){
   $('caseModalTitle').textContent=c?'症例カードを編集':'症例カードを追加';
   $('cTitle').value=c?.title||''; $('cPid').value=c?.pid||''; $('cPname').value=c?.pname||'';
   $('cStatus').value=c?.status||'studying';
+  $('cConfidence').value=c?.confidence||'';
   $('cTags').value=(c?.tags||[]).join(', ');
   $('cPoint').value=c?.point||''; $('cMemo').value=c?.memo||''; $('cIc').value=c?.ic||'';
   $('cLinks').value=(c?.links||[]).join('\n');
@@ -718,7 +793,7 @@ function saveCase(){
   if(!title){ toast('タイトルを入力してください'); return; }
   const data={
     title, pid:$('cPid').value.trim(), pname:$('cPname').value.trim(),
-    category:$('cCategory').value, status:$('cStatus').value,
+    category:$('cCategory').value, status:$('cStatus').value, confidence:$('cConfidence').value,
     tags:$('cTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
     point:$('cPoint').value.trim(), memo:$('cMemo').value, ic:$('cIc').value,
     links:$('cLinks').value.split(/\n/).map(s=>s.trim()).filter(Boolean),
@@ -750,6 +825,7 @@ function openCaseDetail(id){
         ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
         <h3>${esc(c.title)}</h3>
         ${(c.pid||c.pname)?`<div style="font-size:12.5px;color:var(--ink-soft)">🪪 ID: ${esc(c.pid||'—')} ／ ${esc(c.pname||'—')}</div>`:''}
+        ${c.confidence?`<div style="margin-top:4px">${confBadge(c.confidence)}</div>`:''}
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(c.tags||[]).map(t=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(t)}</span>`).join('')}</div>
       </div>
       <div class="stamp detail-stamp ${esc(c.status)}">${STATUS_LABEL[c.status]||''}</div>
@@ -845,7 +921,23 @@ function parseDoses(text){
     return { drug:parts[0]||'', dose:parts[1]||'', unit:parts[2]||'', route:parts[3]||'', note:parts[4]||'' };
   });
 }
-function isPerKg(unit){ return /\/kg$/i.test(unit||''); }
+function isPerKg(unit){ return /^(mg|g|mcg|μg|ug|mL|ml|単位|meq|mEq)\/kg$/i.test((unit||'').trim()); }
+function isRateUnit(unit){
+  const u=(unit||'').trim().toLowerCase().replace('μ','u').replace('mcg','ug');
+  return u==='γ'||u==='gamma'||u==='ug/kg/min'||u==='mg/kg/hr'||u==='mg/kg/h'||u==='mcg/kg/min';
+}
+function normRate(unit){
+  const u=(unit||'').trim().toLowerCase().replace('μ','u').replace('mcg','ug');
+  if(u==='γ'||u==='gamma'||u==='ug/kg/min') return 'gamma';   // μg/kg/min
+  if(u==='mg/kg/hr'||u==='mg/kg/h') return 'mgkghr';
+  return null;
+}
+// concentration mg/mL from note text: matches 濃度:3mg/mL, 3 mg/ml, conc 0.5mg/mL etc.
+function extractConc(note){
+  if(!note) return null;
+  const m = note.replace('／','/').match(/(\d+(?:\.\d+)?)\s*mg\s*\/\s*m?l/i);
+  return m ? parseFloat(m[1]) : null;
+}
 function calcDose(d, weight){
   if(!isPerKg(d.unit)) return null;
   const perKg=parseFloat(d.dose);
@@ -854,11 +946,30 @@ function calcDose(d, weight){
   const rounded=v>=100?Math.round(v):Math.round(v*10)/10;
   return rounded+' '+d.unit.replace(/\/kg$/i,'');
 }
+const rnd = (v,p=2)=>{ const f=Math.pow(10,p); return Math.round(v*f)/f; };
+// gamma(μg/kg/min) & flow(mL/hr) conversion. conc in mg/mL.
+function gammaToFlow(gamma, weight, conc){ // -> mL/hr
+  if(!(gamma>0&&weight>0&&conc>0)) return null;
+  const ugPerHr = gamma*weight*60;      // μg/hr
+  const mgPerHr = ugPerHr/1000;
+  return mgPerHr/conc;
+}
+function flowToGamma(flow, weight, conc){ // mL/hr -> μg/kg/min
+  if(!(flow>0&&weight>0&&conc>0)) return null;
+  const mgPerHr = flow*conc;
+  const ugPerMin = mgPerHr*1000/60;
+  return ugPerMin/weight;
+}
+function mgkghrToFlow(rate, weight, conc){ // mg/kg/hr -> mL/hr
+  if(!(rate>0&&weight>0&&conc>0)) return null;
+  return (rate*weight)/conc;
+}
 function allTxTags(){
   const s=new Set(); liveTx().forEach(t=>(t.tags||[]).forEach(x=>s.add(x)));
   return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
 }
 function renderTx(){
+  const gw=$('globalWeight'); if(gw && gw.value==='') gw.value=state.settings.globalWeight||state.settings.lastWeight||'';
   const tags=allTxTags(); window._txTagList=tags;
   activeTxTags=new Set([...activeTxTags].filter(t=>tags.includes(t)));
   $('txChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeTxTags.has(t)?'on':''}" onclick="toggleTxTag(${i})">${esc(t)}</button>`).join('');
@@ -867,16 +978,21 @@ function renderTx(){
     if(activeTxTags.size&&![...activeTxTags].every(x=>(t.tags||[]).includes(x))) return false;
     if(q&&![t.title,t.body,t.doses,(t.tags||[]).join(' ')].join(' ').toLowerCase().includes(q)) return false;
     return true;
-  }).sort((a,b)=>(b.updatedAt||'')>(a.updatedAt||'')?1:-1);
+  }).sort((a,b)=>{
+    if(!!b.pinned!==!!a.pinned) return b.pinned?1:-1;
+    return (b.updatedAt||'')>(a.updatedAt||'')?1:-1;
+  });
   $('txGrid').innerHTML=list.map(t=>{
     const ds=parseDoses(t.doses);
     return `
-    <div class="case-card tx-card" onclick="openTxDetail('${t.id}')">
+    <div class="case-card tx-card ${t.pinned?'pinned':''}" onclick="openTxDetail('${t.id}')">
+      <button class="pin-btn card-pin ${t.pinned?'on':''}" onclick="event.stopPropagation();togglePin('${t.id}')" title="ピン留め">📌</button>
       <div class="cat" style="color:var(--shu)">💊 治療・投薬</div>
-      <div class="title" style="padding-right:0">${esc(t.title)}</div>
+      <div class="title" style="padding-right:28px">${esc(t.title)}</div>
       ${ds.slice(0,3).map(d=>`<div class="drugline">・${esc(d.drug)} ${esc(d.dose)}${esc(d.unit==='固定'?'':' '+d.unit)}</div>`).join('')}
       ${ds.length>3?`<div class="drugline">…ほか${ds.length-3}剤</div>`:''}
       <div class="tags" style="margin-top:6px">${(t.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
+      ${t.confidence?`<div style="margin-top:6px">${confBadge(t.confidence)}</div>`:''}
     </div>`;
   }).join('')||'<div class="empty">治療・投薬はまだありません。＋で追加。</div>';
 }
@@ -890,6 +1006,7 @@ function openTxModal(id){
   const t=id?state.treatments.find(x=>x.id===id):null;
   $('txModalTitle').textContent=t?'治療・投薬を編集':'治療・投薬を追加';
   $('tTitle').value=t?.title||''; $('tTags').value=(t?.tags||[]).join(', ');
+  $('tConfidence').value=t?.confidence||'';
   $('tDoses').value=t?.doses||''; $('tBody').value=t?.body||'';
   $('tDeleteBtn').style.display=t?'':'none';
   closeOverlay('detailOverlay');
@@ -900,6 +1017,7 @@ function saveTx(){
   if(!title){ toast('シチュエーションを入力してください'); return; }
   const data={
     title, tags:$('tTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
+    confidence:$('tConfidence').value,
     doses:$('tDoses').value, body:$('tBody').value, updatedAt:now()
   };
   if(editingTxId) Object.assign(state.treatments.find(x=>x.id===editingTxId),data);
@@ -912,31 +1030,91 @@ function deleteTx(){
   t.deleted=true; t.updatedAt=now();
   saveState(); closeOverlay('txOverlay'); renderTx(); toast('削除しました');
 }
+function togglePin(id){
+  const t=state.treatments.find(x=>x.id===id); if(!t) return;
+  t.pinned=!t.pinned; t.updatedAt=now();
+  saveState(); renderTx();
+}
+function onGlobalWeight(){
+  setGlobalWeight($('globalWeight').value);
+}
+function clearGlobalWeight(){
+  setGlobalWeight(''); $('globalWeight').value=''; renderTx();
+}
 function doseTableHtml(t, weight){
   const ds=parseDoses(t.doses);
   if(!ds.length) return '';
-  const rows=ds.map(d=>{
+  const rows=ds.map((d,i)=>{
+    // rate units (γ / mg/kg/hr): show interactive converter row
+    if(isRateUnit(d.unit)){
+      const kind=normRate(d.unit);
+      const conc=extractConc(d.note);
+      const rate=parseFloat(d.dose);
+      const label = kind==='gamma' ? 'γ (μg/kg/min)' : 'mg/kg/hr';
+      let calcCell;
+      if(!(weight>0)){
+        calcCell=`<span class="basis">体重を入力すると計算</span>`;
+      }else if(!(conc>0)){
+        calcCell=`<span class="calc">${esc(d.dose)} ${esc(kind==='gamma'?'γ':'mg/kg/hr')}</span><br><span class="basis">流量計算には備考に「濃度:○mg/mL」を追記</span>`;
+      }else{
+        let flow;
+        if(kind==='gamma') flow=gammaToFlow(rate,weight,conc);
+        else flow=mgkghrToFlow(rate,weight,conc);
+        const flowStr = flow!=null ? rnd(flow,1)+' mL/hr' : '—';
+        calcCell=`<span class="calc">${flowStr}</span>`+
+          `<br><span class="basis">${esc(d.dose)} ${esc(kind==='gamma'?'γ':'mg/kg/hr')} @ ${conc}mg/mL × ${weight}kg</span>`+
+          `<div class="rate-conv" data-kind="${kind}" data-conc="${conc}">`+
+            `<span class="rc-line">γ<input type="number" class="rc-g" step="0.01" value="${kind==='gamma'?esc(d.dose):''}" oninput="rcFromGamma(this)"> ⇄ `+
+            `<input type="number" class="rc-f" step="0.1" value="${flow!=null?rnd(flow,1):''}" oninput="rcFromFlow(this)">mL/hr</span>`+
+          `</div>`;
+      }
+      return `<tr><td>${esc(d.drug)}<br><span class="basis">${esc(label)}${d.note?' ／ '+esc(d.note):''}</span></td><td>${calcCell}</td><td>${esc(d.route)}</td></tr>`;
+    }
+    // per-kg bolus units
     const calc=calcDose(d,weight);
     const doseCell = calc
       ? `<span class="calc">${esc(calc)}</span><br><span class="basis">${esc(d.dose)} ${esc(d.unit)} × ${weight}kg</span>`
       : `${esc(d.dose)}${d.unit&&d.unit!=='固定'?' '+esc(d.unit):''}`;
     return `<tr><td>${esc(d.drug)}${d.note?`<br><span class="basis">${esc(d.note)}</span>`:''}</td><td>${doseCell}</td><td>${esc(d.route)}</td></tr>`;
   }).join('');
-  return `<table class="dose-table"><tr><th>薬剤</th><th>用量</th><th>投与方法</th></tr>${rows}</table>`;
+  return `<table class="dose-table"><tr><th>薬剤</th><th>用量 / 換算</th><th>投与方法</th></tr>${rows}</table>`;
+}
+// live γ⇄flow inputs (uses weight from #dwWeight)
+function rcContext(el){
+  const box=el.closest('.rate-conv');
+  const w=parseFloat($('dwWeight').value);
+  const conc=parseFloat(box.dataset.conc);
+  return {box,w,conc};
+}
+function rcFromGamma(el){
+  const {box,w,conc}=rcContext(el);
+  const g=parseFloat(el.value);
+  const flow=gammaToFlow(g,w,conc);
+  const f=box.querySelector('.rc-f');
+  if(flow!=null) f.value=rnd(flow,1);
+}
+function rcFromFlow(el){
+  const {box,w,conc}=rcContext(el);
+  const flow=parseFloat(el.value);
+  const g=flowToGamma(flow,w,conc);
+  const gEl=box.querySelector('.rc-g');
+  if(g!=null) gEl.value=rnd(g,2);
 }
 function openTxDetail(id){
   const t=state.treatments.find(x=>x.id===id); if(!t) return;
-  const w=parseFloat(state.settings.lastWeight)||'';
+  const w=globalWeight();
   $('detailBody').innerHTML=`
     <div class="detail-head"><div class="t">
-      <div class="cat" style="color:var(--shu)">💊 治療・投薬</div>
+      <div class="cat" style="color:var(--shu)">💊 治療・投薬 ${t.confidence?confBadge(t.confidence):''}</div>
       <h3>${esc(t.title)}</h3>
       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(t.tags||[]).map(x=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(x)}</span>`).join('')}</div>
-    </div></div>
+    </div>
+    <button class="pin-btn ${t.pinned?'on':''}" onclick="togglePin('${t.id}');openTxDetail('${t.id}')" title="ピン留め" style="font-size:22px">📌</button>
+    </div>
     <div class="weight-box">
       <label>体重</label>
       <input type="number" id="dwWeight" min="1" max="300" step="0.1" value="${w}" placeholder="60" oninput="updateDoseTable('${t.id}')"> kg
-      <span class="hint" style="margin:0">入力するとmg/kg等の薬剤を自動計算</span>
+      <span class="hint" style="margin:0">共通体重と連動</span>
     </div>
     <div id="doseTableWrap">${doseTableHtml(t, parseFloat(w)||NaN)}</div>
     <div class="md">${md(t.body)}</div>
@@ -952,9 +1130,112 @@ function openTxDetail(id){
 function updateDoseTable(id){
   const t=state.treatments.find(x=>x.id===id); if(!t) return;
   const w=parseFloat($('dwWeight').value);
-  state.settings.lastWeight=$('dwWeight').value; saveState();
+  setGlobalWeight($('dwWeight').value);
+  const gw=$('globalWeight'); if(gw) gw.value=$('dwWeight').value;
   $('doseTableWrap').innerHTML=doseTableHtml(t, w);
 }
+
+/* ---------- import (fixed format) ---------- */
+const IMPORT_KEYS = ['title','category','folder','tags','confidence','point','memo','ic','links','doses','body'];
+const MULTILINE_KEYS = new Set(['memo','ic','links','doses','body']);
+function parseImport(text){
+  const blocks = text.split(/^\s*---\s*$/m).map(b=>b.trim()).filter(Boolean);
+  const records = [];
+  for(const block of blocks){
+    const lines = block.split(/\r?\n/);
+    let type = null;
+    const rec = {};
+    let curKey = null;
+    for(let i=0;i<lines.length;i++){
+      const line = lines[i];
+      const trimmed = line.trim();
+      if(i===0 && /^@(case|note|treatment)\b/i.test(trimmed)){
+        type = trimmed.slice(1).toLowerCase().match(/^(case|note|treatment)/)[1];
+        continue;
+      }
+      const km = line.match(/^([a-zA-Z]+):\s?(.*)$/);
+      if(km && IMPORT_KEYS.includes(km[1].toLowerCase())){
+        curKey = km[1].toLowerCase();
+        rec[curKey] = km[2];
+        if(MULTILINE_KEYS.has(curKey) && km[2]==='') rec[curKey]='';
+      }else if(curKey && MULTILINE_KEYS.has(curKey)){
+        rec[curKey] = (rec[curKey]?rec[curKey]+'\n':'') + line;
+      }
+    }
+    if(type) records.push({type, rec});
+  }
+  return records;
+}
+function recToEntity(type, rec){
+  const conf = normConf(rec.confidence||'');
+  const tags = (rec.tags||'').split(/[,、，]/).map(s=>s.trim()).filter(Boolean);
+  if(type==='case'){
+    return {kind:'case', data:{
+      id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
+      title:(rec.title||'').trim(), pid:'', pname:'',
+      category:(rec.category||'').trim(), status:'studying', confidence:conf,
+      tags, point:(rec.point||'').trim(), memo:(rec.memo||'').trim(),
+      ic:(rec.ic||'').trim(),
+      links:(rec.links||'').split(/\n/).map(s=>s.trim()).filter(Boolean)
+    }};
+  }
+  if(type==='note'){
+    return {kind:'note', data:{
+      id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
+      folder:(rec.folder||rec.category||'').trim(),
+      title:(rec.title||'').trim(), body:(rec.body||rec.memo||'').trim()
+    }};
+  }
+  if(type==='treatment'){
+    return {kind:'treatment', data:{
+      id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
+      title:(rec.title||'').trim(), confidence:conf, tags,
+      doses:(rec.doses||'').trim(), body:(rec.body||rec.memo||'').trim(),
+      pinned:false
+    }};
+  }
+  return null;
+}
+let _importQueue = [];
+function openImport(){
+  $('importText').value=''; $('importPreview').innerHTML='';
+  $('importDoBtn').style.display='none'; _importQueue=[];
+  $('importOverlay').classList.add('open');
+}
+function previewImport(){
+  const txt=$('importText').value;
+  const recs=parseImport(txt);
+  _importQueue = recs.map(r=>recToEntity(r.type, r.rec)).filter(Boolean);
+  if(!_importQueue.length){
+    $('importPreview').innerHTML='<span style="color:var(--shu)">解析できるカードが見つかりません。1行目の @case / @note / @treatment を確認してください。</span>';
+    $('importDoBtn').style.display='none';
+    return;
+  }
+  const label={case:'症例',note:'ノート',treatment:'治療'};
+  $('importPreview').innerHTML='<b>'+_importQueue.length+'件を取り込みます:</b><br>'+
+    _importQueue.map(e=>`・[${label[e.kind]}] ${esc(e.data.title||'(無題)')}${e.data.confidence?' 〈'+CONF_LABEL[e.data.confidence]+'〉':''}`).join('<br>');
+  $('importDoBtn').style.display='';
+}
+function doImport(){
+  if(!_importQueue.length) return;
+  let n=0;
+  for(const e of _importQueue){
+    if(e.kind==='case') state.cases.push(e.data);
+    else if(e.kind==='note') state.notes.push(e.data);
+    else if(e.kind==='treatment') state.treatments.push(e.data);
+    n++;
+  }
+  saveState(); closeOverlay('importOverlay'); render();
+  toast(n+'件を取り込みました');
+}
+
+/* ---------- global weight ---------- */
+function setGlobalWeight(v){
+  state.settings.globalWeight = v;
+  state.settings.lastWeight = v;
+  saveState();
+}
+function globalWeight(){ return parseFloat(state.settings.globalWeight||state.settings.lastWeight)||''; }
 
 /* ---------- settings / sync ---------- */
 function openSettings(){
