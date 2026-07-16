@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>学習OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EFF2F0;
+  --surface:#FFFFFF;
+  --ink:#1F2A30;
+  --ink-soft:#5A6A6E;
+  --line:#D8DEDC;
+  --pine:#2E6E5E;
+  --pine-soft:#E3EEEA;
+  --shu:#C2431F;
+  --shu-soft:#F8E9E3;
+  --amber:#B07A1E;
+  --amber-soft:#F6EEDD;
+  --radius:10px;
+  --font-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",sans-serif;
+  --font-display:"Shippori Mincho","Hiragino Mincho ProN",serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.65}
+button{font-family:var(--font-body);cursor:pointer}
+input,select,textarea{font-family:var(--font-body);font-size:15px;color:var(--ink)}
+
+/* ---------- header ---------- */
+header{
+  background:var(--surface);border-bottom:1px solid var(--line);
+  padding:12px 16px;display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:50;
+}
+.app-title{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:.12em}
+.app-title small{font-family:var(--font-body);font-weight:400;font-size:11px;color:var(--ink-soft);letter-spacing:.05em;margin-left:8px}
+.header-spacer{flex:1}
+.sync-status{font-size:11px;color:var(--ink-soft);text-align:right;line-height:1.3}
+.icon-btn{
+  border:1px solid var(--line);background:var(--surface);border-radius:8px;
+  padding:7px 12px;font-size:13px;font-weight:500;color:var(--ink);
+  display:inline-flex;align-items:center;gap:6px;
+}
+.icon-btn:hover{background:var(--pine-soft)}
+.icon-btn.syncing{opacity:.6;pointer-events:none}
+
+/* ---------- tabs ---------- */
+nav.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:57px;z-index:40}
+nav.tabs button{
+  flex:1;padding:11px 0;background:none;border:none;font-size:14px;font-weight:500;
+  color:var(--ink-soft);border-bottom:2px solid transparent;letter-spacing:.08em;
+}
+nav.tabs button.active{color:var(--pine);border-bottom-color:var(--pine);font-weight:700}
+
+main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
+
+/* ---------- section heads ---------- */
+.sec-head{display:flex;align-items:baseline;gap:10px;margin:6px 2px 12px}
+.sec-head h2{font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:.1em}
+.sec-head .count{font-size:12px;color:var(--ink-soft)}
+
+/* ---------- plans (kanban) ---------- */
+.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:760px){.kanban{grid-template-columns:1fr}}
+.kcol{background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:var(--radius);padding:10px;min-height:70px}
+.kcol h3{font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--ink-soft);margin:2px 4px 10px;display:flex;align-items:center;gap:8px}
+.kcol h3 .dot{width:8px;height:8px;border-radius:50%}
+.kcol.todo h3 .dot{background:var(--ink-soft)}
+.kcol.doing h3 .dot{background:var(--amber)}
+.kcol.done h3 .dot{background:var(--pine)}
+
+.plan-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 12px 10px;margin-bottom:10px;box-shadow:0 1px 2px rgba(31,42,48,.05);
+}
+.plan-card .theme{font-weight:700;font-size:15px;margin-bottom:4px}
+.badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+.badge{font-size:11px;padding:1px 8px;border-radius:20px;border:1px solid var(--line);color:var(--ink-soft);background:var(--paper)}
+.badge.deadline{border-color:var(--shu);color:var(--shu);background:var(--shu-soft)}
+.badge.interest{border-color:var(--pine);color:var(--pine);background:var(--pine-soft)}
+.badge.pri-high{border-color:var(--shu);color:var(--shu)}
+.badge.due-near{background:var(--shu);color:#fff;border-color:var(--shu)}
+.plan-card .steps{font-size:12.5px;color:var(--ink-soft);white-space:pre-wrap;margin:4px 0 8px;max-height:72px;overflow:hidden}
+.plan-card .foot{display:flex;align-items:center;gap:6px;border-top:1px dashed var(--line);padding-top:8px}
+.plan-card .foot .linked{font-size:11.5px;color:var(--pine);flex:1}
+.mini-btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:3px 9px;font-size:12px;color:var(--ink)}
+.mini-btn:hover{background:var(--pine-soft)}
+.mini-btn.shu:hover{background:var(--shu-soft)}
+.status-sel{border:1px solid var(--line);border-radius:6px;font-size:12px;padding:3px 4px;background:var(--surface)}
+
+/* ---------- cases ---------- */
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+.filter-bar input[type=search]{
+  flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:var(--surface)
+}
+.filter-bar select{border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--surface)}
+.tag-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.chip{font-size:12px;padding:3px 11px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft)}
+.chip.on{background:var(--pine);border-color:var(--pine);color:#fff}
+
+.case-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.case-card{
+  position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 14px 12px;box-shadow:0 1px 2px rgba(31,42,48,.05);cursor:pointer;
+}
+.case-card:hover{border-color:var(--pine)}
+.case-card .cat{font-size:11px;letter-spacing:.08em;color:var(--pine);font-weight:700;margin-bottom:2px}
+.case-card .title{font-weight:700;font-size:15px;margin-bottom:6px;padding-right:64px}
+.case-card .point{font-size:13px;color:var(--ink-soft);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.case-card .tags{display:flex;flex-wrap:wrap;gap:4px}
+.case-card .tags span{font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px}
+
+/* hanko stamp — the signature element */
+.stamp{
+  position:absolute;top:10px;right:10px;width:52px;height:52px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:var(--font-display);font-weight:700;font-size:10.5px;line-height:1.15;
+  transform:rotate(-8deg);letter-spacing:.05em;pointer-events:none;
+}
+.stamp.studying{border:2px solid var(--ink-soft);color:var(--ink-soft);opacity:.75}
+.stamp.summarized{border:2px solid var(--pine);color:var(--pine);background:var(--pine-soft)}
+.stamp.teachable{border:2.5px double var(--shu);color:var(--shu);background:var(--shu-soft);opacity:.92}
+
+/* ---------- fab ---------- */
+.fab{
+  position:fixed;right:20px;bottom:24px;z-index:60;
+  background:var(--pine);color:#fff;border:none;border-radius:50%;width:56px;height:56px;
+  font-size:28px;line-height:1;box-shadow:0 4px 14px rgba(46,110,94,.4);
+}
+.fab:active{transform:scale(.95)}
+
+/* ---------- modal ---------- */
+.overlay{position:fixed;inset:0;background:rgba(31,42,48,.45);z-index:100;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 12px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:14px;width:100%;max-width:640px;padding:20px 20px 16px;margin:auto 0}
+.modal h3{font-family:var(--font-display);font-size:17px;letter-spacing:.08em;margin-bottom:14px}
+.form-row{margin-bottom:12px}
+.form-row label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:4px;letter-spacing:.05em}
+.form-row input[type=text],.form-row input[type=date],.form-row input[type=url],.form-row select,.form-row textarea{
+  width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#FCFDFC
+}
+.form-row textarea{min-height:96px;resize:vertical;line-height:1.6}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.form-grid{grid-template-columns:1fr}}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.btn{border-radius:8px;padding:9px 18px;font-size:14px;font-weight:700;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.btn.primary{background:var(--pine);border-color:var(--pine);color:#fff}
+.btn.danger{color:var(--shu);border-color:var(--shu-soft);background:var(--shu-soft)}
+.btn:hover{filter:brightness(.97)}
+.modal-actions .spacer{flex:1}
+.hint{font-size:11px;color:var(--ink-soft);margin-top:3px}
+
+/* ---------- case detail ---------- */
+.detail-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.detail-head .t{flex:1}
+.detail-head .cat{font-size:11px;letter-spacing:.08em;color:var(--pine);font-weight:700}
+.detail-head h3{margin-bottom:2px}
+.detail-stamp{position:static;transform:rotate(-8deg);flex-shrink:0}
+.md{font-size:14px;margin:10px 0}
+.md h4{font-size:15px;margin:12px 0 4px;padding-left:8px;border-left:3px solid var(--pine)}
+.md h5{font-size:14px;margin:10px 0 3px;color:var(--ink-soft)}
+.md ul{margin:4px 0 8px 20px}
+.md li{margin-bottom:2px}
+.md p{margin-bottom:6px}
+.md a{color:var(--pine)}
+.md strong{background:linear-gradient(transparent 65%,var(--amber-soft) 65%)}
+.detail-meta{font-size:11.5px;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:8px;margin-top:10px}
+.linked-plans{margin-top:8px}
+.linked-plans span{display:inline-block;font-size:12px;background:var(--pine-soft);color:var(--pine);border-radius:6px;padding:2px 8px;margin:0 4px 4px 0}
+
+.empty{color:var(--ink-soft);font-size:13px;text-align:center;padding:28px 8px}
+.toast{
+  position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:200;
+  background:var(--ink);color:#fff;font-size:13px;border-radius:20px;padding:8px 18px;
+  opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;
+}
+.toast.show{opacity:.94}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="app-title">学習OS<small>症例と計画</small></div>
+  <div class="header-spacer"></div>
+  <div class="sync-status" id="syncStatus">未同期</div>
+  <button class="icon-btn" id="syncBtn" onclick="syncNow()">⇅ 同期</button>
+  <button class="icon-btn" onclick="openSettings()">⚙</button>
+</header>
+
+<nav class="tabs">
+  <button id="tabPlans" class="active" onclick="switchTab('plans')">計 画</button>
+  <button id="tabCases" onclick="switchTab('cases')">症例ライブラリ</button>
+</nav>
+
+<main>
+  <!-- ===== plans ===== -->
+  <section id="viewPlans">
+    <div class="kanban">
+      <div class="kcol todo"><h3><span class="dot"></span>未着手 <span class="count" id="cntTodo"></span></h3><div id="colTodo"></div></div>
+      <div class="kcol doing"><h3><span class="dot"></span>進行中 <span class="count" id="cntDoing"></span></h3><div id="colDoing"></div></div>
+      <div class="kcol done"><h3><span class="dot"></span>完了 <span class="count" id="cntDone"></span></h3><div id="colDone"></div></div>
+    </div>
+  </section>
+
+  <!-- ===== cases ===== -->
+  <section id="viewCases" style="display:none">
+    <div class="filter-bar">
+      <input type="search" id="caseSearch" placeholder="検索(タイトル・要点・メモ)" oninput="renderCases()">
+      <select id="caseCatFilter" onchange="renderCases()"><option value="">全カテゴリ</option></select>
+      <select id="caseStatusFilter" onchange="renderCases()">
+        <option value="">全状態</option>
+        <option value="studying">勉強中</option>
+        <option value="summarized">まとめ済</option>
+        <option value="teachable">教えられる</option>
+      </select>
+    </div>
+    <div class="tag-chips" id="tagChips"></div>
+    <div class="case-grid" id="caseGrid"></div>
+  </section>
+</main>
+
+<button class="fab" id="fabBtn" onclick="fabClick()" aria-label="追加">＋</button>
+
+<!-- ===== plan modal ===== -->
+<div class="overlay" id="planOverlay">
+  <div class="modal">
+    <h3 id="planModalTitle">計画を追加</h3>
+    <div class="form-row"><label>テーマ名</label><input type="text" id="pTheme" placeholder="例:MET exon 14 skipping NSCLCの薬剤整理"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>動機</label>
+        <select id="pMotive"><option value="interest">興味ドリブン</option><option value="deadline">期日ドリブン</option></select>
+      </div>
+      <div class="form-row"><label>期日(任意)</label><input type="date" id="pDue"></div>
+      <div class="form-row"><label>優先度</label>
+        <select id="pPriority"><option value="high">高</option><option value="mid" selected>中</option><option value="low">低</option></select>
+      </div>
+      <div class="form-row"><label>状態</label>
+        <select id="pStatus"><option value="todo">未着手</option><option value="doing">進行中</option><option value="done">完了</option></select>
+      </div>
+    </div>
+    <div class="form-row"><label>手順メモ(何をどの順で)</label><textarea id="pSteps" placeholder="1. ガイドライン確認&#10;2. 主要試験の原著&#10;3. 自験例と照合"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn danger" id="pDeleteBtn" onclick="deletePlan()" style="display:none">削除</button>
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('planOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="savePlan()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== case edit modal ===== -->
+<div class="overlay" id="caseOverlay">
+  <div class="modal">
+    <h3 id="caseModalTitle">症例カードを追加</h3>
+    <div class="form-row"><label>タイトル</label><input type="text" id="cTitle" placeholder="例:食道狭窄合併NSCLCへのtepotinib投与"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>疾患カテゴリ</label><input type="text" id="cCategory" list="catList" placeholder="NSCLC / ILD / 感染症 …"><datalist id="catList"></datalist></div>
+      <div class="form-row"><label>状態</label>
+        <select id="cStatus"><option value="studying">勉強中</option><option value="summarized">まとめ済</option><option value="teachable">教えられる</option></select>
+      </div>
+    </div>
+    <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="cTags" placeholder="薬剤選択, MET, 嚥下障害"></div>
+    <div class="form-row"><label>学びの要点(1〜2行)</label><input type="text" id="cPoint" placeholder="このカードの核心を一言で"></div>
+    <div class="form-row"><label>詳細メモ(簡易Markdown可)</label>
+      <textarea id="cMemo" style="min-height:150px" placeholder="## 背景&#10;- 箇条書き&#10;**強調** [リンク](https://...)"></textarea>
+      <div class="hint">## 見出し / - 箇条書き / **太字** / [表示名](URL) が使えます</div>
+    </div>
+    <div class="form-row"><label>関連文献リンク(1行1URL)</label><textarea id="cLinks" style="min-height:56px" placeholder="https://pubmed.ncbi.nlm.nih.gov/..."></textarea></div>
+    <div class="form-row"><label>関連する計画</label><select id="cPlanLink"><option value="">(なし)</option></select></div>
+    <div class="modal-actions">
+      <button class="btn danger" id="cDeleteBtn" onclick="deleteCase()" style="display:none">削除</button>
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('caseOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="saveCase()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== case detail modal ===== -->
+<div class="overlay" id="detailOverlay">
+  <div class="modal" id="detailBody"></div>
+</div>
+
+<!-- ===== settings modal ===== -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal">
+    <h3>設定</h3>
+    <div class="form-row">
+      <label>GAS WebアプリURL</label>
+      <input type="url" id="gasUrl" placeholder="https://script.google.com/macros/s/…/exec">
+      <div class="hint">空欄のままでも端末内(localStorage)だけで動作します</div>
+    </div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('settingsOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="saveSettings()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   学習OS v1 — 症例ライブラリ + 学習計画
+   構成: localStorage 永続化 + GAS 同期(updatedAt 新しい方優先)
+========================================================= */
+const LS_KEY = 'studyos_v1';
+const STATUS_LABEL = {studying:'勉強中', summarized:'まとめ済', teachable:'教えられる'};
+const PLAN_STATUS = ['todo','doing','done'];
+
+let state = { cases: [], plans: [], settings: { gasUrl: '', lastSync: null } };
+let activeTab = 'plans';
+let editingPlanId = null;
+let editingCaseId = null;
+let activeTags = new Set();
+
+/* ---------- utils ---------- */
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const now = () => new Date().toISOString();
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.classList.remove('show'), 2200);
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){ const s = JSON.parse(raw); state = Object.assign(state, s); }
+  }catch(e){ console.warn('load failed', e); }
+}
+function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+function liveCases(){ return state.cases.filter(c => !c.deleted); }
+function livePlans(){ return state.plans.filter(p => !p.deleted); }
+
+/* ---------- simple markdown ---------- */
+function md(src){
+  const lines = esc(src || '').split(/\r?\n/);
+  let html = '', inUl = false;
+  const inline = s => s
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  for(const line of lines){
+    const t = line.trim();
+    if(/^[-*] /.test(t)){
+      if(!inUl){ html += '<ul>'; inUl = true; }
+      html += '<li>' + inline(t.slice(2)) + '</li>';
+      continue;
+    }
+    if(inUl){ html += '</ul>'; inUl = false; }
+    if(/^### /.test(t)) html += '<h5>' + inline(t.slice(4)) + '</h5>';
+    else if(/^## /.test(t)) html += '<h4>' + inline(t.slice(3)) + '</h4>';
+    else if(t === '') html += '';
+    else html += '<p>' + inline(t) + '</p>';
+  }
+  if(inUl) html += '</ul>';
+  return html;
+}
+
+/* ---------- tabs ---------- */
+function switchTab(tab){
+  activeTab = tab;
+  $('tabPlans').classList.toggle('active', tab === 'plans');
+  $('tabCases').classList.toggle('active', tab === 'cases');
+  $('viewPlans').style.display = tab === 'plans' ? '' : 'none';
+  $('viewCases').style.display = tab === 'cases' ? '' : 'none';
+  render();
+}
+function fabClick(){ activeTab === 'plans' ? openPlanModal() : openCaseModal(); }
+
+/* ---------- render: plans ---------- */
+function planBadges(p){
+  let h = '';
+  h += p.motive === 'deadline'
+    ? '<span class="badge deadline">期日</span>'
+    : '<span class="badge interest">興味</span>';
+  if(p.priority === 'high') h += '<span class="badge pri-high">優先度 高</span>';
+  else if(p.priority === 'low') h += '<span class="badge">優先度 低</span>';
+  if(p.due){
+    const days = Math.ceil((new Date(p.due) - new Date()) / 86400000);
+    const label = esc(p.due.slice(5).replace('-','/')) + (days >= 0 ? `(あと${days}日)` : '(超過)');
+    h += `<span class="badge ${days <= 14 ? 'due-near' : ''}">締切 ${label}</span>`;
+  }
+  return h;
+}
+function renderPlans(){
+  const cols = { todo: [], doing: [], done: [] };
+  const plans = livePlans().slice().sort((a, b) => {
+    const pr = { high: 0, mid: 1, low: 2 };
+    const d = (pr[a.priority] ?? 1) - (pr[b.priority] ?? 1);
+    if(d) return d;
+    return (a.due || '9999') < (b.due || '9999') ? -1 : 1;
+  });
+  for(const p of plans){
+    const linked = (p.caseIds || []).filter(id => state.cases.some(c => c.id === id && !c.deleted));
+    const html = `
+    <div class="plan-card">
+      <div class="theme">${esc(p.theme)}</div>
+      <div class="badges">${planBadges(p)}</div>
+      ${p.steps ? `<div class="steps">${esc(p.steps)}</div>` : ''}
+      <div class="foot">
+        <span class="linked">${linked.length ? '📎 症例 ' + linked.length + '件' : ''}</span>
+        <select class="status-sel" onchange="quickStatus('${p.id}', this.value)">
+          ${PLAN_STATUS.map(s => `<option value="${s}" ${p.status === s ? 'selected' : ''}>${{todo:'未着手',doing:'進行中',done:'完了'}[s]}</option>`).join('')}
+        </select>
+        <button class="mini-btn" onclick="openPlanModal('${p.id}')">編集</button>
+        <button class="mini-btn shu" onclick="openCaseModal(null, '${p.id}')">＋症例</button>
+      </div>
+    </div>`;
+    cols[PLAN_STATUS.includes(p.status) ? p.status : 'todo'].push(html);
+  }
+  $('colTodo').innerHTML  = cols.todo.join('')  || '<div class="empty">計画はまだありません。＋で追加。</div>';
+  $('colDoing').innerHTML = cols.doing.join('') || '<div class="empty">—</div>';
+  $('colDone').innerHTML  = cols.done.join('')  || '<div class="empty">—</div>';
+  $('cntTodo').textContent  = cols.todo.length  || '';
+  $('cntDoing').textContent = cols.doing.length || '';
+  $('cntDone').textContent  = cols.done.length  || '';
+}
+function quickStatus(id, status){
+  const p = state.plans.find(x => x.id === id);
+  if(!p) return;
+  p.status = status; p.updatedAt = now();
+  saveState(); renderPlans();
+}
+
+/* ---------- render: cases ---------- */
+function allTags(){
+  const set = new Set();
+  liveCases().forEach(c => (c.tags || []).forEach(t => set.add(t)));
+  return [...set].sort((a, b) => a.localeCompare(b, 'ja'));
+}
+function allCategories(){
+  const set = new Set();
+  liveCases().forEach(c => { if(c.category) set.add(c.category); });
+  return [...set].sort((a, b) => a.localeCompare(b, 'ja'));
+}
+function renderCases(){
+  // category filter options
+  const cat = $('caseCatFilter');
+  const curCat = cat.value;
+  cat.innerHTML = '<option value="">全カテゴリ</option>' +
+    allCategories().map(c => `<option ${c === curCat ? 'selected' : ''}>${esc(c)}</option>`).join('');
+
+  // tag chips
+  const tags = allTags();
+  window._tagList = tags;
+  activeTags = new Set([...activeTags].filter(t => tags.includes(t)));
+  $('tagChips').innerHTML = tags.map((t, i) =>
+    `<button class="chip ${activeTags.has(t) ? 'on' : ''}" onclick="toggleTag(${i})">${esc(t)}</button>`).join('');
+
+  const q = $('caseSearch').value.trim().toLowerCase();
+  const st = $('caseStatusFilter').value;
+  const list = liveCases().filter(c => {
+    if(curCat && c.category !== curCat) return false;
+    if(st && c.status !== st) return false;
+    if(activeTags.size && ![...activeTags].every(t => (c.tags || []).includes(t))) return false;
+    if(q){
+      const hay = [c.title, c.point, c.memo, (c.tags || []).join(' '), c.category].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a, b) => (b.updatedAt || '') > (a.updatedAt || '') ? 1 : -1);
+
+  $('caseGrid').innerHTML = list.map(c => `
+    <div class="case-card" onclick="openDetail('${c.id}')">
+      <div class="stamp ${esc(c.status)}">${STATUS_LABEL[c.status] || ''}</div>
+      ${c.category ? `<div class="cat">${esc(c.category)}</div>` : ''}
+      <div class="title">${esc(c.title)}</div>
+      ${c.point ? `<div class="point">${esc(c.point)}</div>` : ''}
+      <div class="tags">${(c.tags || []).map(t => `<span>${esc(t)}</span>`).join('')}</div>
+    </div>`).join('') || '<div class="empty">症例カードはまだありません。＋で追加。</div>';
+}
+function toggleTag(i){
+  const t = (window._tagList || [])[i];
+  if(t === undefined) return;
+  activeTags.has(t) ? activeTags.delete(t) : activeTags.add(t);
+  renderCases();
+}
+
+/* ---------- plan modal ---------- */
+function openPlanModal(id){
+  editingPlanId = id || null;
+  const p = id ? state.plans.find(x => x.id === id) : null;
+  $('planModalTitle').textContent = p ? '計画を編集' : '計画を追加';
+  $('pTheme').value = p?.theme || '';
+  $('pMotive').value = p?.motive || 'interest';
+  $('pDue').value = p?.due || '';
+  $('pPriority').value = p?.priority || 'mid';
+  $('pStatus').value = p?.status || 'todo';
+  $('pSteps').value = p?.steps || '';
+  $('pDeleteBtn').style.display = p ? '' : 'none';
+  $('planOverlay').classList.add('open');
+}
+function savePlan(){
+  const theme = $('pTheme').value.trim();
+  if(!theme){ toast('テーマ名を入力してください'); return; }
+  const data = {
+    theme,
+    motive: $('pMotive').value,
+    due: $('pDue').value || '',
+    priority: $('pPriority').value,
+    status: $('pStatus').value,
+    steps: $('pSteps').value.trim(),
+    updatedAt: now()
+  };
+  if(editingPlanId){
+    Object.assign(state.plans.find(x => x.id === editingPlanId), data);
+  }else{
+    state.plans.push(Object.assign({ id: uid(), caseIds: [], createdAt: now(), deleted: false }, data));
+  }
+  saveState(); closeOverlay('planOverlay'); renderPlans(); toast('保存しました');
+}
+function deletePlan(){
+  if(!editingPlanId || !confirm('この計画を削除しますか?')) return;
+  const p = state.plans.find(x => x.id === editingPlanId);
+  p.deleted = true; p.updatedAt = now();
+  saveState(); closeOverlay('planOverlay'); renderPlans(); toast('削除しました');
+}
+
+/* ---------- case modal ---------- */
+function openCaseModal(id, presetPlanId){
+  editingCaseId = id || null;
+  const c = id ? state.cases.find(x => x.id === id) : null;
+  $('caseModalTitle').textContent = c ? '症例カードを編集' : '症例カードを追加';
+  $('cTitle').value = c?.title || '';
+  $('cCategory').value = c?.category || '';
+  $('cStatus').value = c?.status || 'studying';
+  $('cTags').value = (c?.tags || []).join(', ');
+  $('cPoint').value = c?.point || '';
+  $('cMemo').value = c?.memo || '';
+  $('cLinks').value = (c?.links || []).join('\n');
+  $('catList').innerHTML = allCategories().map(x => `<option value="${esc(x)}">`).join('');
+
+  // plan link select
+  const sel = $('cPlanLink');
+  const linkedPlan = c ? livePlans().find(p => (p.caseIds || []).includes(c.id)) : null;
+  const preId = presetPlanId || linkedPlan?.id || '';
+  sel.innerHTML = '<option value="">(なし)</option>' +
+    livePlans().map(p => `<option value="${p.id}" ${p.id === preId ? 'selected' : ''}>${esc(p.theme)}</option>`).join('');
+
+  $('cDeleteBtn').style.display = c ? '' : 'none';
+  closeOverlay('detailOverlay');
+  $('caseOverlay').classList.add('open');
+}
+function saveCase(){
+  const title = $('cTitle').value.trim();
+  if(!title){ toast('タイトルを入力してください'); return; }
+  const data = {
+    title,
+    category: $('cCategory').value.trim(),
+    status: $('cStatus').value,
+    tags: $('cTags').value.split(/[,、，]/).map(s => s.trim()).filter(Boolean),
+    point: $('cPoint').value.trim(),
+    memo: $('cMemo').value,
+    links: $('cLinks').value.split(/\n/).map(s => s.trim()).filter(Boolean),
+    updatedAt: now()
+  };
+  let caseId = editingCaseId;
+  if(editingCaseId){
+    Object.assign(state.cases.find(x => x.id === editingCaseId), data);
+  }else{
+    caseId = uid();
+    state.cases.push(Object.assign({ id: caseId, createdAt: now(), deleted: false }, data));
+  }
+  // plan link (single-select: remove from others, add to chosen)
+  const planId = $('cPlanLink').value;
+  for(const p of state.plans){
+    const has = (p.caseIds || []).includes(caseId);
+    if(p.id === planId && !has){ (p.caseIds = p.caseIds || []).push(caseId); p.updatedAt = now(); }
+    if(p.id !== planId && has){ p.caseIds = p.caseIds.filter(x => x !== caseId); p.updatedAt = now(); }
+  }
+  saveState(); closeOverlay('caseOverlay'); render(); toast('保存しました');
+}
+function deleteCase(){
+  if(!editingCaseId || !confirm('この症例カードを削除しますか?')) return;
+  const c = state.cases.find(x => x.id === editingCaseId);
+  c.deleted = true; c.updatedAt = now();
+  saveState(); closeOverlay('caseOverlay'); render(); toast('削除しました');
+}
+
+/* ---------- case detail ---------- */
+function openDetail(id){
+  const c = state.cases.find(x => x.id === id);
+  if(!c) return;
+  const plans = livePlans().filter(p => (p.caseIds || []).includes(id));
+  $('detailBody').innerHTML = `
+    <div class="detail-head">
+      <div class="t">
+        ${c.category ? `<div class="cat">${esc(c.category)}</div>` : ''}
+        <h3>${esc(c.title)}</h3>
+        <div class="tags" style="display:flex;flex-wrap:wrap;gap:4px">${(c.tags || []).map(t => `<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(t)}</span>`).join('')}</div>
+      </div>
+      <div class="stamp detail-stamp ${esc(c.status)}">${STATUS_LABEL[c.status] || ''}</div>
+    </div>
+    ${c.point ? `<p style="font-weight:700;font-size:14px">${esc(c.point)}</p>` : ''}
+    <div class="md">${md(c.memo)}</div>
+    ${(c.links || []).length ? '<div class="form-row"><label>文献</label>' + c.links.map(u => `<div style="font-size:13px;overflow-wrap:anywhere">🔗 <a href="${esc(u)}" target="_blank" rel="noopener" style="color:var(--pine)">${esc(u)}</a></div>`).join('') + '</div>' : ''}
+    ${plans.length ? `<div class="linked-plans"><label style="font-size:12px;font-weight:700;color:var(--ink-soft)">関連する計画</label><br>${plans.map(p => `<span>${esc(p.theme)}</span>`).join('')}</div>` : ''}
+    <div class="detail-meta">作成 ${esc((c.createdAt || '').slice(0,10))} ／ 更新 ${esc((c.updatedAt || '').slice(0,10))}</div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
+      <button class="btn primary" onclick="openCaseModal('${c.id}')">編集</button>
+    </div>`;
+  $('detailOverlay').classList.add('open');
+}
+
+/* ---------- settings / sync ---------- */
+function openSettings(){
+  $('gasUrl').value = state.settings.gasUrl || '';
+  $('settingsOverlay').classList.add('open');
+}
+function saveSettings(){
+  state.settings.gasUrl = $('gasUrl').value.trim();
+  saveState(); closeOverlay('settingsOverlay'); toast('設定を保存しました');
+  updateSyncStatus();
+}
+function updateSyncStatus(){
+  const s = $('syncStatus');
+  if(!state.settings.gasUrl){ s.textContent = 'ローカルのみ'; return; }
+  s.textContent = state.settings.lastSync
+    ? '最終同期 ' + new Date(state.settings.lastSync).toLocaleString('ja-JP', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })
+    : '未同期';
+}
+async function syncNow(){
+  if(!state.settings.gasUrl){ toast('設定でGASのURLを入力してください'); openSettings(); return; }
+  const btn = $('syncBtn');
+  btn.classList.add('syncing'); btn.textContent = '同期中…';
+  try{
+    const res = await fetch(state.settings.gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // preflight回避
+      body: JSON.stringify({ cases: state.cases, plans: state.plans })
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const merged = await res.json();
+    if(!merged || !Array.isArray(merged.cases)) throw new Error('不正な応答');
+    state.cases = merged.cases;
+    state.plans = merged.plans;
+    state.settings.lastSync = now();
+    saveState(); render(); updateSyncStatus();
+    toast('同期しました');
+  }catch(e){
+    console.error(e);
+    toast('同期に失敗しました: ' + e.message);
+  }finally{
+    btn.classList.remove('syncing'); btn.textContent = '⇅ 同期';
+  }
+}
+
+/* ---------- misc ---------- */
+function closeOverlay(id){ $(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(ov => {
+  ov.addEventListener('mousedown', e => { if(e.target === ov) ov.classList.remove('open'); });
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') document.querySelectorAll('.overlay.open').forEach(o => o.classList.remove('open'));
+});
+function render(){ activeTab === 'plans' ? renderPlans() : renderCases(); }
+
+loadState();
+updateSyncStatus();
+render();
+</script>
+</body>
+</html>
