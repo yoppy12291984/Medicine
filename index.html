@@ -507,7 +507,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <div class="form-row"><label>患者ID</label><input type="text" id="cPid" placeholder="院内IDなど"></div>
       <div class="form-row"><label>患者名</label><input type="text" id="cPname" placeholder="イニシャル推奨"></div>
     </div>
-    <div class="hint" style="margin:-6px 0 10px">⚠ 外部に出ても個人が特定されない形(院内ID・イニシャル)での記載を推奨します</div>
+    <div class="hint" style="margin:-6px 0 10px">⚠ 院内IDは表示時、先頭にダミーの飾り(数字2＋英字1)が自動で付きます。例 47K12345678。先頭3文字を読み飛ばせば本当のIDです。第三者にはIDの境目が分からないので、のぞき見対策になります。</div>
     <div class="form-row"><label>出会った日付</label><input type="date" id="cEncounter"></div>
     <div class="form-grid">
       <div class="form-row"><label>疾患カテゴリ</label><select id="cCategory"></select><div class="hint">カテゴリの追加・削除は⚙設定から</div></div>
@@ -797,9 +797,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.8.0
+   Med OS v2.9.0
 ========================================================= */
-const APP_VERSION = 'v2.8.0';
+const APP_VERSION = 'v2.9.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1206,6 +1206,22 @@ function deletePlan(){
 }
 
 /* ---------- cases ---------- */
+// 院内IDの前に「数字2＋英字1」のダミー飾りを付けて、本当のIDの境目を分かりにくくする。
+// 飾りは症例ごとに一度だけ生成して固定保存する(idPrefix)。本人は先頭3文字を読み飛ばせばよい。
+function ensureIdPrefix(c){
+  if(!c) return '';
+  if(!c.idPrefix){
+    const d = ()=>Math.floor(Math.random()*10);
+    const L = 'ABCDEFGHJKLMNPRSTUVWXYZ'; // 紛らわしいI/O/Qは除外
+    c.idPrefix = ''+d()+d()+L[Math.floor(Math.random()*L.length)];
+  }
+  return c.idPrefix;
+}
+// 表示用の装飾済みID(pidが空なら空文字)
+function displayPid(c){
+  if(!c||!c.pid) return '';
+  return ensureIdPrefix(c)+c.pid;
+}
 function allTags(){
   const s=new Set(); liveCases().forEach(c=>(c.tags||[]).forEach(t=>s.add(t)));
   return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
@@ -1261,7 +1277,7 @@ function renderCases(){
         <div class="title">${esc(c.title)}</div>
         ${c.encounter?`<div class="pid">🗓 ${esc(fmtDue(c.encounter))}</div>`:''}
         ${c.doctor?`<div class="pid">👤 ${esc(c.doctor)}</div>`:''}
-        ${(c.pid||c.pname)?`<div class="pid">🪪 ${esc(c.pid||'')}${c.pid&&c.pname?' / ':''}${esc(c.pname||'')}</div>`:''}
+        ${(c.pid||c.pname)?`<div class="pid">🪪 ${esc(displayPid(c))}${c.pid&&c.pname?' / ':''}${esc(c.pname||'')}</div>`:''}
         ${c.point?`<div class="point">${esc(c.point)}</div>`:''}
         <div class="tags">${(c.tags||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div>
         ${c.confidence?`<div style="margin-top:6px">${confBadge(c.confidence)}</div>`:''}
@@ -1273,6 +1289,7 @@ function renderCases(){
       const isConf=(c.source==='conf');
       return `<tr onclick="openCaseDetail('${c.id}')">
         <td class="t-title">${esc(c.title)}</td>
+        <td class="t-date">${c.pid?esc(displayPid(c)):''}</td>
         <td class="t-cat">${esc(c.category||'')}</td>
         <td>${isConf?`<span class="kind-badge kind-conf">カンファ${c.doctor?' '+esc(c.doctor):''}</span>`:'<span class="t-date">自分</span>'}</td>
         <td>${st?`<span class="stamp ${statusStampClass(c.status)}">${esc(st)}</span>`:''}</td>
@@ -1282,7 +1299,7 @@ function renderCases(){
       </tr>`;
     }).join('');
     $('caseTable').innerHTML = list.length ? `<div class="dtable-wrap"><table class="dtable">
-      <thead><tr><th>症例名</th><th>カテゴリ</th><th>区分</th><th>ステータス</th><th>確度</th><th>出会った日</th><th>タグ</th></tr></thead>
+      <thead><tr><th>症例名</th><th>院内ID</th><th>カテゴリ</th><th>区分</th><th>ステータス</th><th>確度</th><th>出会った日</th><th>タグ</th></tr></thead>
       <tbody>${rows}</tbody></table></div>` : '<div class="empty">症例カードはまだありません。＋で追加。</div>';
   }
 }
@@ -1363,7 +1380,7 @@ function openCaseDetail(id){
         ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
         <h3>${esc(c.title)}</h3>
         ${c.source==='conf'?`<div style="font-size:12.5px;color:var(--shu)">🩺 カンファ症例${c.doctor?' ／ '+esc(c.doctor):''}</div>`:''}
-        ${(c.pid||c.pname)?`<div style="font-size:12.5px;color:var(--ink-soft)">🪪 ID: ${esc(c.pid||'—')} ／ ${esc(c.pname||'—')}</div>`:''}
+        ${(c.pid||c.pname)?`<div style="font-size:12.5px;color:var(--ink-soft)">🪪 ID: ${esc(displayPid(c)||'—')} ／ ${esc(c.pname||'—')}</div>`:''}
         ${c.encounter?`<div style="font-size:12.5px;color:var(--ink-soft)">🗓 出会った日: ${esc(fmtDue(c.encounter))}</div>`:''}
         ${c.confidence?`<div style="margin-top:4px">${confBadge(c.confidence)}</div>`:''}
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(c.tags||[]).map(t=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(t)}</span>`).join('')}</div>
