@@ -3,29 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FFFFFF" id="themeColorMeta">
 <title>Medicine OS</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#EFF2F0; --surface:#FFFFFF; --ink:#1F2A30; --ink-soft:#5A6A6E;
-  --line:#D8DEDC; --pine:#2E6E5E; --pine-soft:#E3EEEA;
+  --paper:#ECEEEC; --surface:#FFFFFF; --ink:#1E2A30; --ink-soft:#5D6D71;
+  --line:#DADFDD; --pine:#2E7360; --pine-soft:#E1EDE9;
   --shu:#C2431F; --shu-soft:#F8E9E3; --amber:#B07A1E; --amber-soft:#F6EEDD;
   --gold:#A98B4F;
-  --radius:10px;
+  --shadow:0 1px 2px rgba(31,42,48,.05);
+  --shadow-lg:0 8px 30px rgba(31,42,48,.14);
+  --radius:12px;
   --font-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",sans-serif;
-  --font-display:"Shippori Mincho","Hiragino Mincho ProN",serif;
+  --font-display:"Space Grotesk","Zen Kaku Gothic New",sans-serif;
+  --font-stamp:"Hiragino Mincho ProN","Yu Mincho",serif;
+}
+html[data-theme="dark"]{
+  --paper:#12171B; --surface:#1B2228; --ink:#E7ECEA; --ink-soft:#95A3A6;
+  --line:#2C353B; --pine:#4FB79C; --pine-soft:#1E2E2B;
+  --shu:#E4744F; --shu-soft:#33231D; --amber:#D9A84C; --amber-soft:#312A1B;
+  --gold:#C9A961;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+  --shadow-lg:0 10px 34px rgba(0,0,0,.5);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.65}
-button{font-family:var(--font-body);cursor:pointer}
+html,body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+html{transition:none}
+body{transition:background .25s,color .25s}
+button{font-family:var(--font-body);cursor:pointer;color:var(--ink)}
 input,select,textarea{font-family:var(--font-body);font-size:15px;color:var(--ink)}
 
 header{background:var(--surface);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
-.app-title{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:.06em}
-.app-title small{font-family:var(--font-body);font-weight:400;font-size:11px;color:var(--ink-soft);letter-spacing:.05em;margin-left:8px}
+.app-title{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+.app-title::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--pine);box-shadow:0 0 0 3px var(--pine-soft);flex-shrink:0}
+.app-title small{font-family:var(--font-body);font-weight:400;font-size:11px;color:var(--ink-soft);letter-spacing:.02em;margin-left:2px}
 .header-spacer{flex:1}
 .sync-status{font-size:11px;color:var(--ink-soft);text-align:right;line-height:1.3}
 .icon-btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:500;color:var(--ink);display:inline-flex;align-items:center;gap:6px}
@@ -73,14 +89,14 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 /* ---------- kanban ---------- */
 .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media(max-width:760px){.kanban{grid-template-columns:1fr}}
-.kcol{background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:var(--radius);padding:10px;min-height:70px}
+.kcol{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:10px;min-height:70px}
 .kcol h3{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--ink-soft);margin:2px 4px 10px;display:flex;align-items:center;gap:8px}
 .kcol h3 .dot{width:8px;height:8px;border-radius:50%}
 .kcol.todo h3 .dot{background:var(--ink-soft)}
 .kcol.doing h3 .dot{background:var(--amber)}
 .kcol.done h3 .dot{background:var(--pine)}
 
-.plan-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;margin-bottom:10px;box-shadow:0 1px 2px rgba(31,42,48,.05)}
+.plan-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;margin-bottom:10px;box-shadow:var(--shadow)}
 .plan-card .theme{font-weight:700;font-size:15px;margin-bottom:5px}
 .due-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px}
 .due-row .date{font-weight:700;color:var(--ink)}
@@ -109,7 +125,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .chip.on{background:var(--pine);border-color:var(--pine);color:#fff}
 
 .case-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
-.case-card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 12px;box-shadow:0 1px 2px rgba(31,42,48,.05);cursor:pointer}
+.case-card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 12px;box-shadow:var(--shadow);cursor:pointer}
 .case-card:hover{border-color:var(--pine)}
 .case-card .cat{font-size:11px;letter-spacing:.08em;color:var(--pine);font-weight:700;margin-bottom:2px}
 .case-card .title{font-weight:700;font-size:15px;margin-bottom:6px;padding-right:64px}
@@ -118,7 +134,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .case-card .tags{display:flex;flex-wrap:wrap;gap:4px}
 .case-card .tags span{font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px}
 
-.stamp{position:absolute;top:10px;right:10px;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--font-display);font-weight:700;font-size:10.5px;line-height:1.15;transform:rotate(-8deg);letter-spacing:.05em;pointer-events:none}
+.stamp{position:absolute;top:10px;right:10px;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--font-stamp);font-weight:700;font-size:10.5px;line-height:1.15;transform:rotate(-8deg);letter-spacing:.05em;pointer-events:none}
 .stamp.studying{border:2px solid var(--ink-soft);color:var(--ink-soft);opacity:.75}
 .stamp.summarized{border:2px solid var(--pine);color:var(--pine);background:var(--pine-soft)}
 .stamp.teachable{border:2.5px double var(--shu);color:var(--shu);background:var(--shu-soft);opacity:.92}
@@ -142,7 +158,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .gbar{display:flex;align-items:center;gap:8px;background:var(--pine-soft);border:1px solid var(--pine);border-radius:8px;padding:7px 12px;margin-bottom:12px}
 .gbar label{font-size:12.5px;font-weight:700;color:var(--pine)}
 .gbar input{width:74px;border:1px solid var(--line);border-radius:6px;padding:5px 8px;text-align:right;font-size:14px}
-.gbar .clear{margin-left:auto;font-size:11.5px;color:var(--ink-soft);border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 8px}
+.gbar .clear{margin-left:auto;font-size:11.5px;color:var(--ink-soft);border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:4px 8px}
 
 /* ---------- notes ---------- */
 .note-card .folder-label{font-size:11px;letter-spacing:.06em;color:var(--gold);font-weight:700;margin-bottom:2px}
@@ -160,7 +176,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .dose-table .basis{font-size:11px;color:var(--ink-soft)}
 .rate-conv{margin-top:6px;background:var(--amber-soft);border-radius:6px;padding:5px 8px}
 .rate-conv .rc-line{font-size:12.5px;color:var(--ink);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-.rate-conv input{width:66px;border:1px solid var(--line);border-radius:5px;padding:3px 6px;text-align:right;font-size:13px;background:#fff}
+.rate-conv input{width:66px;border:1px solid var(--line);border-radius:5px;padding:3px 6px;text-align:right;font-size:13px;background:var(--surface)}
 
 /* ---------- fab / modal / misc ---------- */
 .fab{position:fixed;right:20px;bottom:24px;z-index:60;background:var(--pine);color:#fff;border:none;border-radius:50%;width:56px;height:56px;font-size:28px;line-height:1;box-shadow:0 4px 14px rgba(46,110,94,.4)}
@@ -168,11 +184,11 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 
 .overlay{position:fixed;inset:0;background:rgba(31,42,48,.45);z-index:100;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 12px}
 .overlay.open{display:flex}
-.modal{background:var(--surface);border-radius:14px;width:100%;max-width:640px;padding:20px 20px 16px;margin:auto 0}
-.modal h3{font-family:var(--font-display);font-size:17px;letter-spacing:.08em;margin-bottom:14px}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:640px;padding:20px 20px 16px;margin:auto 0;box-shadow:var(--shadow-lg)}
+.modal h3{font-family:var(--font-display);font-size:17px;letter-spacing:-.01em;margin-bottom:14px}
 .form-row{margin-bottom:12px}
 .form-row label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:4px;letter-spacing:.05em}
-.form-row input[type=text],.form-row input[type=date],.form-row input[type=url],.form-row select,.form-row textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#FCFDFC}
+.form-row input[type=text],.form-row input[type=date],.form-row input[type=url],.form-row select,.form-row textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink)}
 .form-row textarea{min-height:96px;resize:vertical;line-height:1.6}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:520px){.form-grid{grid-template-columns:1fr}}
@@ -209,7 +225,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .cat-add-row input{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
 
 .empty{color:var(--ink-soft);font-size:13px;text-align:center;padding:28px 8px}
-.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:200;background:var(--ink);color:#fff;font-size:13px;border-radius:20px;padding:8px 18px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:200;background:var(--pine);color:#fff;font-size:13px;border-radius:20px;padding:8px 18px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow-lg)}
 .toast.show{opacity:.94}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -220,6 +236,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
   <div class="app-title">Medicine OS<small>症例・計画・ノート・治療</small></div>
   <div class="header-spacer"></div>
   <div class="sync-status" id="syncStatus">未同期</div>
+  <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="テーマ切替">🌙</button>
   <button class="icon-btn" onclick="openImport()">📥 取込</button>
   <button class="icon-btn" id="syncBtn" onclick="syncNow()">⇅ 同期</button>
   <button class="icon-btn" onclick="openSettings()">⚙</button>
@@ -440,7 +457,13 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
     <div class="form-row">
       <label>GAS WebアプリURL</label>
       <input type="url" id="gasUrl" placeholder="https://script.google.com/macros/s/…/exec">
-      <div class="hint">空欄のままでも端末内(localStorage)だけで動作します</div>
+      <div class="hint">空欄のままでも端末内(localStorage)だけで動作します。複数端末で共有するには、全端末に同じURLを設定してください。</div>
+    </div>
+    <div class="form-row">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="autoSyncChk" style="width:auto"> 自動でクラウド保存・読込する
+      </label>
+      <div class="hint">変更の数秒後に自動保存し、起動時や画面復帰時に他端末の変更を取り込みます。オフにすると「⇅ 同期」の手動のみになります。</div>
     </div>
     <div class="form-row">
       <label>疾患カテゴリの管理</label>
@@ -475,7 +498,7 @@ const PLAN_STATUS = ['todo','doing','done'];
 const PLAN_STATUS_LABEL = {todo:'To Do', doing:'In Progress', done:'Done'};
 const WD = ['日','月','火','水','木','金','土'];
 
-let state = { cases:[], plans:[], notes:[], treatments:[], meta:[], settings:{ gasUrl:'', lastSync:null, lastWeight:'', globalWeight:'' } };
+let state = { cases:[], plans:[], notes:[], treatments:[], meta:[], settings:{ gasUrl:'', lastSync:null, lastWeight:'', globalWeight:'', theme:'', autoSync:true } };
 let activeTab = 'plans';
 let editingPlanId=null, editingCaseId=null, editingNoteId=null, editingTxId=null;
 let activeTags=new Set(), activeFolder='', activeTxTags=new Set();
@@ -499,9 +522,9 @@ function loadState(){
     if(raw){ const s=JSON.parse(raw); state=Object.assign(state,s); }
   }catch(e){ console.warn(e); }
   for(const k of ['cases','plans','notes','treatments','meta']) if(!Array.isArray(state[k])) state[k]=[];
-  if(!state.settings) state.settings={gasUrl:'',lastSync:null,lastWeight:''};
+  if(!state.settings) state.settings={gasUrl:'',lastSync:null,lastWeight:'',globalWeight:'',theme:'',autoSync:true};
+  if(state.settings.autoSync===undefined) state.settings.autoSync=true;
 }
-function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 const live = arr => arr.filter(x => !x.deleted);
 const liveCases = () => live(state.cases);
 const livePlans = () => live(state.plans);
@@ -1240,25 +1263,61 @@ function globalWeight(){ return parseFloat(state.settings.globalWeight||state.se
 /* ---------- settings / sync ---------- */
 function openSettings(){
   $('gasUrl').value=state.settings.gasUrl||'';
+  $('autoSyncChk').checked=!!state.settings.autoSync;
   renderCatList();
   $('settingsOverlay').classList.add('open');
 }
 function saveSettings(){
+  const hadUrl=!!state.settings.gasUrl;
   state.settings.gasUrl=$('gasUrl').value.trim();
-  saveState(); closeOverlay('settingsOverlay'); toast('設定を保存しました');
+  state.settings.autoSync=$('autoSyncChk').checked;
+  localStorage.setItem(LS_KEY, JSON.stringify(state));
+  closeOverlay('settingsOverlay'); toast('設定を保存しました');
   updateSyncStatus(); if(activeTab==='cases') renderCases();
+  // URLを新規設定したら即座に一度同期して取り込み
+  if(state.settings.gasUrl){ cloudSync(hadUrl?'auto':'manual'); }
 }
 function updateSyncStatus(){
   const s=$('syncStatus');
   if(!state.settings.gasUrl){ s.textContent='ローカルのみ'; return; }
+  if(_syncing){ s.textContent='同期中…'; return; }
+  if(_pendingSave){ s.textContent='保存待ち…'; return; }
   s.textContent=state.settings.lastSync
-    ? '最終同期 '+new Date(state.settings.lastSync).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})
+    ? '✓ '+new Date(state.settings.lastSync).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})
     : '未同期';
 }
-async function syncNow(){
-  if(!state.settings.gasUrl){ toast('設定でGASのURLを入力してください'); openSettings(); return; }
+
+/* ---------- cloud sync (auto + manual) ---------- */
+let _syncing=false;
+let _pendingSave=false;
+let _saveTimer=null;
+const AUTO_SAVE_DELAY=2500;   // 変更後この時間操作がなければ自動保存
+const AUTO_PULL_INTERVAL=60000; // 定期的に他端末の変更を取り込む
+
+// 変更を記録するたびに呼ぶ:ローカル保存 + 自動クラウド保存を予約
+function saveState(){
+  localStorage.setItem(LS_KEY, JSON.stringify(state));
+  scheduleAutoSave();
+}
+function scheduleAutoSave(){
+  if(!state.settings.gasUrl || !state.settings.autoSync) return;
+  _pendingSave=true;
+  updateSyncStatus();
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{ cloudSync('auto'); }, AUTO_SAVE_DELAY);
+}
+
+async function cloudSync(mode){
+  // mode: 'manual' | 'auto' | 'pull'
+  if(!state.settings.gasUrl){
+    if(mode==='manual'){ toast('設定でGASのURLを入力してください'); openSettings(); }
+    return;
+  }
+  if(_syncing){ return; }
+  _syncing=true; _pendingSave=false;
   const btn=$('syncBtn');
-  btn.classList.add('syncing'); btn.textContent='同期中…';
+  if(mode==='manual'){ btn.classList.add('syncing'); btn.textContent='同期中…'; }
+  updateSyncStatus();
   try{
     const res=await fetch(state.settings.gasUrl,{
       method:'POST',
@@ -1267,19 +1326,30 @@ async function syncNow(){
     });
     if(!res.ok) throw new Error('HTTP '+res.status);
     const merged=await res.json();
-    if(!merged||!Array.isArray(merged.cases)) throw new Error('不正な応答(GASのコード更新と再デプロイを確認)');
+    if(!merged||!Array.isArray(merged.cases)) throw new Error('不正な応答(GAS再デプロイを確認)');
+    // マージ結果をローカルに反映(updatedAtで既にサーバ側マージ済み)
     state.cases=merged.cases; state.plans=merged.plans;
     state.notes=merged.notes||[]; state.treatments=merged.treatments||[]; state.meta=merged.meta||[];
     state.settings.lastSync=now();
-    saveState(); render(); updateSyncStatus();
-    toast('同期しました');
+    localStorage.setItem(LS_KEY, JSON.stringify(state)); // 再帰予約を避け直接保存
+    render();
+    if(mode==='manual') toast('同期しました');
   }catch(e){
     console.error(e);
-    toast('同期に失敗しました: '+e.message);
+    if(mode==='manual') toast('同期に失敗しました: '+e.message);
+    else _pendingSave=true; // 自動時は失敗を保存待ちに戻す
   }finally{
-    btn.classList.remove('syncing'); btn.textContent='⇅ 同期';
+    _syncing=false;
+    if(mode==='manual'){ btn.classList.remove('syncing'); btn.textContent='⇅ 同期'; }
+    updateSyncStatus();
   }
 }
+function syncNow(){ cloudSync('manual'); }
+// 起動時・復帰時・定期に他端末の変更を取り込む
+function autoPull(){
+  if(state.settings.gasUrl && state.settings.autoSync && !_syncing) cloudSync('pull');
+}
+
 
 /* ---------- misc ---------- */
 function closeOverlay(id){ $(id).classList.remove('open'); }
@@ -1296,9 +1366,36 @@ function render(){
   else renderTx();
 }
 
+/* ---------- theme ---------- */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t==='dark'?'dark':'light');
+  const btn=$('themeBtn'); if(btn) btn.textContent = t==='dark' ? '☀️' : '🌙';
+  const meta=$('themeColorMeta'); if(meta) meta.setAttribute('content', t==='dark' ? '#1B2228' : '#FFFFFF');
+}
+function toggleTheme(){
+  const cur=state.settings.theme==='dark'?'dark':'light';
+  const next=cur==='dark'?'light':'dark';
+  state.settings.theme=next; saveState(); applyTheme(next);
+}
+
 loadState();
+applyTheme(state.settings.theme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 updateSyncStatus();
 render();
+
+// 起動時に他端末の変更を取り込む
+autoPull();
+// 画面に戻ってきたとき(別端末で編集した後など)に取り込む
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) autoPull(); });
+window.addEventListener('focus', autoPull);
+// 定期的に取り込む
+setInterval(autoPull, AUTO_PULL_INTERVAL);
+// 離脱直前に保存待ちがあれば流す(ベストエフォート)
+window.addEventListener('beforeunload', ()=>{
+  if(_pendingSave && state.settings.gasUrl && state.settings.autoSync && navigator.sendBeacon){
+    try{ navigator.sendBeacon(state.settings.gasUrl, JSON.stringify({cases:state.cases,plans:state.plans,notes:state.notes,treatments:state.treatments,meta:state.meta})); }catch(e){}
+  }
+});
 </script>
 </body>
 </html>
