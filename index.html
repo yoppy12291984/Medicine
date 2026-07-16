@@ -814,9 +814,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.11.0
+   Med OS v2.12.0
 ========================================================= */
-const APP_VERSION = 'v2.11.0';
+const APP_VERSION = 'v2.12.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1957,6 +1957,7 @@ function renderImg(){
         <div class="stamp ${im.use==='typical'?'st-1':'st-0'}">${IMG_USE_LABEL[im.use]||''}</div>
       </div>
       <div class="title">${esc(im.title)}</div>
+      ${im.pid?`<div class="pid">🪪 ${esc(displayPid(im))}</div>`:''}
       ${im.findings?`<div class="point">${esc(im.findings.replace(/[#*]/g,'').slice(0,120))}</div>`:''}
       ${im.dx?`<div class="pid">Dx: ${esc(im.dx)}</div>`:''}
       <div class="tags" style="margin-top:6px">${(im.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
@@ -1964,13 +1965,14 @@ function renderImg(){
   }else{
     const rows=list.map(im=>`<tr onclick="openImgDetail('${im.id}')">
       <td class="t-title">${esc(im.title)}</td>
+      <td class="t-date">${im.pid?esc(displayPid(im)):''}</td>
       <td class="t-cat">${esc(im.modality||'')}</td>
       <td class="t-date">${IMG_USE_LABEL[im.use]||''}</td>
       <td class="t-title">${esc(im.dx||'')}</td>
       <td class="t-date">${im.encounter?esc(fmtDue(im.encounter)):''}</td>
       <td><div class="t-tags">${(im.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
     </tr>`);
-    $('imgTable').innerHTML=dtable(['タイトル','モダリティ','用途','診断','出会った日','タグ'],rows);
+    $('imgTable').innerHTML=dtable(['タイトル','院内ID','モダリティ','用途','診断','出会った日','タグ'],rows);
   }
 }
 function toggleImgTag(i){
@@ -2018,7 +2020,7 @@ function openImgDetail(id){
       <div class="cat" style="color:var(--pine)">🖼 ${esc(im.modality||'画像')} ／ ${IMG_USE_LABEL[im.use]||''}</div>
       <h3>${esc(im.title)}</h3>
       ${im.region?`<div style="font-size:12.5px;color:var(--ink-soft)">部位: ${esc(im.region)}</div>`:''}
-      ${im.pid?`<div style="font-size:12.5px;color:var(--ink-soft)">🪪 ${esc(im.pid)}</div>`:''}
+      ${im.pid?`<div style="font-size:12.5px;color:var(--ink-soft)">🪪 ${esc(displayPid(im))}</div>`:''}
       ${im.encounter?`<div style="font-size:12.5px;color:var(--ink-soft)">🗓 ${esc(fmtDue(im.encounter))}</div>`:''}
       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(im.tags||[]).map(x=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(x)}</span>`).join('')}</div>
     </div></div>
@@ -2255,7 +2257,7 @@ function updateDoseTable(id){
 }
 
 /* ---------- import (fixed format) ---------- */
-const IMPORT_KEYS = ['title','category','folder','tags','confidence','point','memo','ic','links','doses','body','encounter','killer','list','approach','redflag','citation','conclusion','p','i','c','o','results','implication','jc','modality','region','findings','ddx','dx','use','source','doctor','severity','occurred','discovered','course','response','prevention','people','status'];
+const IMPORT_KEYS = ['title','category','folder','tags','confidence','point','memo','ic','links','doses','body','encounter','killer','list','approach','redflag','citation','conclusion','p','i','c','o','results','implication','jc','modality','region','findings','ddx','dx','use','source','doctor','severity','occurred','discovered','course','response','prevention','people','status','pid'];
 const MULTILINE_KEYS = new Set(['memo','ic','links','doses','body','killer','list','approach','redflag','results','implication','jc','findings','ddx','course','response','prevention']);
 function parseImport(text){
   const blocks = text.split(/^\s*---\s*$/m).map(b=>b.trim()).filter(Boolean);
@@ -2337,7 +2339,7 @@ function recToEntity(type, rec){
     return {kind:'image', data:{
       id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
       title:(rec.title||'').trim(), modality:(rec.modality||'').trim(), region:(rec.region||'').trim(),
-      use:(rec.use==='mine'?'mine':'typical'), pid:'',
+      use:(rec.use==='mine'?'mine':'typical'), pid:(rec.pid||'').trim(),
       tags, findings:(rec.findings||rec.memo||'').trim(), ddx:splitLines(rec.ddx||''),
       dx:(rec.dx||'').trim(), body:(rec.body||'').trim(), encounter:(rec.encounter||'').trim()
     }};
