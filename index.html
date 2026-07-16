@@ -126,6 +126,13 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .kind-conf{background:var(--shu-soft);color:var(--shu)}
 .kind-surg{background:var(--pine-soft);color:var(--pine)}
 .kind-other{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line)}
+.sev-badge{font-size:11px;padding:1px 8px;border-radius:6px;font-weight:700}
+.sev-low{background:var(--pine-soft);color:var(--pine)}
+.sev-mid{background:var(--amber-soft);color:var(--amber)}
+.sev-high{background:var(--shu);color:#fff}
+.safety-status{font-size:11px;padding:1px 8px;border-radius:20px;font-weight:700}
+.safety-open{background:var(--amber-soft);color:var(--amber)}
+.safety-resolved{background:var(--pine-soft);color:var(--pine)}
 .plan-card .foot{display:flex;align-items:center;gap:6px;border-top:1px dashed var(--line);padding-top:8px}
 .plan-card .foot .linked{font-size:11.5px;color:var(--pine);flex:1}
 .mini-btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:3px 9px;font-size:12px;color:var(--ink)}
@@ -228,6 +235,10 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .form-row{margin-bottom:12px}
 .form-row label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:4px;letter-spacing:.05em}
 .form-row input[type=text],.form-row input[type=date],.form-row input[type=url],.form-row select,.form-row textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink)}
+.form-row input[type=date]{min-height:44px;font-size:16px;line-height:1.4}
+.form-row input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+.form-row input[type=date]::-webkit-calendar-picker-indicator{opacity:.7;cursor:pointer;font-size:18px;padding:2px}
+html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1)}
 .form-row textarea{min-height:96px;resize:vertical;line-height:1.6}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:520px){.form-grid{grid-template-columns:1fr}}
@@ -292,6 +303,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
   <button id="tabDdx" onclick="switchTab('ddx')">鑑 別</button>
   <button id="tabPapers" onclick="switchTab('papers')">論 文</button>
   <button id="tabImg" onclick="switchTab('img')">画 像</button>
+  <button id="tabSafety" onclick="switchTab('safety')">安 全</button>
 </nav>
 
 <main>
@@ -322,6 +334,11 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
       <select id="caseCatFilter" onchange="renderCases()"><option value="">全カテゴリ</option></select>
       <select id="caseStatusFilter" onchange="renderCases()">
         <option value="">全ステータス</option>
+      </select>
+      <select id="caseSourceFilter" onchange="renderCases()">
+        <option value="">自分＋カンファ</option>
+        <option value="self">自分の症例</option>
+        <option value="conf">カンファ症例</option>
       </select>
       <select id="caseSort" onchange="renderCases()">
         <option value="updated">更新順</option>
@@ -394,6 +411,26 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
     <div class="tag-chips" id="imgChips"></div>
     <div class="case-grid" id="imgGrid"></div>
   </section>
+
+  <!-- ===== safety (医療安全記録) ===== -->
+  <section id="viewSafety" style="display:none">
+    <div class="filter-bar">
+      <input type="search" id="safetySearch" placeholder="医療安全の記録を検索" oninput="renderSafety()">
+      <select id="safetySeverityFilter" onchange="renderSafety()">
+        <option value="">全レベル</option>
+        <option value="0">レベル0(ヒヤリ)</option>
+        <option value="1">レベル1-2(軽度)</option>
+        <option value="3">レベル3以上(要対応)</option>
+      </select>
+      <select id="safetyStatusFilter" onchange="renderSafety()">
+        <option value="">全状態</option>
+        <option value="open">対応中</option>
+        <option value="resolved">解決済</option>
+      </select>
+    </div>
+    <div class="tag-chips" id="safetyChips"></div>
+    <div class="case-grid" id="safetyGrid"></div>
+  </section>
 </main>
 
 <button class="fab" onclick="fabClick()" aria-label="追加">＋</button>
@@ -442,6 +479,12 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
   <div class="modal">
     <h3 id="caseModalTitle">症例カードを追加</h3>
     <div class="form-row"><label>タイトル</label><input type="text" id="cTitle" placeholder="例:食道狭窄合併NSCLCへのtepotinib投与"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>症例の区分</label>
+        <select id="cSource"><option value="self">自分の症例</option><option value="conf">カンファ症例(他の先生)</option></select>
+      </div>
+      <div class="form-row"><label>担当医(カンファ症例のとき)</label><input type="text" id="cDoctor" placeholder="◯◯先生"></div>
+    </div>
     <div class="form-grid">
       <div class="form-row"><label>患者ID</label><input type="text" id="cPid" placeholder="院内IDなど"></div>
       <div class="form-row"><label>患者名</label><input type="text" id="cPname" placeholder="イニシャル推奨"></div>
@@ -615,6 +658,46 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
   </div>
 </div>
 
+<!-- ===== safety edit modal ===== -->
+<div class="overlay" id="safetyOverlay">
+  <div class="modal">
+    <h3 id="safetyModalTitle">医療安全の記録を追加</h3>
+    <div class="hint" style="margin:-6px 0 12px">⚠ 医療安全情報は特に機微です。個人が特定されない形(院内ID・イニシャル・匿名)での記載を徹底してください。</div>
+    <div class="form-row"><label>件名</label><input type="text" id="sfTitle" placeholder="例:抗凝固薬の投与量エラー(未然)"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>重大度レベル</label>
+        <select id="sfSeverity">
+          <option value="0">レベル0(ヒヤリ・ハット)</option>
+          <option value="1">レベル1(実施・影響なし)</option>
+          <option value="2">レベル2(要観察)</option>
+          <option value="3a">レベル3a(簡単な処置)</option>
+          <option value="3b">レベル3b(濃厚な処置)</option>
+          <option value="4">レベル4(後遺障害)</option>
+          <option value="5">レベル5(死亡)</option>
+        </select>
+      </div>
+      <div class="form-row"><label>状態</label>
+        <select id="sfStatus"><option value="open">対応中</option><option value="resolved">解決済</option></select>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>発生日</label><input type="date" id="sfOccurred"></div>
+      <div class="form-row"><label>発見日</label><input type="date" id="sfDiscovered"></div>
+    </div>
+    <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="sfTags" placeholder="投薬, 転倒, 患者誤認"></div>
+    <div class="form-row"><label>関係者・部署(匿名で)</label><input type="text" id="sfPeople" placeholder="病棟看護師, 主治医 など(氏名は避ける)"></div>
+    <div class="form-row"><label>経緯・事象(簡易Markdown可)</label><textarea id="sfCourse" style="min-height:110px" placeholder="## 経緯&#10;- 何が起きたか、時系列で"></textarea></div>
+    <div class="form-row"><label>対応・処置(どうしたか)</label><textarea id="sfResponse" style="min-height:90px" placeholder="## 対応&#10;- 実施した対応、報告経路"></textarea></div>
+    <div class="form-row"><label>再発防止策・学び</label><textarea id="sfPrevention" style="min-height:90px" placeholder="## 再発防止&#10;- システム面/教育面の対策"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn danger" id="sfDeleteBtn" onclick="deleteSafety()" style="display:none">削除</button>
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('safetyOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="saveSafety()">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== detail modal (shared) ===== -->
 <div class="overlay" id="detailOverlay">
   <div class="modal" id="detailBody"></div>
@@ -696,9 +779,9 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.5.0
+   Med OS v2.6.0
 ========================================================= */
-const APP_VERSION = 'v2.5.0';
+const APP_VERSION = 'v2.6.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -753,7 +836,7 @@ function planChecklist(p){
 }
 const WD = ['日','月','火','水','木','金','土'];
 
-let state = { cases:[], plans:[], notes:[], treatments:[], ddx:[], papers:[], images:[], meta:[], settings:{ gasUrl:'', lastSync:null, lastWeight:'', globalWeight:'', theme:'', autoSync:true } };
+let state = { cases:[], plans:[], notes:[], treatments:[], ddx:[], papers:[], images:[], safety:[], meta:[], settings:{ gasUrl:'', lastSync:null, lastWeight:'', globalWeight:'', theme:'', autoSync:true } };
 let activeTab = 'plans';
 let editingPlanId=null, editingCaseId=null, editingNoteId=null, editingTxId=null;
 let activeTags=new Set(), activeFolder='', activeTxTags=new Set();
@@ -776,7 +859,7 @@ function loadState(){
     const raw = localStorage.getItem(LS_KEY);
     if(raw){ const s=JSON.parse(raw); state=Object.assign(state,s); }
   }catch(e){ console.warn(e); }
-  for(const k of ['cases','plans','notes','treatments','ddx','papers','images','meta']) if(!Array.isArray(state[k])) state[k]=[];
+  for(const k of ['cases','plans','notes','treatments','ddx','papers','images','safety','meta']) if(!Array.isArray(state[k])) state[k]=[];
   if(!state.settings) state.settings={gasUrl:'',lastSync:null,lastWeight:'',globalWeight:'',theme:'',autoSync:true};
   if(state.settings.autoSync===undefined) state.settings.autoSync=true;
 }
@@ -788,6 +871,7 @@ const liveTx    = () => live(state.treatments);
 const liveDdx   = () => live(state.ddx);
 const livePapers= () => live(state.papers);
 const liveImages= () => live(state.images);
+const liveSafety= () => live(state.safety);
 
 /* ---------- categories (meta, synced) ---------- */
 function catRecord(){
@@ -890,7 +974,7 @@ function md(src){
 /* ---------- tabs ---------- */
 function switchTab(tab){
   activeTab=tab;
-  for(const [id,t] of [['tabPlans','plans'],['tabCases','cases'],['tabNotes','notes'],['tabTx','tx'],['tabDdx','ddx'],['tabPapers','papers'],['tabImg','img']])
+  for(const [id,t] of [['tabPlans','plans'],['tabCases','cases'],['tabNotes','notes'],['tabTx','tx'],['tabDdx','ddx'],['tabPapers','papers'],['tabImg','img'],['tabSafety','safety']])
     $(id).classList.toggle('active', tab===t);
   $('viewPlans').style.display = tab==='plans'?'':'none';
   $('viewCases').style.display = tab==='cases'?'':'none';
@@ -899,6 +983,7 @@ function switchTab(tab){
   $('viewDdx').style.display   = tab==='ddx'?'':'none';
   $('viewPapers').style.display= tab==='papers'?'':'none';
   $('viewImg').style.display   = tab==='img'?'':'none';
+  $('viewSafety').style.display= tab==='safety'?'':'none';
   render();
 }
 function fabClick(){
@@ -908,7 +993,8 @@ function fabClick(){
   else if(activeTab==='tx') openTxModal();
   else if(activeTab==='ddx') openDdxModal();
   else if(activeTab==='papers') openPaperModal();
-  else openImgModal();
+  else if(activeTab==='img') openImgModal();
+  else openSafetyModal();
 }
 
 /* ---------- calendar ---------- */
@@ -1094,19 +1180,20 @@ function renderCases(){
   $('tagChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeTags.has(t)?'on':''}" onclick="toggleTag(${i})">${esc(t)}</button>`).join('');
   const q=$('caseSearch').value.trim().toLowerCase();
   const st=$('caseStatusFilter').value;
+  const src=$('caseSourceFilter').value;
   const sortBy=$('caseSort').value;
   const list=liveCases().filter(c=>{
     if(cur&&c.category!==cur) return false;
     if(st&&c.status!==st) return false;
+    if(src&&(c.source||'self')!==src) return false;
     if(activeTags.size&&![...activeTags].every(t=>(c.tags||[]).includes(t))) return false;
     if(q){
-      const hay=[c.title,c.point,c.memo,c.pid,c.pname,c.ic,c.encounter,(c.tags||[]).join(' '),c.category].join(' ').toLowerCase();
+      const hay=[c.title,c.point,c.memo,c.pid,c.pname,c.ic,c.encounter,c.doctor,(c.tags||[]).join(' '),c.category].join(' ').toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
   }).sort((a,b)=>{
     if(sortBy==='encounter'){
-      // 日付ありを新しい順に、日付なしは末尾
       const ea=a.encounter||'', eb=b.encounter||'';
       if(ea&&eb) return ea<eb?1:-1;
       if(ea&&!eb) return -1;
@@ -1116,15 +1203,18 @@ function renderCases(){
   });
   $('caseGrid').innerHTML=list.map(c=>{
     const st=statusLabel(c.status);
+    const isConf=(c.source==='conf');
     return `
     <div class="case-card" onclick="openCaseDetail('${c.id}')">
       <div class="card-top">
         ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
         <div class="spacer"></div>
+        ${isConf?`<div class="kind-badge kind-conf">カンファ</div>`:''}
         ${st?`<div class="stamp ${statusStampClass(c.status)}">${esc(st)}</div>`:''}
       </div>
       <div class="title">${esc(c.title)}</div>
-      ${c.encounter?`<div class="pid">🗓 ${esc(fmtDue(c.encounter))} に対応</div>`:''}
+      ${c.encounter?`<div class="pid">🗓 ${esc(fmtDue(c.encounter))}</div>`:''}
+      ${c.doctor?`<div class="pid">👤 ${esc(c.doctor)}</div>`:''}
       ${(c.pid||c.pname)?`<div class="pid">🪪 ${esc(c.pid||'')}${c.pid&&c.pname?' / ':''}${esc(c.pname||'')}</div>`:''}
       ${c.point?`<div class="point">${esc(c.point)}</div>`:''}
       <div class="tags">${(c.tags||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div>
@@ -1142,6 +1232,7 @@ function openCaseModal(id,presetPlanId){
   const c=id?state.cases.find(x=>x.id===id):null;
   $('caseModalTitle').textContent=c?'症例カードを編集':'症例カードを追加';
   $('cTitle').value=c?.title||''; $('cPid').value=c?.pid||''; $('cPname').value=c?.pname||'';
+  $('cSource').value=c?.source||'self'; $('cDoctor').value=c?.doctor||'';
   $('cEncounter').value=c?.encounter||'';
   const sts=getStatuses();
   const curSt=c?.status||(sts[0]?.id||'');
@@ -1170,6 +1261,7 @@ function saveCase(){
   if(!title){ toast('タイトルを入力してください'); return; }
   const data={
     title, pid:$('cPid').value.trim(), pname:$('cPname').value.trim(), encounter:$('cEncounter').value||'',
+    source:$('cSource').value, doctor:$('cDoctor').value.trim(),
     category:$('cCategory').value, status:$('cStatus').value, confidence:$('cConfidence').value,
     tags:$('cTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
     point:$('cPoint').value.trim(), memo:$('cMemo').value, ic:$('cIc').value,
@@ -1201,6 +1293,7 @@ function openCaseDetail(id){
       <div class="t">
         ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
         <h3>${esc(c.title)}</h3>
+        ${c.source==='conf'?`<div style="font-size:12.5px;color:var(--shu)">🩺 カンファ症例${c.doctor?' ／ '+esc(c.doctor):''}</div>`:''}
         ${(c.pid||c.pname)?`<div style="font-size:12.5px;color:var(--ink-soft)">🪪 ID: ${esc(c.pid||'—')} ／ ${esc(c.pname||'—')}</div>`:''}
         ${c.encounter?`<div style="font-size:12.5px;color:var(--ink-soft)">🗓 出会った日: ${esc(fmtDue(c.encounter))}</div>`:''}
         ${c.confidence?`<div style="margin-top:4px">${confBadge(c.confidence)}</div>`:''}
@@ -1735,6 +1828,119 @@ function openImgDetail(id){
   $('detailOverlay').classList.add('open');
 }
 
+/* ---------- safety (医療安全記録) ---------- */
+let editingSafetyId=null, activeSafetyTags=new Set();
+const SEV_LABEL={'0':'Lv0','1':'Lv1','2':'Lv2','3a':'Lv3a','3b':'Lv3b','4':'Lv4','5':'Lv5'};
+function sevClass(sev){
+  const s=String(sev||'');
+  if(s==='0'||s==='1') return 'sev-low';
+  if(s==='2'||s==='3a') return 'sev-mid';
+  return 'sev-high'; // 3b以上
+}
+function sevBucket(sev){
+  const s=String(sev||'');
+  if(s==='0') return '0';
+  if(s==='1'||s==='2') return '1';
+  return '3';
+}
+function allSafetyTags(){
+  const set=new Set(); liveSafety().forEach(s=>(s.tags||[]).forEach(x=>set.add(x)));
+  return [...set].sort((a,b)=>a.localeCompare(b,'ja'));
+}
+function renderSafety(){
+  const tags=allSafetyTags(); window._safetyTagList=tags;
+  activeSafetyTags=new Set([...activeSafetyTags].filter(t=>tags.includes(t)));
+  $('safetyChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeSafetyTags.has(t)?'on':''}" onclick="toggleSafetyTag(${i})">${esc(t)}</button>`).join('');
+  const q=$('safetySearch').value.trim().toLowerCase();
+  const sevf=$('safetySeverityFilter').value;
+  const stf=$('safetyStatusFilter').value;
+  const list=liveSafety().filter(s=>{
+    if(sevf&&sevBucket(s.severity)!==sevf) return false;
+    if(stf&&(s.status||'open')!==stf) return false;
+    if(activeSafetyTags.size&&![...activeSafetyTags].every(t=>(s.tags||[]).includes(t))) return false;
+    if(q){
+      const hay=[s.title,s.course,s.response,s.prevention,s.people,(s.tags||[]).join(' ')].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b)=>{
+    const oa=a.occurred||a.createdAt||'', ob=b.occurred||b.createdAt||'';
+    return oa<ob?1:-1;
+  });
+  $('safetyGrid').innerHTML=list.map(s=>`
+    <div class="case-card" onclick="openSafetyDetail('${s.id}')">
+      <div class="card-top">
+        <div class="cat" style="color:var(--shu)">🛡 医療安全</div>
+        <div class="spacer"></div>
+        <span class="sev-badge ${sevClass(s.severity)}">${SEV_LABEL[s.severity]||''}</span>
+        <span class="safety-status ${s.status==='resolved'?'safety-resolved':'safety-open'}">${s.status==='resolved'?'解決済':'対応中'}</span>
+      </div>
+      <div class="title">${esc(s.title)}</div>
+      ${s.occurred?`<div class="pid">🗓 発生 ${esc(fmtDue(s.occurred))}</div>`:''}
+      ${s.course?`<div class="point">${esc(s.course.replace(/[#*]/g,'').slice(0,110))}</div>`:''}
+      <div class="tags" style="margin-top:6px">${(s.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
+    </div>`).join('')||'<div class="empty">医療安全の記録はまだありません。＋で追加。</div>';
+}
+function toggleSafetyTag(i){
+  const t=(window._safetyTagList||[])[i]; if(t===undefined) return;
+  activeSafetyTags.has(t)?activeSafetyTags.delete(t):activeSafetyTags.add(t);
+  renderSafety();
+}
+function openSafetyModal(id){
+  editingSafetyId=id||null;
+  const s=id?state.safety.find(x=>x.id===id):null;
+  $('safetyModalTitle').textContent=s?'医療安全の記録を編集':'医療安全の記録を追加';
+  $('sfTitle').value=s?.title||''; $('sfSeverity').value=s?.severity||'0'; $('sfStatus').value=s?.status||'open';
+  $('sfOccurred').value=s?.occurred||''; $('sfDiscovered').value=s?.discovered||'';
+  $('sfTags').value=(s?.tags||[]).join(', '); $('sfPeople').value=s?.people||'';
+  $('sfCourse').value=s?.course||''; $('sfResponse').value=s?.response||''; $('sfPrevention').value=s?.prevention||'';
+  $('sfDeleteBtn').style.display=s?'':'none';
+  closeOverlay('detailOverlay'); $('safetyOverlay').classList.add('open');
+}
+function saveSafety(){
+  const title=$('sfTitle').value.trim();
+  if(!title){ toast('件名を入力してください'); return; }
+  const data={
+    title, severity:$('sfSeverity').value, status:$('sfStatus').value,
+    occurred:$('sfOccurred').value||'', discovered:$('sfDiscovered').value||'',
+    tags:$('sfTags').value.split(/[,、，]/).map(x=>x.trim()).filter(Boolean),
+    people:$('sfPeople').value.trim(),
+    course:$('sfCourse').value, response:$('sfResponse').value, prevention:$('sfPrevention').value,
+    updatedAt:now()
+  };
+  if(editingSafetyId) Object.assign(state.safety.find(x=>x.id===editingSafetyId),data);
+  else state.safety.push(Object.assign({id:uid(),createdAt:now(),deleted:false},data));
+  saveState(); closeOverlay('safetyOverlay'); renderSafety(); toast('保存しました');
+}
+function deleteSafety(){
+  if(!editingSafetyId||!confirm('この医療安全の記録を削除しますか?')) return;
+  const s=state.safety.find(x=>x.id===editingSafetyId);
+  s.deleted=true; s.updatedAt=now(); saveState(); closeOverlay('safetyOverlay'); renderSafety(); toast('削除しました');
+}
+function openSafetyDetail(id){
+  const s=state.safety.find(x=>x.id===id); if(!s) return;
+  $('detailBody').innerHTML=`
+    <div class="detail-head"><div class="t">
+      <div class="cat" style="color:var(--shu)">🛡 医療安全 <span class="sev-badge ${sevClass(s.severity)}">${SEV_LABEL[s.severity]||''}</span> <span class="safety-status ${s.status==='resolved'?'safety-resolved':'safety-open'}">${s.status==='resolved'?'解決済':'対応中'}</span></div>
+      <h3>${esc(s.title)}</h3>
+      <div style="font-size:12.5px;color:var(--ink-soft)">
+        ${s.occurred?`発生 ${esc(fmtDue(s.occurred))}`:''}${s.discovered?` ／ 発見 ${esc(fmtDue(s.discovered))}`:''}
+      </div>
+      ${s.people?`<div style="font-size:12.5px;color:var(--ink-soft)">👥 ${esc(s.people)}</div>`:''}
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(s.tags||[]).map(x=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(x)}</span>`).join('')}</div>
+    </div></div>
+    ${s.course?`<div class="ddx-block"><h4>📋 経緯・事象</h4><div class="md">${md(s.course)}</div></div>`:''}
+    ${s.response?`<div class="ddx-block"><h4>🔧 対応・処置</h4><div class="md">${md(s.response)}</div></div>`:''}
+    ${s.prevention?`<div class="ddx-block ddx-normal"><h4>🛡 再発防止策・学び</h4><div class="md">${md(s.prevention)}</div></div>`:''}
+    <div class="detail-meta">作成 ${esc((s.createdAt||'').slice(0,10))} ／ 更新 ${esc((s.updatedAt||'').slice(0,10))}</div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
+      <button class="btn primary" onclick="openSafetyModal('${s.id}')">編集</button>
+    </div>`;
+  $('detailOverlay').classList.add('open');
+}
+
 function doseTableHtml(t, weight){
   const ds=parseDoses(t.doses);
   if(!ds.length) return '';
@@ -1830,8 +2036,8 @@ function updateDoseTable(id){
 }
 
 /* ---------- import (fixed format) ---------- */
-const IMPORT_KEYS = ['title','category','folder','tags','confidence','point','memo','ic','links','doses','body','encounter','killer','list','approach','redflag','citation','conclusion','p','i','c','o','results','implication','jc','modality','region','findings','ddx','dx','use'];
-const MULTILINE_KEYS = new Set(['memo','ic','links','doses','body','killer','list','approach','redflag','results','implication','jc','findings','ddx']);
+const IMPORT_KEYS = ['title','category','folder','tags','confidence','point','memo','ic','links','doses','body','encounter','killer','list','approach','redflag','citation','conclusion','p','i','c','o','results','implication','jc','modality','region','findings','ddx','dx','use','source','doctor','severity','occurred','discovered','course','response','prevention','people','status'];
+const MULTILINE_KEYS = new Set(['memo','ic','links','doses','body','killer','list','approach','redflag','results','implication','jc','findings','ddx','course','response','prevention']);
 function parseImport(text){
   const blocks = text.split(/^\s*---\s*$/m).map(b=>b.trim()).filter(Boolean);
   const records = [];
@@ -1843,8 +2049,8 @@ function parseImport(text){
     for(let i=0;i<lines.length;i++){
       const line = lines[i];
       const trimmed = line.trim();
-      if(i===0 && /^@(case|note|treatment|ddx|paper|image)\b/i.test(trimmed)){
-        type = trimmed.slice(1).toLowerCase().match(/^(case|note|treatment|ddx|paper|image)/)[1];
+      if(i===0 && /^@(case|note|treatment|ddx|paper|image|safety)\b/i.test(trimmed)){
+        type = trimmed.slice(1).toLowerCase().match(/^(case|note|treatment|ddx|paper|image|safety)/)[1];
         continue;
       }
       const km = line.match(/^([a-zA-Z]+):\s?(.*)$/);
@@ -1867,6 +2073,7 @@ function recToEntity(type, rec){
     return {kind:'case', data:{
       id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
       title:(rec.title||'').trim(), pid:'', pname:'', encounter:(rec.encounter||'').trim(),
+      source:(rec.source==='conf'?'conf':'self'), doctor:(rec.doctor||'').trim(),
       category:(rec.category||'').trim(), status:(getStatuses()[0]?.id||''), confidence:conf,
       tags, point:(rec.point||'').trim(), memo:(rec.memo||'').trim(),
       ic:(rec.ic||'').trim(),
@@ -1916,6 +2123,16 @@ function recToEntity(type, rec){
       dx:(rec.dx||'').trim(), body:(rec.body||'').trim(), encounter:(rec.encounter||'').trim()
     }};
   }
+  if(type==='safety'){
+    return {kind:'safety', data:{
+      id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
+      title:(rec.title||'').trim(), severity:(rec.severity||'0').trim(),
+      status:(rec.status==='resolved'?'resolved':'open'),
+      occurred:(rec.occurred||'').trim(), discovered:(rec.discovered||'').trim(),
+      tags, people:(rec.people||'').trim(),
+      course:(rec.course||rec.memo||'').trim(), response:(rec.response||'').trim(), prevention:(rec.prevention||'').trim()
+    }};
+  }
   return null;
 }
 let _importQueue = [];
@@ -1933,7 +2150,7 @@ function previewImport(){
     $('importDoBtn').style.display='none';
     return;
   }
-  const label={case:'症例',note:'ノート',treatment:'治療',ddx:'鑑別',paper:'論文',image:'画像'};
+  const label={case:'症例',note:'ノート',treatment:'治療',ddx:'鑑別',paper:'論文',image:'画像',safety:'医療安全'};
   const norm = s => (s||'').trim();
   $('importPreview').innerHTML='<b>'+_importQueue.length+'件を取り込みます:</b><br>'+
     _importQueue.map(e=>{
@@ -1956,6 +2173,7 @@ function doImport(){
     else if(e.kind==='ddx'){ state.ddx.push(e.data); added++; }
     else if(e.kind==='paper'){ state.papers.push(e.data); added++; }
     else if(e.kind==='image'){ state.images.push(e.data); added++; }
+    else if(e.kind==='safety'){ state.safety.push(e.data); added++; }
     else if(e.kind==='note'){
       // 同フォルダ・同タイトルの既存ノートがあれば追記
       const existing = state.notes.find(x => !x.deleted
@@ -2054,14 +2272,14 @@ async function cloudSync(mode){
     const res=await fetch(state.settings.gasUrl,{
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({cases:state.cases,plans:state.plans,notes:state.notes,treatments:state.treatments,ddx:state.ddx,papers:state.papers,images:state.images,meta:state.meta})
+      body:JSON.stringify({cases:state.cases,plans:state.plans,notes:state.notes,treatments:state.treatments,ddx:state.ddx,papers:state.papers,images:state.images,safety:state.safety,meta:state.meta})
     });
     if(!res.ok) throw new Error('HTTP '+res.status);
     const merged=await res.json();
     if(!merged||!Array.isArray(merged.cases)) throw new Error('不正な応答(GAS再デプロイを確認)');
     // マージ結果をローカルに反映(updatedAtで既にサーバ側マージ済み)
     state.cases=merged.cases; state.plans=merged.plans;
-    state.notes=merged.notes||[]; state.treatments=merged.treatments||[]; state.ddx=merged.ddx||[]; state.papers=merged.papers||[]; state.images=merged.images||[]; state.meta=merged.meta||[];
+    state.notes=merged.notes||[]; state.treatments=merged.treatments||[]; state.ddx=merged.ddx||[]; state.papers=merged.papers||[]; state.images=merged.images||[]; state.safety=merged.safety||[]; state.meta=merged.meta||[];
     state.settings.lastSync=now();
     localStorage.setItem(LS_KEY, JSON.stringify(state)); // 再帰予約を避け直接保存
     render();
@@ -2098,7 +2316,8 @@ function render(){
   else if(activeTab==='tx') renderTx();
   else if(activeTab==='ddx') renderDdx();
   else if(activeTab==='papers') renderPapers();
-  else renderImg();
+  else if(activeTab==='img') renderImg();
+  else renderSafety();
 }
 
 /* ---------- theme ---------- */
@@ -2136,7 +2355,7 @@ setInterval(autoPull, AUTO_PULL_INTERVAL);
 // 離脱直前に保存待ちがあれば流す(ベストエフォート)
 window.addEventListener('beforeunload', ()=>{
   if(_pendingSave && state.settings.gasUrl && state.settings.autoSync && navigator.sendBeacon){
-    try{ navigator.sendBeacon(state.settings.gasUrl, JSON.stringify({cases:state.cases,plans:state.plans,notes:state.notes,treatments:state.treatments,ddx:state.ddx,papers:state.papers,images:state.images,meta:state.meta})); }catch(e){}
+    try{ navigator.sendBeacon(state.settings.gasUrl, JSON.stringify({cases:state.cases,plans:state.plans,notes:state.notes,treatments:state.treatments,ddx:state.ddx,papers:state.papers,images:state.images,safety:state.safety,meta:state.meta})); }catch(e){}
   }
 });
 </script>
