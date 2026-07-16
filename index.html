@@ -313,16 +313,16 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 </header>
 
 <nav class="tabs">
-  <button id="tabPlans" class="active" onclick="switchTab('plans')">計 画</button>
-  <button id="tabCases" onclick="switchTab('cases')">症 例</button>
-  <button id="tabNotes" onclick="switchTab('notes')">ノート</button>
-  <button id="tabTx" onclick="switchTab('tx')">治 療</button>
-  <button id="tabDdx" onclick="switchTab('ddx')">鑑 別</button>
-  <button id="tabPapers" onclick="switchTab('papers')">論 文</button>
-  <button id="tabGallery" onclick="switchTab('gallery')">症例集</button>
-  <button id="tabStudy" onclick="switchTab('study')">勉強用</button>
-  <button id="tabImg" onclick="switchTab('img')">画 像</button>
-  <button id="tabSafety" onclick="switchTab('safety')">安 全</button>
+  <button id="tabPlans" class="active" onclick="switchTab('plans')"><span class="tab-label" data-tab="plans">計 画</span></button>
+  <button id="tabCases" onclick="switchTab('cases')"><span class="tab-label" data-tab="cases">症 例</span></button>
+  <button id="tabNotes" onclick="switchTab('notes')"><span class="tab-label" data-tab="notes">ノート</span></button>
+  <button id="tabTx" onclick="switchTab('tx')"><span class="tab-label" data-tab="tx">治 療</span></button>
+  <button id="tabDdx" onclick="switchTab('ddx')"><span class="tab-label" data-tab="ddx">鑑 別</span></button>
+  <button id="tabPapers" onclick="switchTab('papers')"><span class="tab-label" data-tab="papers">論 文</span></button>
+  <button id="tabGallery" onclick="switchTab('gallery')"><span class="tab-label" data-tab="gallery">症例集</span></button>
+  <button id="tabStudy" onclick="switchTab('study')"><span class="tab-label" data-tab="study">勉強用</span></button>
+  <button id="tabImg" onclick="switchTab('img')"><span class="tab-label" data-tab="img">画 像</span></button>
+  <button id="tabSafety" onclick="switchTab('safety')"><span class="tab-label" data-tab="safety">安 全</span></button>
 </nav>
 
 <main>
@@ -837,6 +837,11 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <div class="hint">症例カードの判子に表示されます。名前をタップで編集、×で削除。全部消すと判子が非表示になります。色は上から順に3色で自動割当。</div>
     </div>
     <div class="form-row">
+      <label>タブ名のカスタマイズ</label>
+      <div id="tabLabelList"></div>
+      <div class="hint">各タブの表示名を自由に変えられます。空欄にすると左の既定名に戻ります。変更は全端末に同期されます。</div>
+    </div>
+    <div class="form-row">
       <label>画像タグの管理(症例集・勉強用・画像 共通)</label>
       <div class="cat-list" id="imgTagList"></div>
       <div class="hint">画像系タブで使われているタグの一覧です。名前をタップすると、そのタグが付いた全画像で一括リネームされます。×で全画像から削除します。</div>
@@ -855,9 +860,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.14.0
+   Med OS v2.15.0
 ========================================================= */
-const APP_VERSION = 'v2.14.0';
+const APP_VERSION = 'v2.15.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1015,7 +1020,41 @@ function renderStatusList(){
     || '<span class="hint">ステータスなし(判子は非表示)</span>';
 }
 
-/* ---------- 画像タグの一括管理 ---------- */
+/* ---------- タブ名のカスタマイズ ---------- */
+const TAB_ORDER=['plans','cases','notes','tx','ddx','papers','gallery','study','img','safety'];
+const TAB_DEFAULT={plans:'計 画',cases:'症 例',notes:'ノート',tx:'治 療',ddx:'鑑 別',papers:'論 文',gallery:'症例集',study:'勉強用',img:'画 像',safety:'安 全'};
+function tabLabelRecord(){
+  let r=state.meta.find(m=>m.id==='tabLabels');
+  if(!r){ r={id:'tabLabels', map:{}, updatedAt:now()}; state.meta.push(r); }
+  if(!r.map) r.map={};
+  return r;
+}
+function tabLabel(tab){
+  const r=tabLabelRecord();
+  return (r.map[tab]&&r.map[tab].trim()) ? r.map[tab] : (TAB_DEFAULT[tab]||tab);
+}
+function applyTabLabels(){
+  document.querySelectorAll('.tab-label').forEach(el=>{
+    const t=el.getAttribute('data-tab'); if(t) el.textContent=tabLabel(t);
+  });
+}
+function renderTabLabelList(){
+  const r=tabLabelRecord();
+  $('tabLabelList').innerHTML=TAB_ORDER.map(t=>{
+    const cur=r.map[t]||'';
+    return `<div class="cat-add-row" style="margin-bottom:6px">
+      <span class="hint" style="margin:0;min-width:56px">${esc(TAB_DEFAULT[t])}</span>
+      <input type="text" value="${esc(cur)}" placeholder="${esc(TAB_DEFAULT[t])}" oninput="setTabLabel('${t}',this.value)">
+    </div>`;
+  }).join('');
+}
+function setTabLabel(tab,val){
+  const r=tabLabelRecord();
+  if(val&&val.trim()) r.map[tab]=val.trim(); else delete r.map[tab];
+  r.updatedAt=now();
+  saveState(); applyTabLabels();
+}
+
 function allImageTags(){
   const s=new Set(); liveImages().forEach(im=>(im.tags||[]).forEach(t=>s.add(t)));
   return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
@@ -2571,6 +2610,7 @@ function openSettings(){
   applyTheme(state.settings.theme||'light');
   renderCatList();
   renderStatusList();
+  renderTabLabelList();
   renderImgTagList();
   $('settingsOverlay').classList.add('open');
 }
@@ -2639,6 +2679,7 @@ async function cloudSync(mode){
     state.notes=merged.notes||[]; state.treatments=merged.treatments||[]; state.ddx=merged.ddx||[]; state.papers=merged.papers||[]; state.images=merged.images||[]; state.safety=merged.safety||[]; state.meta=merged.meta||[];
     state.settings.lastSync=now();
     localStorage.setItem(LS_KEY, JSON.stringify(state)); // 再帰予約を避け直接保存
+    applyTabLabels();
     render();
     if(mode==='manual') toast('同期しました');
   }catch(e){
@@ -2700,6 +2741,7 @@ function setThemeFromSettings(t){
 
 loadState();
 const _vb=$('verBadge'); if(_vb) _vb.textContent=APP_VERSION;
+applyTabLabels();
 applyTheme(state.settings.theme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 updateSyncStatus();
 render();
