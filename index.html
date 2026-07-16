@@ -386,18 +386,22 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
     </div>
     <div class="filter-bar">
       <input type="search" id="txSearch" placeholder="治療・投薬を検索" oninput="renderTx()">
+      <button class="icon-btn" id="txViewToggle" onclick="toggleView('tx')">⊞ 表</button>
     </div>
     <div class="tag-chips" id="txChips"></div>
     <div class="case-grid" id="txGrid"></div>
+    <div id="txTable" style="display:none"></div>
   </section>
 
   <!-- ===== ddx (主訴からの鑑別) ===== -->
   <section id="viewDdx" style="display:none">
     <div class="filter-bar">
       <input type="search" id="ddxSearch" placeholder="主訴・鑑別を検索(失神, 腹痛 …)" oninput="renderDdx()">
+      <button class="icon-btn" id="ddxViewToggle" onclick="toggleView('ddx')">⊞ 表</button>
     </div>
     <div class="tag-chips" id="ddxChips"></div>
     <div class="case-grid" id="ddxGrid"></div>
+    <div id="ddxTable" style="display:none"></div>
   </section>
 
   <!-- ===== papers (論文読破メモ) ===== -->
@@ -410,9 +414,11 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
         <option value="read">読了</option>
         <option value="jc">抄読会候補</option>
       </select>
+      <button class="icon-btn" id="paperViewToggle" onclick="toggleView('paper')">⊞ 表</button>
     </div>
     <div class="tag-chips" id="paperChips"></div>
     <div class="case-grid" id="paperGrid"></div>
+    <div id="paperTable" style="display:none"></div>
   </section>
 
   <!-- ===== img (画像所見スタック) ===== -->
@@ -425,9 +431,11 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
         <option value="typical">典型例</option>
         <option value="mine">自分用</option>
       </select>
+      <button class="icon-btn" id="imgViewToggle" onclick="toggleView('img')">⊞ 表</button>
     </div>
     <div class="tag-chips" id="imgChips"></div>
     <div class="case-grid" id="imgGrid"></div>
+    <div id="imgTable" style="display:none"></div>
   </section>
 
   <!-- ===== safety (医療安全記録) ===== -->
@@ -445,9 +453,11 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
         <option value="open">対応中</option>
         <option value="resolved">解決済</option>
       </select>
+      <button class="icon-btn" id="safetyViewToggle" onclick="toggleView('safety')">⊞ 表</button>
     </div>
     <div class="tag-chips" id="safetyChips"></div>
     <div class="case-grid" id="safetyGrid"></div>
+    <div id="safetyTable" style="display:none"></div>
   </section>
 </main>
 
@@ -797,9 +807,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.9.0
+   Med OS v2.10.0
 ========================================================= */
-const APP_VERSION = 'v2.9.0';
+const APP_VERSION = 'v2.10.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1308,6 +1318,26 @@ function toggleCaseView(){
   caseViewMode = (caseViewMode==='card') ? 'table' : 'card';
   renderCases();
 }
+// 他タブ共通の表/カード切替
+const viewModes = { tx:'card', ddx:'card', paper:'card', img:'card', safety:'card' };
+const _renderByTab = { tx:()=>renderTx(), ddx:()=>renderDdx(), paper:()=>renderPapers(), img:()=>renderImg(), safety:()=>renderSafety() };
+function toggleView(tab){
+  viewModes[tab] = (viewModes[tab]==='card') ? 'table' : 'card';
+  (_renderByTab[tab]||function(){})();
+}
+// グリッド/テーブルの表示切替とトグルボタンのラベル更新。card表示ならtrueを返す
+function applyViewMode(tab, gridId, tableId, toggleId){
+  const cardView = (viewModes[tab]!=='table');
+  const g=$(gridId), t=$(tableId), b=$(toggleId);
+  if(g) g.style.display=cardView?'':'none';
+  if(t) t.style.display=cardView?'none':'';
+  if(b) b.textContent=cardView?'⊞ 表':'▤ カード';
+  return cardView;
+}
+function dtable(headers, rows){
+  if(!rows.length) return '<div class="empty">まだありません。＋で追加。</div>';
+  return `<div class="dtable-wrap"><table class="dtable"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+}
 function toggleTag(i){
   const t=(window._tagList||[])[i]; if(t===undefined) return;
   activeTags.has(t)?activeTags.delete(t):activeTags.add(t);
@@ -1539,6 +1569,8 @@ function renderTx(){
     if(!!b.pinned!==!!a.pinned) return b.pinned?1:-1;
     return (b.updatedAt||'')>(a.updatedAt||'')?1:-1;
   });
+  const cardView=applyViewMode('tx','txGrid','txTable','txViewToggle');
+  if(cardView){
   $('txGrid').innerHTML=list.map(t=>{
     const ds=parseDoses(t.doses);
     return `
@@ -1552,6 +1584,20 @@ function renderTx(){
       ${t.confidence?`<div style="margin-top:6px">${confBadge(t.confidence)}</div>`:''}
     </div>`;
   }).join('')||'<div class="empty">治療・投薬はまだありません。＋で追加。</div>';
+  }else{
+    const rows=list.map(t=>{
+      const ds=parseDoses(t.doses);
+      const drugs=ds.map(d=>d.drug).filter(Boolean).join('、');
+      return `<tr onclick="openTxDetail('${t.id}')">
+        <td class="t-title">${t.pinned?'📌 ':''}${esc(t.title)}</td>
+        <td>${esc(drugs)}</td>
+        <td class="t-date">${ds.length}剤</td>
+        <td class="t-conf">${t.confidence?confBadge(t.confidence):''}</td>
+        <td><div class="t-tags">${(t.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
+      </tr>`;
+    });
+    $('txTable').innerHTML=dtable(['治療名','薬剤','剤数','確度','タグ'],rows);
+  }
 }
 function toggleTxTag(i){
   const t=(window._txTagList||[])[i]; if(t===undefined) return;
@@ -1619,6 +1665,8 @@ function renderDdx(){
     }
     return true;
   }).sort((a,b)=>(a.title||'').localeCompare(b.title||'','ja'));
+  const cardView=applyViewMode('ddx','ddxGrid','ddxTable','ddxViewToggle');
+  if(cardView){
   $('ddxGrid').innerHTML=list.map(d=>{
     const killers=(d.killer||[]);
     return `
@@ -1630,6 +1678,16 @@ function renderDdx(){
       <div class="tags" style="margin-top:6px">${(d.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
     </div>`;
   }).join('')||'<div class="empty">主訴の鑑別はまだありません。＋で追加。</div>';
+  }else{
+    const rows=list.map(d=>`<tr onclick="openDdxDetail('${d.id}')">
+      <td class="t-title">${esc(d.title)}</td>
+      <td class="t-conf" style="color:var(--shu)">${(d.killer||[]).length?'🚨 '+(d.killer||[]).length:''}</td>
+      <td class="t-date">${(d.list||[]).length}件</td>
+      <td class="t-conf" style="color:var(--shu)">${(d.redflag||[]).length?'🚩 '+(d.redflag||[]).length:''}</td>
+      <td><div class="t-tags">${(d.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
+    </tr>`);
+    $('ddxTable').innerHTML=dtable(['主訴','Killer','鑑別数','Red flag','タグ'],rows);
+  }
 }
 function toggleDdxTag(i){
   const t=(window._ddxTagList||[])[i]; if(t===undefined) return;
@@ -1719,6 +1777,8 @@ function renderPapers(){
     if(!!b.star!==!!a.star) return b.star?1:-1;
     return (b.updatedAt||'')>(a.updatedAt||'')?1:-1;
   });
+  const cardView=applyViewMode('paper','paperGrid','paperTable','paperViewToggle');
+  if(cardView){
   $('paperGrid').innerHTML=list.map(p=>`
     <div class="case-card ${p.star?'pinned':''}" onclick="openPaperDetail('${p.id}')">
       <button class="pin-btn card-pin ${p.star?'on':''}" onclick="event.stopPropagation();togglePaperStar('${p.id}')" title="スター">★</button>
@@ -1732,6 +1792,16 @@ function renderPapers(){
       ${p.conclusion?`<div class="point">💡 ${esc(p.conclusion)}</div>`:''}
       <div class="tags" style="margin-top:6px">${(p.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
     </div>`).join('')||'<div class="empty">論文はまだありません。＋で追加。</div>';
+  }else{
+    const rows=list.map(p=>`<tr onclick="openPaperDetail('${p.id}')">
+      <td class="t-title">${p.star?'★ ':''}${esc(p.title)}</td>
+      <td class="t-date">${esc(p.citation||'')}</td>
+      <td>${p.status?`<span class="stamp ${PAPER_STATUS_CLASS[p.status]||'st-0'}">${PAPER_STATUS_LABEL[p.status]||''}</span>`:''}</td>
+      <td class="t-title">${esc(p.conclusion||'')}</td>
+      <td><div class="t-tags">${(p.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
+    </tr>`);
+    $('paperTable').innerHTML=dtable(['タイトル','書誌','状態','一言結論','タグ'],rows);
+  }
 }
 function togglePaperTag(i){
   const t=(window._paperTagList||[])[i]; if(t===undefined) return;
@@ -1839,6 +1909,8 @@ function renderImg(){
     }
     return true;
   }).sort((a,b)=>(b.updatedAt||'')>(a.updatedAt||'')?1:-1);
+  const cardView=applyViewMode('img','imgGrid','imgTable','imgViewToggle');
+  if(cardView){
   $('imgGrid').innerHTML=list.map(im=>`
     <div class="case-card" onclick="openImgDetail('${im.id}')">
       <div class="card-top">
@@ -1851,6 +1923,17 @@ function renderImg(){
       ${im.dx?`<div class="pid">Dx: ${esc(im.dx)}</div>`:''}
       <div class="tags" style="margin-top:6px">${(im.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
     </div>`).join('')||'<div class="empty">画像所見はまだありません。＋で追加。</div>';
+  }else{
+    const rows=list.map(im=>`<tr onclick="openImgDetail('${im.id}')">
+      <td class="t-title">${esc(im.title)}</td>
+      <td class="t-cat">${esc(im.modality||'')}</td>
+      <td class="t-date">${IMG_USE_LABEL[im.use]||''}</td>
+      <td class="t-title">${esc(im.dx||'')}</td>
+      <td class="t-date">${im.encounter?esc(fmtDue(im.encounter)):''}</td>
+      <td><div class="t-tags">${(im.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
+    </tr>`);
+    $('imgTable').innerHTML=dtable(['タイトル','モダリティ','用途','診断','出会った日','タグ'],rows);
+  }
 }
 function toggleImgTag(i){
   const t=(window._imgTagList||[])[i]; if(t===undefined) return;
@@ -1953,6 +2036,8 @@ function renderSafety(){
     const oa=a.occurred||a.createdAt||'', ob=b.occurred||b.createdAt||'';
     return oa<ob?1:-1;
   });
+  const cardView=applyViewMode('safety','safetyGrid','safetyTable','safetyViewToggle');
+  if(cardView){
   $('safetyGrid').innerHTML=list.map(s=>`
     <div class="case-card" onclick="openSafetyDetail('${s.id}')">
       <div class="card-top">
@@ -1966,6 +2051,16 @@ function renderSafety(){
       ${s.course?`<div class="point">${esc(s.course.replace(/[#*]/g,'').slice(0,110))}</div>`:''}
       <div class="tags" style="margin-top:6px">${(s.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
     </div>`).join('')||'<div class="empty">医療安全の記録はまだありません。＋で追加。</div>';
+  }else{
+    const rows=list.map(s=>`<tr onclick="openSafetyDetail('${s.id}')">
+      <td class="t-title">${esc(s.title)}</td>
+      <td><span class="sev-badge ${sevClass(s.severity)}">${SEV_LABEL[s.severity]||''}</span></td>
+      <td><span class="safety-status ${s.status==='resolved'?'safety-resolved':'safety-open'}">${s.status==='resolved'?'解決済':'対応中'}</span></td>
+      <td class="t-date">${s.occurred?esc(fmtDue(s.occurred)):''}</td>
+      <td><div class="t-tags">${(s.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
+    </tr>`);
+    $('safetyTable').innerHTML=dtable(['件名','レベル','状態','発生日','タグ'],rows);
+  }
 }
 function toggleSafetyTag(i){
   const t=(window._safetyTagList||[])[i]; if(t===undefined) return;
