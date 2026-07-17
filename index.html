@@ -105,6 +105,8 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 
 .plan-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;margin-bottom:10px;box-shadow:var(--shadow)}
 .plan-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.cloud-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.cloud-btns .btn{flex:1;min-width:130px}
 .plan-card .theme-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:5px}
 .plan-card .theme-check{width:20px;height:20px;flex-shrink:0;margin-top:1px;accent-color:var(--pine);cursor:pointer}
 .plan-card .theme{font-weight:700;font-size:15px;flex:1}
@@ -821,10 +823,19 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <div class="hint">空欄のままでも端末内(localStorage)だけで動作します。複数端末で共有するには、全端末に同じURLを設定してください。</div>
     </div>
     <div class="form-row">
+      <label>クラウド同期</label>
+      <div class="cloud-btns">
+        <button class="btn" onclick="cloudLoadBtn()">⬇ クラウドから読込</button>
+        <button class="btn" onclick="cloudSaveBtn()">⬆ クラウドに保存</button>
+        <button class="btn primary" onclick="syncNow()">⇅ 同期(両方向)</button>
+      </div>
+      <div class="hint">どのボタンでも「カード単位で新しい方を残す」安全なマージを通すので、古いデータが新しいデータを消すことはありません。携帯が最新でPCで取り込みたいときは「読込」、PCの作業を上げたいときは「保存」、迷ったら「同期」でOKです。</div>
+    </div>
+    <div class="form-row">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
         <input type="checkbox" id="autoSyncChk" style="width:auto"> 自動でクラウド保存・読込する
       </label>
-      <div class="hint">変更の数秒後に自動保存し、起動時や画面復帰時に他端末の変更を取り込みます。オフにすると「⇅ 同期」の手動のみになります。</div>
+      <div class="hint">変更の数秒後に自動保存し、起動時や画面復帰時に他端末の変更を取り込みます。オフにすると上のボタンでの手動のみになります。</div>
     </div>
     <div class="form-row">
       <label>疾患カテゴリの管理</label>
@@ -873,9 +884,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.17.0
+   Med OS v2.18.0
 ========================================================= */
-const APP_VERSION = 'v2.17.0';
+const APP_VERSION = 'v2.18.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -2838,6 +2849,12 @@ async function cloudSync(mode){
   }
 }
 function syncNow(){ cloudSync('manual'); }
+// 設定画面の3ボタン: すべて安全なマージ(カード単位で新しい方を残す)を通す
+function cloudSaveBtn(){ cloudSync('manual'); }   // クラウドに保存(手元→クラウド、マージ)
+async function cloudLoadBtn(){                      // クラウドから読込(クラウド→手元、マージ)
+  // 「読込」は手元の内容も送った上でマージ結果を受け取るので、手元の新しい変更は消えない
+  await cloudSync('manual');
+}
 // 起動時・復帰時・定期に他端末の変更を取り込む
 function autoPull(){
   if(state.settings.gasUrl && state.settings.autoSync && !_syncing) cloudSync('pull');
