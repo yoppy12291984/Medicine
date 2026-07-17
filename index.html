@@ -510,6 +510,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   <div class="modal">
     <h3 id="planModalTitle">計画を追加</h3>
     <div class="form-row"><label>テーマ名</label><input type="text" id="pTheme" placeholder="例:MET exon 14 skipping NSCLCの薬剤整理"></div>
+    <div class="form-row"><label>患者ID(任意)</label><input type="text" id="pPid" placeholder="院内IDなど(先頭に飾りが付いて表示されます)"></div>
     <div class="form-grid">
       <div class="form-row"><label>種別</label>
         <select id="pKind">
@@ -894,9 +895,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.20.0
+   Med OS v2.21.0
 ========================================================= */
-const APP_VERSION = 'v2.20.0';
+const APP_VERSION = 'v2.21.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1443,6 +1444,7 @@ function renderPlans(){
         <div class="theme ${p.status==='done'?'theme-done':''}">${esc(p.theme)}</div>
       </div>
       ${dueRow(p)}
+      ${p.pid?`<div class="pid" style="margin:2px 0 4px">🪪 ${esc(displayPid(p))}</div>`:''}
       <div class="badges">${planBadges(p)}</div>
       ${planChecklistHtml(p)}
       <div class="foot">
@@ -1472,6 +1474,7 @@ function renderPlans(){
       const done=cl.filter(x=>x.done).length;
       return `<tr onclick="openPlanModal('${p.id}')">
         <td class="t-title">${p.status==='done'?'✓ ':''}${esc(p.theme)}</td>
+        <td class="t-date">${p.pid?esc(displayPid(p)):''}</td>
         <td>${p.kind&&PLAN_KIND_LABEL[p.kind]?`<span class="kind-badge ${PLAN_KIND_CLASS[p.kind]}">${PLAN_KIND_LABEL[p.kind]}</span>`:''}</td>
         <td class="t-date">${p.due?esc(fmtDue(p.due)):''}</td>
         <td>${PLAN_STATUS_LABEL[p.status]||''}</td>
@@ -1479,7 +1482,7 @@ function renderPlans(){
         <td class="t-conf">${p.priority==='high'?'高':p.priority==='low'?'低':'中'}</td>
       </tr>`;
     });
-    $('planTable').innerHTML=dtable(['テーマ','種別','期日','状態','進捗','優先'],rows);
+    $('planTable').innerHTML=dtable(['テーマ','院内ID','種別','期日','状態','進捗','優先'],rows);
   }
 }
 function setPlanKind(k){ activePlanKind=k; renderPlans(); }
@@ -1493,6 +1496,7 @@ function openPlanModal(id){
   const p=id?state.plans.find(x=>x.id===id):null;
   $('planModalTitle').textContent=p?'計画を編集':'計画を追加';
   $('pTheme').value=p?.theme||''; $('pKind').value=p?.kind||'study';
+  $('pPid').value=p?.pid||'';
   $('pMotive').value=p?.motive||'interest';
   $('pDue').value=p?.due||''; $('pPriority').value=p?.priority||'mid';
   $('pStatus').value=p?.status||'todo';
@@ -1505,7 +1509,7 @@ function savePlan(){
   const theme=$('pTheme').value.trim();
   if(!theme){ toast('テーマ名を入力してください'); return; }
   const checklist=parseChecklist($('pSteps').value);
-  const data={theme,kind:$('pKind').value,motive:$('pMotive').value,due:$('pDue').value||'',priority:$('pPriority').value,status:$('pStatus').value,checklist,steps:checklistToText(checklist),updatedAt:now()};
+  const data={theme,kind:$('pKind').value,pid:$('pPid').value.trim(),motive:$('pMotive').value,due:$('pDue').value||'',priority:$('pPriority').value,status:$('pStatus').value,checklist,steps:checklistToText(checklist),updatedAt:now()};
   if(editingPlanId) Object.assign(state.plans.find(x=>x.id===editingPlanId),data);
   else state.plans.push(Object.assign({id:uid(),caseIds:[],createdAt:now(),deleted:false},data));
   saveState(); closeOverlay('planOverlay'); renderPlans(); toast('保存しました');
