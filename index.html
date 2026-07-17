@@ -894,9 +894,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.19.0
+   Med OS v2.20.0
 ========================================================= */
-const APP_VERSION = 'v2.19.0';
+const APP_VERSION = 'v2.20.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1586,6 +1586,7 @@ function renderCases(){
         <div class="card-top">
           ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
           <div class="spacer"></div>
+          ${entGroups(c).length?`<div class="kind-badge kind-conf">${esc(entGroups(c)[0])}</div>`:''}
           ${isConf?`<div class="kind-badge kind-conf">カンファ</div>`:''}
           ${st?`<div class="stamp ${statusStampClass(c.status)}">${esc(st)}</div>`:''}
         </div>
@@ -1604,6 +1605,7 @@ function renderCases(){
       const isConf=(c.source==='conf');
       return `<tr onclick="openCaseDetail('${c.id}')">
         <td class="t-title">${esc(c.title)}</td>
+        <td class="t-cat">${entGroups(c).length?esc(entGroups(c)[0]):''}</td>
         <td class="t-date">${c.pid?esc(displayPid(c)):''}</td>
         <td class="t-cat">${esc(c.category||'')}</td>
         <td>${isConf?`<span class="kind-badge kind-conf">カンファ${c.doctor?' '+esc(c.doctor):''}</span>`:'<span class="t-date">自分</span>'}</td>
@@ -1614,7 +1616,7 @@ function renderCases(){
       </tr>`;
     }).join('');
     $('caseTable').innerHTML = list.length ? `<div class="dtable-wrap"><table class="dtable">
-      <thead><tr><th>症例名</th><th>院内ID</th><th>カテゴリ</th><th>区分</th><th>ステータス</th><th>確度</th><th>出会った日</th><th>タグ</th></tr></thead>
+      <thead><tr><th>症例名</th><th>グループ</th><th>院内ID</th><th>カテゴリ</th><th>区分</th><th>ステータス</th><th>確度</th><th>出会った日</th><th>タグ</th></tr></thead>
       <tbody>${rows}</tbody></table></div>` : '<div class="empty">症例カードはまだありません。＋で追加。</div>';
   }
 }
@@ -1762,18 +1764,23 @@ function renderNotes(){
   if(cardView){
   $('noteGrid').innerHTML=list.map(n=>`
     <div class="case-card note-card" onclick="openNoteDetail('${n.id}')">
-      ${n.folder?`<div class="folder-label">📁 ${esc(n.folder)}</div>`:''}
+      <div class="card-top">
+        ${n.folder?`<div class="folder-label" style="margin:0">📁 ${esc(n.folder)}</div>`:'<div></div>'}
+        <div class="spacer"></div>
+        ${entGroups(n).length?`<div class="kind-badge kind-conf">${esc(entGroups(n)[0])}</div>`:''}
+      </div>
       <div class="title">${esc(n.title)}</div>
       <div class="preview">${esc((n.body||'').slice(0,140))}</div>
     </div>`).join('')||'<div class="empty">ノートはまだありません。＋で追加。</div>';
   }else{
     const rows=list.map(n=>`<tr onclick="openNoteDetail('${n.id}')">
       <td class="t-cat">${n.folder?'📁 '+esc(n.folder):''}</td>
+      <td class="t-cat">${entGroups(n).length?esc(entGroups(n)[0]):''}</td>
       <td class="t-title">${esc(n.title)}</td>
       <td class="t-title" style="color:var(--ink-soft);font-weight:400">${esc((n.body||'').replace(/[#*]/g,'').slice(0,60))}</td>
       <td class="t-date">${esc((n.updatedAt||'').slice(0,10))}</td>
     </tr>`);
-    $('noteTable').innerHTML=dtable(['フォルダ','タイトル','抜粋','更新日'],rows);
+    $('noteTable').innerHTML=dtable(['フォルダ','グループ','タイトル','抜粋','更新日'],rows);
   }
 }
 function selectFolder(i){
