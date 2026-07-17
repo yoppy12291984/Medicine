@@ -397,6 +397,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <input type="search" id="txSearch" placeholder="治療・投薬を検索" oninput="renderTx()">
       <button class="icon-btn" id="txViewToggle" onclick="toggleView('tx')">⊞ 表</button>
     </div>
+    <div class="tag-chips" id="txGroupChips"></div>
     <div class="tag-chips" id="txChips"></div>
     <div class="case-grid" id="txGrid"></div>
     <div id="txTable" style="display:none"></div>
@@ -604,8 +605,11 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   <div class="modal">
     <h3 id="txModalTitle">治療・投薬を追加</h3>
     <div class="form-row"><label>シチュエーション</label><input type="text" id="tTitle" placeholder="例:市中肺炎(中等症・入院) / 気管支喘息発作(中発作)"></div>
-    <div class="form-row"><label>確度(情報の裏取り状況)</label>
-      <select id="tConfidence"><option value="">—</option><option value="confirmed">確定(裏取り済)</option><option value="review">要確認</option><option value="ai">AI初期知識</option></select>
+    <div class="form-grid">
+      <div class="form-row"><label>グループ(場面)</label><div id="tGroupWrap"></div><div class="hint">追加・編集は⚙設定から</div></div>
+      <div class="form-row"><label>確度(情報の裏取り状況)</label>
+        <select id="tConfidence"><option value="">—</option><option value="confirmed">確定(裏取り済)</option><option value="review">要確認</option><option value="ai">AI初期知識</option></select>
+      </div>
     </div>
     <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="tTags" placeholder="肺炎, 抗菌薬, 救急"></div>
     <div class="form-row"><label>投薬(1行1剤: 薬剤名 | 用量 | 単位 | 投与方法 | 備考)</label>
@@ -837,6 +841,11 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <div class="hint">症例カードの判子に表示されます。名前をタップで編集、×で削除。全部消すと判子が非表示になります。色は上から順に3色で自動割当。</div>
     </div>
     <div class="form-row">
+      <label>グループ(場面別分類)の管理</label>
+      <div id="groupMgmtList"></div>
+      <div class="hint">各タブのカードを場面で分類できます(例 治療:救急/ICU/病棟/抗癌剤)。カード編集画面でグループを選び、タブ上部のチップで絞り込めます。</div>
+    </div>
+    <div class="form-row">
       <label>タブ名のカスタマイズ</label>
       <div id="tabLabelList"></div>
       <div class="hint">各タブの表示名を自由に変えられます。空欄にすると左の既定名に戻ります。変更は全端末に同期されます。</div>
@@ -860,9 +869,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.15.0
+   Med OS v2.16.0
 ========================================================= */
-const APP_VERSION = 'v2.15.0';
+const APP_VERSION = 'v2.16.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1018,6 +1027,115 @@ function renderStatusList(){
   $('statusList').innerHTML = list.map((s,i) =>
     `<span class="cat-item"><span style="cursor:pointer" onclick="editStatus(${i})" title="タップで編集">${esc(s.label)}</span> <span class="hint" style="margin:0">${STAMP_COLORS[i%3]}</span><button onclick="removeStatus(${i})" title="削除">×</button></span>`).join('')
     || '<span class="hint">ステータスなし(判子は非表示)</span>';
+}
+
+/* ---------- グループ(場面別分類) 全タブ共通 ---------- */
+// metaに {id:'groups', map:{ tx:['救急','ICU',...], ddx:[...] }} で保持
+const GROUP_TABS = {
+  tx:'治療', ddx:'鑑別', papers:'論文', gallery:'症例集', study:'勉強用', img:'画像', safety:'安全'
+};
+const GROUP_DEFAULTS = {
+  tx:['救急','ICU','一般病棟','抗癌剤','外来']
+};
+function groupRecord(){
+  let r=state.meta.find(m=>m.id==='groups');
+  if(!r){ r={id:'groups', map:{}, updatedAt:now()}; state.meta.push(r); }
+  if(!r.map) r.map={};
+  return r;
+}
+function getGroups(tab){
+  const r=groupRecord();
+  if(!r.map[tab]){
+    // 初回のみデフォルトを入れる(治療のみ)。他タブは空スタート
+    r.map[tab] = (GROUP_DEFAULTS[tab]||[]).slice();
+  }
+  return r.map[tab];
+}
+function addGroup(tab, name){
+  const g=getGroups(tab); const v=(name||'').trim();
+  if(!v || g.includes(v)) return;
+  g.push(v); groupRecord().updatedAt=now(); saveState();
+}
+function renameGroup(tab, i, name){
+  const g=getGroups(tab); const old=g[i]; const v=(name||'').trim();
+  if(old===undefined||!v||v===old) return;
+  g[i]=v;
+  // 既存カードのgroupも付け替え
+  entitiesOfTab(tab).forEach(e=>{
+    if(Array.isArray(e.groups)) e.groups=e.groups.map(x=>x===old?v:x);
+  });
+  groupRecord().updatedAt=now(); saveState();
+}
+function removeGroup(tab, i){
+  const g=getGroups(tab); const old=g[i];
+  if(old===undefined) return;
+  g.splice(i,1);
+  entitiesOfTab(tab).forEach(e=>{
+    if(Array.isArray(e.groups)) e.groups=e.groups.filter(x=>x!==old);
+  });
+  groupRecord().updatedAt=now(); saveState();
+}
+// タブ→エンティティ配列(live)
+function entitiesOfTab(tab){
+  switch(tab){
+    case 'tx': return liveTx();
+    case 'ddx': return liveDdx();
+    case 'papers': return livePapers();
+    case 'gallery': return imagesOf('typical');
+    case 'study': return imagesOf('study');
+    case 'img': return imagesOf('mine');
+    case 'safety': return liveSafety();
+    default: return [];
+  }
+}
+// カードのgroups配列を返す(未設定は空)
+function entGroups(e){ return Array.isArray(e.groups)?e.groups:[]; }
+// グループ絞り込みチップのHTML(activeGroupは単一選択の文字列)
+function groupChipsHtml(tab, active){
+  const gs=getGroups(tab);
+  if(!gs.length) return '';
+  return `<button class="chip ${!active?'on':''}" onclick="setGroupFilter('${tab}','')">すべて</button>`+
+    gs.map(g=>`<button class="chip ${active===g?'on':''}" onclick="setGroupFilter('${tab}','${esc(g).replace(/'/g,"\\'")}')">${esc(g)}</button>`).join('');
+}
+const groupFilters = {};
+function setGroupFilter(tab, g){
+  groupFilters[tab] = (groupFilters[tab]===g)?'':g;
+  (_renderByTab[tab]||function(){})();
+}
+// モーダル用: グループ選択(単一selectだが内部はgroups配列で保存)
+function groupSelectHtml(tab, selectId, cur){
+  const gs=getGroups(tab);
+  const c=(Array.isArray(cur)&&cur.length)?cur[0]:'';
+  return `<select id="${selectId}"><option value="">(なし)</option>`+
+    gs.map(g=>`<option value="${esc(g)}" ${g===c?'selected':''}>${esc(g)}</option>`).join('')+
+    `</select>`;
+}
+// 設定画面のグループ管理UI
+function renderGroupMgmt(){
+  const host=$('groupMgmtList'); if(!host) return;
+  host.innerHTML = Object.keys(GROUP_TABS).map(tab=>{
+    const gs=getGroups(tab);
+    const chips=gs.map((g,i)=>`<span class="cat-item">${esc(g)}<button onclick="groupMgmtRemove('${tab}',${i})" title="削除">×</button></span>`).join('')
+      || '<span class="hint" style="margin:0">なし</span>';
+    return `<div style="margin-bottom:12px">
+      <div style="font-weight:700;font-size:13px;margin-bottom:5px">${GROUP_TABS[tab]}</div>
+      <div class="cat-add-row" style="margin-bottom:5px">
+        <input type="text" id="newGroup_${tab}" placeholder="グループを追加(例 ICU)">
+        <button class="btn" onclick="groupMgmtAdd('${tab}')">追加</button>
+      </div>
+      <div class="cat-list">${chips}</div>
+    </div>`;
+  }).join('');
+}
+function groupMgmtAdd(tab){
+  const el=$('newGroup_'+tab); if(!el) return;
+  addGroup(tab, el.value); el.value='';
+  renderGroupMgmt(); (_renderByTab[tab]||function(){})();
+}
+function groupMgmtRemove(tab, i){
+  const g=getGroups(tab);
+  if(!confirm('「'+g[i]+'」を削除しますか?(このグループの紐づけも外れます)')) return;
+  removeGroup(tab, i); renderGroupMgmt(); (_renderByTab[tab]||function(){})();
 }
 
 /* ---------- タブ名のカスタマイズ ---------- */
@@ -1725,11 +1843,14 @@ function allTxTags(){
 }
 function renderTx(){
   const gw=$('globalWeight'); if(gw && gw.value==='') gw.value=state.settings.globalWeight||state.settings.lastWeight||'';
+  $('txGroupChips').innerHTML=groupChipsHtml('tx', groupFilters['tx']||'');
+  const gf=groupFilters['tx']||'';
   const tags=allTxTags(); window._txTagList=tags;
   activeTxTags=new Set([...activeTxTags].filter(t=>tags.includes(t)));
   $('txChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeTxTags.has(t)?'on':''}" onclick="toggleTxTag(${i})">${esc(t)}</button>`).join('');
   const q=$('txSearch').value.trim().toLowerCase();
   const list=liveTx().filter(t=>{
+    if(gf&&!entGroups(t).includes(gf)) return false;
     if(activeTxTags.size&&![...activeTxTags].every(x=>(t.tags||[]).includes(x))) return false;
     if(q&&![t.title,t.body,t.doses,(t.tags||[]).join(' ')].join(' ').toLowerCase().includes(q)) return false;
     return true;
@@ -1744,7 +1865,11 @@ function renderTx(){
     return `
     <div class="case-card tx-card ${t.pinned?'pinned':''}" onclick="openTxDetail('${t.id}')">
       <button class="pin-btn card-pin ${t.pinned?'on':''}" onclick="event.stopPropagation();togglePin('${t.id}')" title="ピン留め">📌</button>
-      <div class="cat" style="color:var(--shu)">💊 治療・投薬</div>
+      <div class="card-top">
+        <div class="cat" style="color:var(--shu)">💊 治療・投薬</div>
+        <div class="spacer"></div>
+        ${entGroups(t).length?`<div class="kind-badge kind-conf">${esc(entGroups(t)[0])}</div>`:''}
+      </div>
       <div class="title" style="padding-right:28px">${esc(t.title)}</div>
       ${ds.slice(0,3).map(d=>`<div class="drugline">・${esc(d.drug)} ${esc(d.dose)}${esc(d.unit==='固定'?'':' '+d.unit)}</div>`).join('')}
       ${ds.length>3?`<div class="drugline">…ほか${ds.length-3}剤</div>`:''}
@@ -1758,13 +1883,14 @@ function renderTx(){
       const drugs=ds.map(d=>d.drug).filter(Boolean).join('、');
       return `<tr onclick="openTxDetail('${t.id}')">
         <td class="t-title">${t.pinned?'📌 ':''}${esc(t.title)}</td>
+        <td class="t-cat">${entGroups(t).length?esc(entGroups(t)[0]):''}</td>
         <td>${esc(drugs)}</td>
         <td class="t-date">${ds.length}剤</td>
         <td class="t-conf">${t.confidence?confBadge(t.confidence):''}</td>
         <td><div class="t-tags">${(t.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
       </tr>`;
     });
-    $('txTable').innerHTML=dtable(['治療名','薬剤','剤数','確度','タグ'],rows);
+    $('txTable').innerHTML=dtable(['治療名','グループ','薬剤','剤数','確度','タグ'],rows);
   }
 }
 function toggleTxTag(i){
@@ -1778,6 +1904,7 @@ function openTxModal(id){
   $('txModalTitle').textContent=t?'治療・投薬を編集':'治療・投薬を追加';
   $('tTitle').value=t?.title||''; $('tTags').value=(t?.tags||[]).join(', ');
   $('tConfidence').value=t?.confidence||'';
+  $('tGroupWrap').innerHTML=groupSelectHtml('tx','tGroup', t?entGroups(t):(groupFilters['tx']?[groupFilters['tx']]:[]));
   $('tDoses').value=t?.doses||''; $('tBody').value=t?.body||'';
   $('tDeleteBtn').style.display=t?'':'none';
   closeOverlay('detailOverlay');
@@ -1786,9 +1913,10 @@ function openTxModal(id){
 function saveTx(){
   const title=$('tTitle').value.trim();
   if(!title){ toast('シチュエーションを入力してください'); return; }
+  const gsel=$('tGroup')?$('tGroup').value:'';
   const data={
     title, tags:$('tTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
-    confidence:$('tConfidence').value,
+    confidence:$('tConfidence').value, groups: gsel?[gsel]:[],
     doses:$('tDoses').value, body:$('tBody').value, updatedAt:now()
   };
   if(editingTxId) Object.assign(state.treatments.find(x=>x.id===editingTxId),data);
@@ -2610,6 +2738,7 @@ function openSettings(){
   applyTheme(state.settings.theme||'light');
   renderCatList();
   renderStatusList();
+  renderGroupMgmt();
   renderTabLabelList();
   renderImgTagList();
   $('settingsOverlay').classList.add('open');
