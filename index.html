@@ -369,6 +369,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       </select>
       <button class="icon-btn" id="caseViewToggle" onclick="toggleCaseView()">⊞ 表</button>
     </div>
+    <div class="tag-chips" id="caseGroupChips"></div>
     <div class="tag-chips" id="tagChips"></div>
     <div class="case-grid" id="caseGrid"></div>
     <div id="caseTable" style="display:none"></div>
@@ -380,6 +381,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <input type="search" id="noteSearch" placeholder="ノートを検索" oninput="renderNotes()">
       <button class="icon-btn" id="noteViewToggle" onclick="toggleView('note')">⊞ 表</button>
     </div>
+    <div class="tag-chips" id="noteGroupChips"></div>
     <div class="tag-chips" id="folderChips"></div>
     <div class="case-grid" id="noteGrid"></div>
     <div id="noteTable" style="display:none"></div>
@@ -557,6 +559,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
         <select id="cStatus"></select>
       </div>
     </div>
+    <div class="form-row"><label>グループ(場面)</label><div id="cGroupWrap"></div><div class="hint">疾患カテゴリとは別の軸(例 外来/病棟/救急)。追加は⚙設定から</div></div>
     <div class="form-row"><label>確度(情報の裏取り状況)</label>
       <select id="cConfidence"><option value="">—</option><option value="confirmed">確定(裏取り済)</option><option value="review">要確認</option><option value="ai">AI初期知識</option></select>
     </div>
@@ -588,6 +591,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <div class="form-row"><label>フォルダ</label><input type="text" id="nFolder" list="folderList" placeholder="例:呼吸器腫瘍 / 感染症 / 学会メモ"><datalist id="folderList"></datalist></div>
       <div class="form-row"><label>タイトル</label><input type="text" id="nTitle" placeholder="ノートのタイトル"></div>
     </div>
+    <div class="form-row"><label>グループ(場面)</label><div id="nGroupWrap"></div><div class="hint">フォルダとは別の軸で分類。追加は⚙設定から</div></div>
     <div class="form-row"><label>本文(簡易Markdown可)</label>
       <textarea id="nBody" style="min-height:220px" placeholder="## 見出し&#10;- 学んだこと&#10;**重要ポイント**"></textarea>
     </div>
@@ -869,9 +873,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.16.0
+   Med OS v2.17.0
 ========================================================= */
-const APP_VERSION = 'v2.16.0';
+const APP_VERSION = 'v2.17.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1032,7 +1036,7 @@ function renderStatusList(){
 /* ---------- グループ(場面別分類) 全タブ共通 ---------- */
 // metaに {id:'groups', map:{ tx:['救急','ICU',...], ddx:[...] }} で保持
 const GROUP_TABS = {
-  tx:'治療', ddx:'鑑別', papers:'論文', gallery:'症例集', study:'勉強用', img:'画像', safety:'安全'
+  cases:'症例', notes:'ノート', tx:'治療', ddx:'鑑別', papers:'論文', gallery:'症例集', study:'勉強用', img:'画像', safety:'安全'
 };
 const GROUP_DEFAULTS = {
   tx:['救急','ICU','一般病棟','抗癌剤','外来']
@@ -1078,6 +1082,8 @@ function removeGroup(tab, i){
 // タブ→エンティティ配列(live)
 function entitiesOfTab(tab){
   switch(tab){
+    case 'cases': return liveCases();
+    case 'notes': return liveNotes();
     case 'tx': return liveTx();
     case 'ddx': return liveDdx();
     case 'papers': return livePapers();
@@ -1516,6 +1522,8 @@ function renderCases(){
   cat.innerHTML='<option value="">全カテゴリ</option>'+getCategories().map(c=>`<option ${c===cur?'selected':''}>${esc(c)}</option>`).join('');
   const stf=$('caseStatusFilter'); const curStf=stf.value;
   stf.innerHTML='<option value="">全ステータス</option>'+getStatuses().map(s=>`<option value="${esc(s.id)}" ${s.id===curStf?'selected':''}>${esc(s.label)}</option>`).join('');
+  $('caseGroupChips').innerHTML=groupChipsHtml('cases', groupFilters['cases']||'');
+  const gf=groupFilters['cases']||'';
   const tags=allTags(); window._tagList=tags;
   activeTags=new Set([...activeTags].filter(t=>tags.includes(t)));
   $('tagChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeTags.has(t)?'on':''}" onclick="toggleTag(${i})">${esc(t)}</button>`).join('');
@@ -1524,6 +1532,7 @@ function renderCases(){
   const src=$('caseSourceFilter').value;
   const sortBy=$('caseSort').value;
   const list=liveCases().filter(c=>{
+    if(gf&&!entGroups(c).includes(gf)) return false;
     if(cur&&c.category!==cur) return false;
     if(st&&c.status!==st) return false;
     if(src&&(c.source||'self')!==src) return false;
@@ -1595,7 +1604,7 @@ function toggleCaseView(){
 }
 // 他タブ共通の表/カード切替
 const viewModes = { tx:'card', ddx:'card', paper:'card', img:'card', safety:'card', plan:'card', note:'card', gallery:'card', study:'card' };
-const _renderByTab = { tx:()=>renderTx(), ddx:()=>renderDdx(), paper:()=>renderPapers(), img:()=>renderImg(), safety:()=>renderSafety(), plan:()=>renderPlans(), note:()=>renderNotes(), gallery:()=>renderGallery(), study:()=>renderStudy() };
+const _renderByTab = { cases:()=>renderCases(), notes:()=>renderNotes(), tx:()=>renderTx(), ddx:()=>renderDdx(), paper:()=>renderPapers(), papers:()=>renderPapers(), img:()=>renderImg(), safety:()=>renderSafety(), plan:()=>renderPlans(), note:()=>renderNotes(), gallery:()=>renderGallery(), study:()=>renderStudy() };
 function toggleView(tab){
   viewModes[tab] = (viewModes[tab]==='card') ? 'table' : 'card';
   (_renderByTab[tab]||function(){})();
@@ -1625,6 +1634,7 @@ function openCaseModal(id,presetPlanId){
   $('cTitle').value=c?.title||''; $('cPid').value=c?.pid||''; $('cPname').value=c?.pname||'';
   $('cSource').value=c?.source||'self'; $('cDoctor').value=c?.doctor||'';
   $('cEncounter').value=c?.encounter||'';
+  $('cGroupWrap').innerHTML=groupSelectHtml('cases','cGroup', c?entGroups(c):(groupFilters['cases']?[groupFilters['cases']]:[]));
   const sts=getStatuses();
   const curSt=c?.status||(sts[0]?.id||'');
   $('cStatus').innerHTML = sts.length
@@ -1654,6 +1664,7 @@ function saveCase(){
     title, pid:$('cPid').value.trim(), pname:$('cPname').value.trim(), encounter:$('cEncounter').value||'',
     source:$('cSource').value, doctor:$('cDoctor').value.trim(),
     category:$('cCategory').value, status:$('cStatus').value, confidence:$('cConfidence').value,
+    groups: ($('cGroup')&&$('cGroup').value)?[$('cGroup').value]:[],
     tags:$('cTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
     point:$('cPoint').value.trim(), memo:$('cMemo').value, ic:$('cIc').value,
     links:$('cLinks').value.split(/\n/).map(s=>s.trim()).filter(Boolean),
@@ -1712,6 +1723,8 @@ function allFolders(){
   return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
 }
 function renderNotes(){
+  $('noteGroupChips').innerHTML=groupChipsHtml('notes', groupFilters['notes']||'');
+  const gf=groupFilters['notes']||'';
   const folders=allFolders(); window._folderList=folders;
   if(activeFolder&&!folders.includes(activeFolder)) activeFolder='';
   $('folderChips').innerHTML=
@@ -1719,6 +1732,7 @@ function renderNotes(){
     folders.map((f,i)=>`<button class="chip ${activeFolder===f?'on':''}" onclick="selectFolder(${i})">📁 ${esc(f)}</button>`).join('');
   const q=$('noteSearch').value.trim().toLowerCase();
   const list=liveNotes().filter(n=>{
+    if(gf&&!entGroups(n).includes(gf)) return false;
     if(activeFolder&&n.folder!==activeFolder) return false;
     if(q&&![n.title,n.body,n.folder].join(' ').toLowerCase().includes(q)) return false;
     return true;
@@ -1751,6 +1765,7 @@ function openNoteModal(id){
   $('noteModalTitle').textContent=n?'ノートを編集':'ノートを追加';
   $('nFolder').value=n?.folder||activeFolder||'';
   $('nTitle').value=n?.title||''; $('nBody').value=n?.body||'';
+  $('nGroupWrap').innerHTML=groupSelectHtml('notes','nGroup', n?entGroups(n):(groupFilters['notes']?[groupFilters['notes']]:[]));
   $('folderList').innerHTML=allFolders().map(f=>`<option value="${esc(f)}">`).join('');
   $('nDeleteBtn').style.display=n?'':'none';
   closeOverlay('detailOverlay');
@@ -1759,7 +1774,8 @@ function openNoteModal(id){
 function saveNote(){
   const title=$('nTitle').value.trim();
   if(!title){ toast('タイトルを入力してください'); return; }
-  const data={folder:$('nFolder').value.trim(),title,body:$('nBody').value,updatedAt:now()};
+  const data={folder:$('nFolder').value.trim(),title,body:$('nBody').value,
+    groups:($('nGroup')&&$('nGroup').value)?[$('nGroup').value]:[], updatedAt:now()};
   if(editingNoteId) Object.assign(state.notes.find(x=>x.id===editingNoteId),data);
   else state.notes.push(Object.assign({id:uid(),createdAt:now(),deleted:false},data));
   saveState(); closeOverlay('noteOverlay'); renderNotes(); toast('保存しました');
