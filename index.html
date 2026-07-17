@@ -413,6 +413,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <input type="search" id="ddxSearch" placeholder="主訴・鑑別を検索(失神, 腹痛 …)" oninput="renderDdx()">
       <button class="icon-btn" id="ddxViewToggle" onclick="toggleView('ddx')">⊞ 表</button>
     </div>
+    <div class="tag-chips" id="ddxGroupChips"></div>
     <div class="tag-chips" id="ddxChips"></div>
     <div class="case-grid" id="ddxGrid"></div>
     <div id="ddxTable" style="display:none"></div>
@@ -430,6 +431,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       </select>
       <button class="icon-btn" id="paperViewToggle" onclick="toggleView('paper')">⊞ 表</button>
     </div>
+    <div class="tag-chips" id="paperGroupChips"></div>
     <div class="tag-chips" id="paperChips"></div>
     <div class="case-grid" id="paperGrid"></div>
     <div id="paperTable" style="display:none"></div>
@@ -443,6 +445,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <button class="icon-btn" id="galleryViewToggle" onclick="toggleView('gallery')">⊞ 表</button>
     </div>
     <div class="hint" style="margin:-4px 0 8px">研修医に見せる典型例の画像集。所見を教えるためのラベル集です。</div>
+    <div class="tag-chips" id="galleryGroupChips"></div>
     <div class="tag-chips" id="galleryChips"></div>
     <div class="case-grid" id="galleryGrid"></div>
     <div id="galleryTable" style="display:none"></div>
@@ -456,6 +459,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <button class="icon-btn" id="studyViewToggle" onclick="toggleView('study')">⊞ 表</button>
     </div>
     <div class="hint" style="margin:-4px 0 8px">自分の勉強用にストックする画像。教科書的に見返すためのものです。</div>
+    <div class="tag-chips" id="studyGroupChips"></div>
     <div class="tag-chips" id="studyChips"></div>
     <div class="case-grid" id="studyGrid"></div>
     <div id="studyTable" style="display:none"></div>
@@ -469,6 +473,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <button class="icon-btn" id="imgViewToggle" onclick="toggleView('img')">⊞ 表</button>
     </div>
     <div class="hint" style="margin:-4px 0 8px">自分が悩んだ症例・所見から鑑別を考える読影の記録です。</div>
+    <div class="tag-chips" id="imgGroupChips"></div>
     <div class="tag-chips" id="imgChips"></div>
     <div class="case-grid" id="imgGrid"></div>
     <div id="imgTable" style="display:none"></div>
@@ -491,6 +496,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       </select>
       <button class="icon-btn" id="safetyViewToggle" onclick="toggleView('safety')">⊞ 表</button>
     </div>
+    <div class="tag-chips" id="safetyGroupChips"></div>
     <div class="tag-chips" id="safetyChips"></div>
     <div class="case-grid" id="safetyGrid"></div>
     <div id="safetyTable" style="display:none"></div>
@@ -640,6 +646,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
     <h3 id="ddxModalTitle">主訴の鑑別を追加</h3>
     <div class="form-row"><label>主訴</label><input type="text" id="dTitle" placeholder="例:失神 / 急性腹痛 / 胸痛 / 呼吸困難"></div>
     <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="dTags" placeholder="ER, 循環器, 見逃し注意"></div>
+    <div class="form-row"><label>グループ(場面)</label><div id="dGroupWrap"></div><div class="hint">追加は⚙設定から</div></div>
     <div class="form-row"><label>🚨 危険な鑑別 / Killer(1行1つ)</label>
       <textarea id="dKiller" style="min-height:90px" placeholder="肺塞栓&#10;大動脈解離&#10;くも膜下出血&#10;消化管出血"></textarea>
       <div class="hint">最初に否定すべき致死的疾患。赤く強調表示されます</div>
@@ -678,6 +685,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
     </div>
     <div class="form-row"><label>リンク(PMID/DOI/URL, 1行1つ)</label><textarea id="ppLinks" style="min-height:56px" placeholder="https://pubmed.ncbi.nlm.nih.gov/..."></textarea></div>
     <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="ppTags" placeholder="IPF, RCT, 呼吸器"></div>
+    <div class="form-row"><label>グループ(場面)</label><div id="ppGroupWrap"></div><div class="hint">追加は⚙設定から</div></div>
     <div class="form-row"><label>一言結論(最重要)</label><input type="text" id="ppConclusion" placeholder="この論文のtake-home messageを1行で"></div>
     <div class="form-grid">
       <div class="form-row"><label>P(対象)</label><input type="text" id="ppP" placeholder="どんな患者"></div>
@@ -725,6 +733,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
     </div>
     <div class="form-row"><label>患者ID(任意)</label><input type="text" id="imPid" placeholder="院内IDなど"></div>
     <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="imTags" placeholder="間質性肺炎, UIP, すりガラス"></div>
+    <div class="form-row"><label>グループ(場面)</label><div id="imGroupWrap"></div><div class="hint">追加は⚙設定から(用途タブごとに管理)</div></div>
     <div class="form-row"><label>画像所見(テキストで)</label><textarea id="imFindings" style="min-height:110px" placeholder="## 所見&#10;- 小葉間隔壁肥厚&#10;- 胸膜直下優位のすりガラス影&#10;- 蜂巣肺あり"></textarea></div>
     <div class="form-row"><label>鑑別(1行1つ)</label><textarea id="imDdx" style="min-height:70px" placeholder="UIP&#10;NSIP&#10;過敏性肺炎"></textarea></div>
     <div class="form-row"><label>診断・結論</label><input type="text" id="imDx" placeholder="最終診断や読影の結論"></div>
@@ -766,6 +775,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <div class="form-row"><label>発見日</label><input type="date" id="sfDiscovered"></div>
     </div>
     <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="sfTags" placeholder="投薬, 転倒, 患者誤認"></div>
+    <div class="form-row"><label>グループ(場面)</label><div id="sfGroupWrap"></div><div class="hint">追加は⚙設定から</div></div>
     <div class="form-row"><label>関係者・部署(匿名で)</label><input type="text" id="sfPeople" placeholder="病棟看護師, 主治医 など(氏名は避ける)"></div>
     <div class="form-row"><label>経緯・事象(簡易Markdown可)</label><textarea id="sfCourse" style="min-height:110px" placeholder="## 経緯&#10;- 何が起きたか、時系列で"></textarea></div>
     <div class="form-row"><label>対応・処置(どうしたか)</label><textarea id="sfResponse" style="min-height:90px" placeholder="## 対応&#10;- 実施した対応、報告経路"></textarea></div>
@@ -884,9 +894,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.18.0
+   Med OS v2.19.0
 ========================================================= */
-const APP_VERSION = 'v2.18.0';
+const APP_VERSION = 'v2.19.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1976,11 +1986,14 @@ function allDdxTags(){
   return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
 }
 function renderDdx(){
+  $('ddxGroupChips').innerHTML=groupChipsHtml('ddx', groupFilters['ddx']||'');
+  const gf=groupFilters['ddx']||'';
   const tags=allDdxTags(); window._ddxTagList=tags;
   activeDdxTags=new Set([...activeDdxTags].filter(t=>tags.includes(t)));
   $('ddxChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeDdxTags.has(t)?'on':''}" onclick="toggleDdxTag(${i})">${esc(t)}</button>`).join('');
   const q=$('ddxSearch').value.trim().toLowerCase();
   const list=liveDdx().filter(d=>{
+    if(gf&&!entGroups(d).includes(gf)) return false;
     if(activeDdxTags.size&&![...activeDdxTags].every(t=>(d.tags||[]).includes(t))) return false;
     if(q){
       const hay=[d.title,(d.killer||[]).join(' '),(d.list||[]).join(' '),d.approach,(d.redflag||[]).join(' '),d.body,(d.tags||[]).join(' ')].join(' ').toLowerCase();
@@ -1994,7 +2007,11 @@ function renderDdx(){
     const killers=(d.killer||[]);
     return `
     <div class="case-card ddx-card" onclick="openDdxDetail('${d.id}')">
-      <div class="cat" style="color:var(--shu)">🩺 主訴</div>
+      <div class="card-top">
+        <div class="cat" style="color:var(--shu)">🩺 主訴</div>
+        <div class="spacer"></div>
+        ${entGroups(d).length?`<div class="kind-badge kind-conf">${esc(entGroups(d)[0])}</div>`:''}
+      </div>
       <div class="title" style="padding-right:0">${esc(d.title)}</div>
       ${killers.length?`<div class="killer-row">${killers.slice(0,4).map(k=>`<span>🚨 ${esc(k)}</span>`).join('')}${killers.length>4?`<span style="background:none;color:var(--ink-soft)">+${killers.length-4}</span>`:''}</div>`:''}
       <div class="ddx-count">鑑別 ${(d.list||[]).length}件${(d.redflag||[]).length?` ／ 🚩${(d.redflag||[]).length}`:''}</div>
@@ -2004,12 +2021,13 @@ function renderDdx(){
   }else{
     const rows=list.map(d=>`<tr onclick="openDdxDetail('${d.id}')">
       <td class="t-title">${esc(d.title)}</td>
+      <td class="t-cat">${entGroups(d).length?esc(entGroups(d)[0]):''}</td>
       <td class="t-conf" style="color:var(--shu)">${(d.killer||[]).length?'🚨 '+(d.killer||[]).length:''}</td>
       <td class="t-date">${(d.list||[]).length}件</td>
       <td class="t-conf" style="color:var(--shu)">${(d.redflag||[]).length?'🚩 '+(d.redflag||[]).length:''}</td>
       <td><div class="t-tags">${(d.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
     </tr>`);
-    $('ddxTable').innerHTML=dtable(['主訴','Killer','鑑別数','Red flag','タグ'],rows);
+    $('ddxTable').innerHTML=dtable(['主訴','グループ','Killer','鑑別数','Red flag','タグ'],rows);
   }
 }
 function toggleDdxTag(i){
@@ -2022,6 +2040,7 @@ function openDdxModal(id){
   const d=id?state.ddx.find(x=>x.id===id):null;
   $('ddxModalTitle').textContent=d?'主訴の鑑別を編集':'主訴の鑑別を追加';
   $('dTitle').value=d?.title||''; $('dTags').value=(d?.tags||[]).join(', ');
+  $('dGroupWrap').innerHTML=groupSelectHtml('ddx','dGroup', d?entGroups(d):(groupFilters['ddx']?[groupFilters['ddx']]:[]));
   $('dKiller').value=(d?.killer||[]).join('\n');
   $('dList').value=(d?.list||[]).join('\n');
   $('dApproach').value=d?.approach||'';
@@ -2036,6 +2055,7 @@ function saveDdx(){
   if(!title){ toast('主訴を入力してください'); return; }
   const data={
     title, tags:$('dTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
+    groups:($('dGroup')&&$('dGroup').value)?[$('dGroup').value]:[],
     killer:splitLines($('dKiller').value), list:splitLines($('dList').value),
     approach:$('dApproach').value, redflag:splitLines($('dRedflag').value),
     body:$('dBody').value, updatedAt:now()
@@ -2083,12 +2103,15 @@ function allPaperTags(){
   return [...s].sort((a,b)=>a.localeCompare(b,'ja'));
 }
 function renderPapers(){
+  $('paperGroupChips').innerHTML=groupChipsHtml('papers', groupFilters['papers']||'');
+  const gf=groupFilters['papers']||'';
   const tags=allPaperTags(); window._paperTagList=tags;
   activePaperTags=new Set([...activePaperTags].filter(t=>tags.includes(t)));
   $('paperChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activePaperTags.has(t)?'on':''}" onclick="togglePaperTag(${i})">${esc(t)}</button>`).join('');
   const q=$('paperSearch').value.trim().toLowerCase();
   const sf=$('paperStatusFilter').value;
   const list=livePapers().filter(p=>{
+    if(gf&&!entGroups(p).includes(gf)) return false;
     if(sf&&p.status!==sf) return false;
     if(activePaperTags.size&&![...activePaperTags].every(t=>(p.tags||[]).includes(t))) return false;
     if(q){
@@ -2108,6 +2131,7 @@ function renderPapers(){
       <div class="card-top">
         <div class="cat" style="color:var(--gold)">📄 論文</div>
         <div class="spacer"></div>
+        ${entGroups(p).length?`<div class="kind-badge kind-conf">${esc(entGroups(p)[0])}</div>`:''}
         ${p.status?`<div class="stamp ${PAPER_STATUS_CLASS[p.status]||'st-0'}">${PAPER_STATUS_LABEL[p.status]||''}</div>`:''}
       </div>
       <div class="title" style="padding-right:24px">${esc(p.title)}</div>
@@ -2118,12 +2142,13 @@ function renderPapers(){
   }else{
     const rows=list.map(p=>`<tr onclick="openPaperDetail('${p.id}')">
       <td class="t-title">${p.star?'★ ':''}${esc(p.title)}</td>
+      <td class="t-cat">${entGroups(p).length?esc(entGroups(p)[0]):''}</td>
       <td class="t-date">${esc(p.citation||'')}</td>
       <td>${p.status?`<span class="stamp ${PAPER_STATUS_CLASS[p.status]||'st-0'}">${PAPER_STATUS_LABEL[p.status]||''}</span>`:''}</td>
       <td class="t-title">${esc(p.conclusion||'')}</td>
       <td><div class="t-tags">${(p.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
     </tr>`);
-    $('paperTable').innerHTML=dtable(['タイトル','書誌','状態','一言結論','タグ'],rows);
+    $('paperTable').innerHTML=dtable(['タイトル','グループ','書誌','状態','一言結論','タグ'],rows);
   }
 }
 function togglePaperTag(i){
@@ -2142,6 +2167,7 @@ function openPaperModal(id){
   $('ppTitle').value=p?.title||''; $('ppCitation').value=p?.citation||'';
   $('ppStatus').value=p?.status||'unread';
   $('ppLinks').value=(p?.links||[]).join('\n'); $('ppTags').value=(p?.tags||[]).join(', ');
+  $('ppGroupWrap').innerHTML=groupSelectHtml('papers','ppGroup', p?entGroups(p):(groupFilters['papers']?[groupFilters['papers']]:[]));
   $('ppConclusion').value=p?.conclusion||'';
   $('ppP').value=p?.p||''; $('ppI').value=p?.i||''; $('ppC').value=p?.c||''; $('ppO').value=p?.o||'';
   $('ppResults').value=p?.results||''; $('ppImplication').value=p?.implication||''; $('ppJc').value=p?.jc||'';
@@ -2155,6 +2181,7 @@ function savePaper(){
     title, citation:$('ppCitation').value.trim(), status:$('ppStatus').value,
     links:$('ppLinks').value.split(/\n/).map(s=>s.trim()).filter(Boolean),
     tags:$('ppTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
+    groups:($('ppGroup')&&$('ppGroup').value)?[$('ppGroup').value]:[],
     conclusion:$('ppConclusion').value.trim(),
     p:$('ppP').value.trim(), i:$('ppI').value.trim(), c:$('ppC').value.trim(), o:$('ppO').value.trim(),
     results:$('ppResults').value, implication:$('ppImplication').value, jc:$('ppJc').value,
@@ -2222,6 +2249,9 @@ function allModalitiesFor(useMode){
 }
 // 共通描画。cfgでタブ(gallery/img)ごとのDOM idと状態を渡す
 function renderImages(cfg){
+  const gtab=cfg.mode; // gallery/study/img はGROUP_TABSのキーと一致
+  if($(cfg.groupChips)) $(cfg.groupChips).innerHTML=groupChipsHtml(gtab, groupFilters[gtab]||'');
+  const gf=groupFilters[gtab]||'';
   const mf=$(cfg.modFilter); const curM=mf.value;
   mf.innerHTML='<option value="">全モダリティ</option>'+allModalitiesFor(cfg.use).map(m=>`<option ${m===curM?'selected':''}>${esc(m)}</option>`).join('');
   const tags=allImgTagsFor(cfg.use); window[cfg.tagListVar]=tags;
@@ -2230,6 +2260,7 @@ function renderImages(cfg){
   $(cfg.chips).innerHTML=tags.map((t,i)=>`<button class="chip ${filtered.has(t)?'on':''}" onclick="${cfg.toggleFn}(${i})">${esc(t)}</button>`).join('');
   const q=$(cfg.search).value.trim().toLowerCase();
   const list=imagesOf(cfg.use).filter(im=>{
+    if(gf&&!entGroups(im).includes(gf)) return false;
     if(curM&&im.modality!==curM) return false;
     if(filtered.size&&![...filtered].every(t=>(im.tags||[]).includes(t))) return false;
     if(q){
@@ -2246,6 +2277,7 @@ function renderImages(cfg){
       <div class="card-top">
         <div class="cat" style="color:${accent}">🖼 ${esc(im.modality||'画像')}</div>
         <div class="spacer"></div>
+        ${entGroups(im).length?`<div class="kind-badge kind-conf">${esc(entGroups(im)[0])}</div>`:''}
         ${im.difficulty?`<div class="stamp st-2" style="letter-spacing:1px">${'★'.repeat(im.difficulty)}</div>`:''}
         ${im.dx?`<div class="stamp st-1">${esc(im.dx.slice(0,16))}</div>`:''}
       </div>
@@ -2259,6 +2291,7 @@ function renderImages(cfg){
     const showStar=(cfg.use!=='mine');
     const rows=list.map(im=>`<tr onclick="openImgDetail('${im.id}')">
       <td class="t-title">${esc(im.title)}</td>
+      <td class="t-cat">${entGroups(im).length?esc(entGroups(im)[0]):''}</td>
       ${showStar?`<td class="t-conf" style="color:var(--amber);white-space:nowrap">${im.difficulty?'★'.repeat(im.difficulty):''}</td>`:''}
       <td class="t-date">${im.pid?esc(displayPid(im)):''}</td>
       <td class="t-cat">${esc(im.modality||'')}</td>
@@ -2266,27 +2299,27 @@ function renderImages(cfg){
       <td class="t-date">${im.encounter?esc(fmtDate(im.encounter)):''}</td>
       <td><div class="t-tags">${(im.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
     </tr>`);
-    const headers=showStar?['タイトル','難易度','院内ID','モダリティ','診断','出会った日','タグ']:['タイトル','院内ID','モダリティ','診断','出会った日','タグ'];
+    const headers=showStar?['タイトル','グループ','難易度','院内ID','モダリティ','診断','出会った日','タグ']:['タイトル','グループ','院内ID','モダリティ','診断','出会った日','タグ'];
     $(cfg.table).innerHTML=dtable(headers,rows);
   }
 }
 function renderGallery(){
   renderImages({use:'typical', mode:'gallery', emptyMsg:'画像症例集はまだありません。＋で追加。',
-    search:'gallerySearch', modFilter:'galleryModalityFilter', chips:'galleryChips',
+    search:'gallerySearch', modFilter:'galleryModalityFilter', chips:'galleryChips', groupChips:'galleryGroupChips',
     grid:'galleryGrid', table:'galleryTable', toggle:'galleryViewToggle',
     tagListVar:'_galleryTagList', toggleFn:'toggleGalleryTag',
     getActive:()=>activeGalleryTags, setActive:(s)=>{activeGalleryTags=s;} });
 }
 function renderStudy(){
   renderImages({use:'study', mode:'study', emptyMsg:'勉強用の画像はまだありません。＋で追加。',
-    search:'studySearch', modFilter:'studyModalityFilter', chips:'studyChips',
+    search:'studySearch', modFilter:'studyModalityFilter', chips:'studyChips', groupChips:'studyGroupChips',
     grid:'studyGrid', table:'studyTable', toggle:'studyViewToggle',
     tagListVar:'_studyTagList', toggleFn:'toggleStudyTag',
     getActive:()=>activeStudyTags, setActive:(s)=>{activeStudyTags=s;} });
 }
 function renderImg(){
   renderImages({use:'mine', mode:'img', emptyMsg:'自分の読影記録はまだありません。＋で追加。',
-    search:'imgSearch', modFilter:'imgModalityFilter', chips:'imgChips',
+    search:'imgSearch', modFilter:'imgModalityFilter', chips:'imgChips', groupChips:'imgGroupChips',
     grid:'imgGrid', table:'imgTable', toggle:'imgViewToggle',
     tagListVar:'_imgTagList', toggleFn:'toggleImgTag',
     getActive:()=>activeImgTags, setActive:(s)=>{activeImgTags=s;} });
@@ -2311,9 +2344,12 @@ function openImgModal(id, defUse){
   const im=id?state.images.find(x=>x.id===id):null;
   $('imgModalTitle').textContent=im?'画像を編集':(defUse==='mine'?'自分の読影を追加':'画像症例集に追加');
   $('imTitle').value=im?.title||''; $('imModality').value=im?.modality||''; $('imRegion').value=im?.region||'';
-  $('imUse').value=im?.use||defUse||'typical'; $('imPid').value=im?.pid||'';
+  const useMode=im?.use||defUse||'typical';
+  $('imUse').value=useMode; $('imPid').value=im?.pid||'';
   $('imDifficulty').value=String(im?.difficulty||0);
   $('imTags').value=(im?.tags||[]).join(', ');
+  const gtab=useMode==='mine'?'img':useMode; // gallery/study/img
+  $('imGroupWrap').innerHTML=groupSelectHtml(gtab,'imGroup', im?entGroups(im):(groupFilters[gtab]?[groupFilters[gtab]]:[]));
   $('imFindings').value=im?.findings||''; $('imDdx').value=(im?.ddx||[]).join('\n');
   $('imDx').value=im?.dx||''; $('imBody').value=im?.body||''; $('imEncounter').value=im?.encounter||'';
   const allMods=[...new Set(liveImages().map(x=>x.modality).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'));
@@ -2328,6 +2364,7 @@ function saveImg(){
   const data={
     title, modality:$('imModality').value.trim(), region:$('imRegion').value.trim(),
     use:$('imUse').value, pid:$('imPid').value.trim(), difficulty:parseInt($('imDifficulty').value,10)||0,
+    groups:($('imGroup')&&$('imGroup').value)?[$('imGroup').value]:[],
     tags:$('imTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
     findings:$('imFindings').value, ddx:splitLines($('imDdx').value),
     dx:$('imDx').value.trim(), body:$('imBody').value, encounter:$('imEncounter').value||'',
@@ -2386,6 +2423,8 @@ function allSafetyTags(){
   return [...set].sort((a,b)=>a.localeCompare(b,'ja'));
 }
 function renderSafety(){
+  $('safetyGroupChips').innerHTML=groupChipsHtml('safety', groupFilters['safety']||'');
+  const gf=groupFilters['safety']||'';
   const tags=allSafetyTags(); window._safetyTagList=tags;
   activeSafetyTags=new Set([...activeSafetyTags].filter(t=>tags.includes(t)));
   $('safetyChips').innerHTML=tags.map((t,i)=>`<button class="chip ${activeSafetyTags.has(t)?'on':''}" onclick="toggleSafetyTag(${i})">${esc(t)}</button>`).join('');
@@ -2393,6 +2432,7 @@ function renderSafety(){
   const sevf=$('safetySeverityFilter').value;
   const stf=$('safetyStatusFilter').value;
   const list=liveSafety().filter(s=>{
+    if(gf&&!entGroups(s).includes(gf)) return false;
     if(sevf&&sevBucket(s.severity)!==sevf) return false;
     if(stf&&(s.status||'open')!==stf) return false;
     if(activeSafetyTags.size&&![...activeSafetyTags].every(t=>(s.tags||[]).includes(t))) return false;
@@ -2412,6 +2452,7 @@ function renderSafety(){
       <div class="card-top">
         <div class="cat" style="color:var(--shu)">🛡 医療安全</div>
         <div class="spacer"></div>
+        ${entGroups(s).length?`<div class="kind-badge kind-conf">${esc(entGroups(s)[0])}</div>`:''}
         <span class="sev-badge ${sevClass(s.severity)}">${SEV_LABEL[s.severity]||''}</span>
         <span class="safety-status ${s.status==='resolved'?'safety-resolved':'safety-open'}">${s.status==='resolved'?'解決済':'対応中'}</span>
       </div>
@@ -2423,12 +2464,13 @@ function renderSafety(){
   }else{
     const rows=list.map(s=>`<tr onclick="openSafetyDetail('${s.id}')">
       <td class="t-title">${esc(s.title)}</td>
+      <td class="t-cat">${entGroups(s).length?esc(entGroups(s)[0]):''}</td>
       <td><span class="sev-badge ${sevClass(s.severity)}">${SEV_LABEL[s.severity]||''}</span></td>
       <td><span class="safety-status ${s.status==='resolved'?'safety-resolved':'safety-open'}">${s.status==='resolved'?'解決済':'対応中'}</span></td>
       <td class="t-date">${s.occurred?esc(fmtDate(s.occurred)):''}</td>
       <td><div class="t-tags">${(s.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
     </tr>`);
-    $('safetyTable').innerHTML=dtable(['件名','レベル','状態','発生日','タグ'],rows);
+    $('safetyTable').innerHTML=dtable(['件名','グループ','レベル','状態','発生日','タグ'],rows);
   }
 }
 function toggleSafetyTag(i){
@@ -2443,6 +2485,7 @@ function openSafetyModal(id){
   $('sfTitle').value=s?.title||''; $('sfSeverity').value=s?.severity||'0'; $('sfStatus').value=s?.status||'open';
   $('sfOccurred').value=s?.occurred||''; $('sfDiscovered').value=s?.discovered||'';
   $('sfTags').value=(s?.tags||[]).join(', '); $('sfPeople').value=s?.people||'';
+  $('sfGroupWrap').innerHTML=groupSelectHtml('safety','sfGroup', s?entGroups(s):(groupFilters['safety']?[groupFilters['safety']]:[]));
   $('sfCourse').value=s?.course||''; $('sfResponse').value=s?.response||''; $('sfPrevention').value=s?.prevention||'';
   $('sfDeleteBtn').style.display=s?'':'none';
   closeOverlay('detailOverlay'); $('safetyOverlay').classList.add('open');
@@ -2454,6 +2497,7 @@ function saveSafety(){
     title, severity:$('sfSeverity').value, status:$('sfStatus').value,
     occurred:$('sfOccurred').value||'', discovered:$('sfDiscovered').value||'',
     tags:$('sfTags').value.split(/[,、，]/).map(x=>x.trim()).filter(Boolean),
+    groups:($('sfGroup')&&$('sfGroup').value)?[$('sfGroup').value]:[],
     people:$('sfPeople').value.trim(),
     course:$('sfCourse').value, response:$('sfResponse').value, prevention:$('sfPrevention').value,
     updatedAt:now()
