@@ -631,6 +631,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   <div class="modal">
     <h3 id="txModalTitle">治療・投薬を追加</h3>
     <div class="form-row"><label>シチュエーション</label><input type="text" id="tTitle" placeholder="例:市中肺炎(中等症・入院) / 気管支喘息発作(中発作)"></div>
+    <div class="form-row"><label>患者ID(任意)</label><input type="text" id="tPid" placeholder="院内IDなど(先頭に飾りが付いて表示されます)"></div>
     <div class="form-grid">
       <div class="form-row"><label>グループ(場面)</label><div id="tGroupWrap"></div><div class="hint">追加・編集は⚙設定から</div></div>
       <div class="form-row"><label>確度(情報の裏取り状況)</label>
@@ -928,9 +929,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.23.0
+   Med OS v2.24.0
 ========================================================= */
-const APP_VERSION = 'v2.23.0';
+const APP_VERSION = 'v2.24.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1952,6 +1953,7 @@ function renderTx(){
         ${entGroups(t).length?`<div class="kind-badge kind-conf">${esc(entGroups(t)[0])}</div>`:''}
       </div>
       <div class="title" style="padding-right:28px">${esc(t.title)}</div>
+      ${t.pid?`<div class="pid">🪪 ${esc(displayPid(t))}</div>`:''}
       ${ds.slice(0,3).map(d=>`<div class="drugline">・${esc(d.drug)} ${esc(d.dose)}${esc(d.unit==='固定'?'':' '+d.unit)}</div>`).join('')}
       ${ds.length>3?`<div class="drugline">…ほか${ds.length-3}剤</div>`:''}
       ${(t.exams&&t.exams.length||t.labs&&t.labs.length||t.mixing&&t.mixing.length)?`<div class="order-chips">${(t.mixing&&t.mixing.length)?`<span class="order-chip" style="color:var(--gold)">💧 調製 ${t.mixing.length}</span>`:''}${(t.exams||[]).slice(0,3).map(x=>`<span class="order-chip exam">🔬 ${esc(x)}</span>`).join('')}${(t.labs||[]).slice(0,3).map(x=>`<span class="order-chip lab">🩸 ${esc(x)}</span>`).join('')}</div>`:''}
@@ -1966,13 +1968,14 @@ function renderTx(){
       return `<tr onclick="openTxDetail('${t.id}')">
         <td class="t-title">${t.pinned?'📌 ':''}${esc(t.title)}</td>
         <td class="t-cat">${entGroups(t).length?esc(entGroups(t)[0]):''}</td>
+        <td class="t-date">${t.pid?esc(displayPid(t)):''}</td>
         <td>${esc(drugs)}</td>
         <td class="t-date">${ds.length}剤</td>
         <td class="t-conf">${t.confidence?confBadge(t.confidence):''}</td>
         <td><div class="t-tags">${(t.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
       </tr>`;
     });
-    $('txTable').innerHTML=dtable(['治療名','グループ','薬剤','剤数','確度','タグ'],rows);
+    $('txTable').innerHTML=dtable(['治療名','グループ','院内ID','薬剤','剤数','確度','タグ'],rows);
   }
 }
 function toggleTxTag(i){
@@ -1985,6 +1988,7 @@ function openTxModal(id){
   const t=id?state.treatments.find(x=>x.id===id):null;
   $('txModalTitle').textContent=t?'治療・投薬を編集':'治療・投薬を追加';
   $('tTitle').value=t?.title||''; $('tTags').value=(t?.tags||[]).join(', ');
+  $('tPid').value=t?.pid||'';
   $('tConfidence').value=t?.confidence||'';
   $('tGroupWrap').innerHTML=groupSelectHtml('tx','tGroup', t?entGroups(t):(groupFilters['tx']?[groupFilters['tx']]:[]));
   $('tDoses').value=t?.doses||''; $('tBody').value=t?.body||'';
@@ -2000,7 +2004,7 @@ function saveTx(){
   const gsel=$('tGroup')?$('tGroup').value:'';
   const data={
     title, tags:$('tTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
-    confidence:$('tConfidence').value, groups: gsel?[gsel]:[],
+    confidence:$('tConfidence').value, groups: gsel?[gsel]:[], pid:$('tPid').value.trim(),
     doses:$('tDoses').value, body:$('tBody').value,
     exams:splitLines($('tExams').value), labs:splitLines($('tLabs').value),
     mixing:splitLines($('tMixing').value), updatedAt:now()
@@ -2662,6 +2666,7 @@ function openTxDetail(id){
     <div class="detail-head"><div class="t">
       <div class="cat" style="color:var(--shu)">💊 治療・投薬 ${t.confidence?confBadge(t.confidence):''}</div>
       <h3>${esc(t.title)}</h3>
+      ${t.pid?`<div class="pid" style="margin-top:3px">🪪 ${esc(displayPid(t))}</div>`:''}
       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(t.tags||[]).map(x=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(x)}</span>`).join('')}</div>
     </div>
     <button class="pin-btn ${t.pinned?'on':''}" onclick="togglePin('${t.id}');openTxDetail('${t.id}')" title="ピン留め" style="font-size:22px">📌</button>
@@ -2747,7 +2752,7 @@ function recToEntity(type, rec){
   if(type==='treatment'){
     return {kind:'treatment', data:{
       id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
-      title:(rec.title||'').trim(), confidence:conf, tags,
+      title:(rec.title||'').trim(), confidence:conf, tags, pid:(rec.pid||'').trim(),
       doses:(rec.doses||'').trim(), body:(rec.body||rec.memo||'').trim(),
       exams:splitLines(rec.exams||''), labs:splitLines(rec.labs||''), mixing:splitLines(rec.mixing||''),
       pinned:false
