@@ -105,6 +105,19 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 
 .plan-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;margin-bottom:10px;box-shadow:var(--shadow)}
 .plan-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.order-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.order-fields{grid-template-columns:1fr}}
+.order-box{border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin:7px 0;background:var(--surface)}
+.order-box.exam{border-left:3px solid var(--pine)}
+.order-box.lab{border-left:3px solid var(--shu)}
+.order-box.rx{border-left:3px solid var(--gold)}
+.order-box .oh{font-size:12px;font-weight:700;margin-bottom:5px;color:var(--ink-soft);letter-spacing:.3px}
+.order-box ul{margin:0;padding-left:18px}
+.order-box li{font-size:13.5px;line-height:1.6}
+.order-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px}
+.order-chip{font-size:12px;padding:2px 9px;border-radius:999px;background:var(--wash);border:1px solid var(--line);white-space:nowrap}
+.order-chip.exam{color:var(--pine)}
+.order-chip.lab{color:var(--shu)}
 .cloud-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
 .cloud-btns .btn{flex:1;min-width:130px}
 .plan-card .theme-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:5px}
@@ -629,6 +642,18 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <textarea id="tDoses" style="min-height:110px" placeholder="スルバクタム/アンピシリン | 3 | 固定 | 1日4回 点滴静注 | 腎機能で調整&#10;プレドニゾロン | 0.5 | mg/kg | 1日1回 経口 | 体重で自動計算&#10;ノルアドレナリン | 0.05 | γ | 持続静注 | 濃度:0.06mg/mL"></textarea>
       <div class="hint">単位を「mg/kg」「g/kg」「mL/kg」「単位/kg」にするとボーラス量を体重から自動計算。持続は「γ」(=μg/kg/min)か「mg/kg/hr」。備考に「濃度:3mg/mL」と書くと流量(mL/hr)も計算。固定用量は単位欄に「固定」</div>
     </div>
+    <div class="form-row"><label>💧 点滴の作り方・調製(1行1つ)</label>
+      <textarea id="tMixing" style="min-height:70px" placeholder="フェンタニル 20mL(1000μg) + 生食 30mL = 計50mL(20μg/mL)&#10;ノルアドレナリン 3mg + 生食 47mL = 計50mL(0.06mg/mL)"></textarea>
+      <div class="hint">混ぜるもの・希釈液・最終量/濃度を書いておくと、詳細画面で見やすく表示されます</div>
+    </div>
+    <div class="order-fields">
+      <div class="form-row"><label>🔬 オーダーする検査(1行1つ)</label>
+        <textarea id="tExams" style="min-height:70px" placeholder="胸部X線&#10;12誘導心電図&#10;動脈血ガス"></textarea>
+      </div>
+      <div class="form-row"><label>🩸 採血項目(1行1つ)</label>
+        <textarea id="tLabs" style="min-height:70px" placeholder="血算&#10;生化学&#10;凝固&#10;血液培養2セット"></textarea>
+      </div>
+    </div>
     <div class="form-row"><label>詳細メモ(簡易Markdown可)</label>
       <textarea id="tBody" style="min-height:130px" placeholder="## 適応&#10;- 条件&#10;## 注意&#10;- 腎機能、アレルギー歴 など"></textarea>
     </div>
@@ -654,6 +679,14 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
     </div>
     <div class="form-row"><label>鑑別リスト(1行1つ)</label>
       <textarea id="dList" style="min-height:100px" placeholder="血管迷走神経性失神&#10;起立性低血圧&#10;不整脈&#10;…"></textarea>
+    </div>
+    <div class="order-fields">
+      <div class="form-row"><label>🔬 オーダーする検査(1行1つ)</label>
+        <textarea id="dExams" style="min-height:80px" placeholder="12誘導心電図&#10;頭部CT(必要時)&#10;心エコー&#10;モニター心電図"></textarea>
+      </div>
+      <div class="form-row"><label>🩸 採血項目(1行1つ)</label>
+        <textarea id="dLabs" style="min-height:80px" placeholder="血算(Hb)&#10;BNP&#10;電解質&#10;トロポニン&#10;D-dimer"></textarea>
+      </div>
     </div>
     <div class="form-row"><label>初期対応・アプローチ(簡易Markdown可)</label>
       <textarea id="dApproach" style="min-height:110px" placeholder="## 初期対応&#10;- バイタル、モニタ、12誘導心電図&#10;- ルート確保、採血&#10;## 問診&#10;- 前駆症状、体位、動悸"></textarea>
@@ -895,9 +928,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.21.0
+   Med OS v2.23.0
 ========================================================= */
-const APP_VERSION = 'v2.21.0';
+const APP_VERSION = 'v2.23.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1921,6 +1954,7 @@ function renderTx(){
       <div class="title" style="padding-right:28px">${esc(t.title)}</div>
       ${ds.slice(0,3).map(d=>`<div class="drugline">・${esc(d.drug)} ${esc(d.dose)}${esc(d.unit==='固定'?'':' '+d.unit)}</div>`).join('')}
       ${ds.length>3?`<div class="drugline">…ほか${ds.length-3}剤</div>`:''}
+      ${(t.exams&&t.exams.length||t.labs&&t.labs.length||t.mixing&&t.mixing.length)?`<div class="order-chips">${(t.mixing&&t.mixing.length)?`<span class="order-chip" style="color:var(--gold)">💧 調製 ${t.mixing.length}</span>`:''}${(t.exams||[]).slice(0,3).map(x=>`<span class="order-chip exam">🔬 ${esc(x)}</span>`).join('')}${(t.labs||[]).slice(0,3).map(x=>`<span class="order-chip lab">🩸 ${esc(x)}</span>`).join('')}</div>`:''}
       <div class="tags" style="margin-top:6px">${(t.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
       ${t.confidence?`<div style="margin-top:6px">${confBadge(t.confidence)}</div>`:''}
     </div>`;
@@ -1954,6 +1988,8 @@ function openTxModal(id){
   $('tConfidence').value=t?.confidence||'';
   $('tGroupWrap').innerHTML=groupSelectHtml('tx','tGroup', t?entGroups(t):(groupFilters['tx']?[groupFilters['tx']]:[]));
   $('tDoses').value=t?.doses||''; $('tBody').value=t?.body||'';
+  $('tExams').value=(t?.exams||[]).join('\n'); $('tLabs').value=(t?.labs||[]).join('\n');
+  $('tMixing').value=(t?.mixing||[]).join('\n');
   $('tDeleteBtn').style.display=t?'':'none';
   closeOverlay('detailOverlay');
   $('txOverlay').classList.add('open');
@@ -1965,7 +2001,9 @@ function saveTx(){
   const data={
     title, tags:$('tTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
     confidence:$('tConfidence').value, groups: gsel?[gsel]:[],
-    doses:$('tDoses').value, body:$('tBody').value, updatedAt:now()
+    doses:$('tDoses').value, body:$('tBody').value,
+    exams:splitLines($('tExams').value), labs:splitLines($('tLabs').value),
+    mixing:splitLines($('tMixing').value), updatedAt:now()
   };
   if(editingTxId) Object.assign(state.treatments.find(x=>x.id===editingTxId),data);
   else state.treatments.push(Object.assign({id:uid(),createdAt:now(),deleted:false},data));
@@ -2025,6 +2063,7 @@ function renderDdx(){
       </div>
       <div class="title" style="padding-right:0">${esc(d.title)}</div>
       ${killers.length?`<div class="killer-row">${killers.slice(0,4).map(k=>`<span>🚨 ${esc(k)}</span>`).join('')}${killers.length>4?`<span style="background:none;color:var(--ink-soft)">+${killers.length-4}</span>`:''}</div>`:''}
+      ${(d.exams&&d.exams.length||d.labs&&d.labs.length)?`<div class="order-chips">${(d.exams||[]).slice(0,4).map(x=>`<span class="order-chip exam">🔬 ${esc(x)}</span>`).join('')}${(d.labs||[]).slice(0,4).map(x=>`<span class="order-chip lab">🩸 ${esc(x)}</span>`).join('')}</div>`:''}
       <div class="ddx-count">鑑別 ${(d.list||[]).length}件${(d.redflag||[]).length?` ／ 🚩${(d.redflag||[]).length}`:''}</div>
       <div class="tags" style="margin-top:6px">${(d.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
     </div>`;
@@ -2055,6 +2094,7 @@ function openDdxModal(id){
   $('dKiller').value=(d?.killer||[]).join('\n');
   $('dList').value=(d?.list||[]).join('\n');
   $('dApproach').value=d?.approach||'';
+  $('dExams').value=(d?.exams||[]).join('\n'); $('dLabs').value=(d?.labs||[]).join('\n');
   $('dRedflag').value=(d?.redflag||[]).join('\n');
   $('dBody').value=d?.body||'';
   $('dDeleteBtn').style.display=d?'':'none';
@@ -2069,6 +2109,7 @@ function saveDdx(){
     groups:($('dGroup')&&$('dGroup').value)?[$('dGroup').value]:[],
     killer:splitLines($('dKiller').value), list:splitLines($('dList').value),
     approach:$('dApproach').value, redflag:splitLines($('dRedflag').value),
+    exams:splitLines($('dExams').value), labs:splitLines($('dLabs').value),
     body:$('dBody').value, updatedAt:now()
   };
   if(editingDdxId) Object.assign(state.ddx.find(x=>x.id===editingDdxId),data);
@@ -2081,6 +2122,14 @@ function deleteDdx(){
   d.deleted=true; d.updatedAt=now();
   saveState(); closeOverlay('ddxOverlay'); renderDdx(); toast('削除しました');
 }
+// オーダー(検査・採血)を見やすいボックスで表示。処方は別途dosesがある
+function orderSectionHtml(exams, labs){
+  const box=(cls,icon,title,arr)=> (arr&&arr.length)?`
+    <div class="order-box ${cls}"><div class="oh">${icon} ${title}</div><ul>${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:'';
+  const e=box('exam','🔬','オーダーする検査',exams);
+  const l=box('lab','🩸','採血項目',labs);
+  return (e||l)?`<div>${e}${l}</div>`:'';
+}
 function openDdxDetail(id){
   const d=state.ddx.find(x=>x.id===id); if(!d) return;
   const listBlock=(title,arr,cls,icon)=> (arr&&arr.length)?`
@@ -2091,6 +2140,7 @@ function openDdxDetail(id){
       <h3>${esc(d.title)}</h3>
       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(d.tags||[]).map(x=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(x)}</span>`).join('')}</div>
     </div></div>
+    ${orderSectionHtml(d.exams, d.labs)}
     ${listBlock('危険な鑑別 / Killer', d.killer, 'ddx-killer', '🚨')}
     ${d.approach?`<div class="ddx-block"><h4>🔧 初期対応・アプローチ</h4><div class="md">${md(d.approach)}</div></div>`:''}
     ${listBlock('鑑別リスト', d.list, 'ddx-normal', '📋')}
@@ -2622,6 +2672,8 @@ function openTxDetail(id){
       <span class="hint" style="margin:0">共通体重と連動</span>
     </div>
     <div id="doseTableWrap">${doseTableHtml(t, parseFloat(w)||NaN)}</div>
+    ${(t.mixing&&t.mixing.length)?`<div class="order-box rx"><div class="oh">💧 点滴の作り方・調製</div><ul>${t.mixing.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}
+    ${orderSectionHtml(t.exams, t.labs)}
     <div class="md">${md(t.body)}</div>
     <div class="hint">⚠ 計算結果は参考値です。投与前に必ず添付文書・院内プロトコルで確認してください。</div>
     <div class="detail-meta">作成 ${esc((t.createdAt||'').slice(0,10))} ／ 更新 ${esc((t.updatedAt||'').slice(0,10))}</div>
@@ -2641,8 +2693,8 @@ function updateDoseTable(id){
 }
 
 /* ---------- import (fixed format) ---------- */
-const IMPORT_KEYS = ['title','category','folder','tags','confidence','point','memo','ic','links','doses','body','encounter','killer','list','approach','redflag','citation','conclusion','p','i','c','o','results','implication','jc','modality','region','findings','ddx','dx','use','source','doctor','severity','occurred','discovered','course','response','prevention','people','status','pid','difficulty'];
-const MULTILINE_KEYS = new Set(['memo','ic','links','doses','body','killer','list','approach','redflag','results','implication','jc','findings','ddx','course','response','prevention']);
+const IMPORT_KEYS = ['title','category','folder','tags','confidence','point','memo','ic','links','doses','body','encounter','killer','list','approach','redflag','exams','labs','mixing','citation','conclusion','p','i','c','o','results','implication','jc','modality','region','findings','ddx','dx','use','source','doctor','severity','occurred','discovered','course','response','prevention','people','status','pid','difficulty'];
+const MULTILINE_KEYS = new Set(['memo','ic','links','doses','body','killer','list','approach','redflag','exams','labs','mixing','results','implication','jc','findings','ddx','course','response','prevention']);
 function parseImport(text){
   const blocks = text.split(/^\s*---\s*$/m).map(b=>b.trim()).filter(Boolean);
   const records = [];
@@ -2697,6 +2749,7 @@ function recToEntity(type, rec){
       id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
       title:(rec.title||'').trim(), confidence:conf, tags,
       doses:(rec.doses||'').trim(), body:(rec.body||rec.memo||'').trim(),
+      exams:splitLines(rec.exams||''), labs:splitLines(rec.labs||''), mixing:splitLines(rec.mixing||''),
       pinned:false
     }};
   }
@@ -2706,6 +2759,7 @@ function recToEntity(type, rec){
       title:(rec.title||'').trim(), tags,
       killer:splitLines(rec.killer||''), list:splitLines(rec.list||''),
       approach:(rec.approach||'').trim(), redflag:splitLines(rec.redflag||''),
+      exams:splitLines(rec.exams||''), labs:splitLines(rec.labs||''),
       body:(rec.body||rec.memo||'').trim()
     }};
   }
