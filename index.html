@@ -105,6 +105,15 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 
 .plan-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;margin-bottom:10px;box-shadow:var(--shadow)}
 .plan-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.sel-bar{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.sel-bar .sel-all{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+.sel-bar .sel-all input{width:auto}
+.sel-bar .sel-count{font-size:12.5px;color:var(--ink-soft)}
+.sel-bar .sel-del{margin-left:auto;padding:6px 12px;font-size:13px}
+.sel-bar .sel-del:disabled{opacity:.4;cursor:not-allowed}
+.dtable td.sel-cell,.dtable th.sel-cell{width:34px;text-align:center;padding-left:6px;padding-right:6px}
+.dtable td.sel-cell input{width:auto;cursor:pointer}
+.dtable tr.row-sel{background:var(--wash)}
 .order-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:520px){.order-fields{grid-template-columns:1fr}}
 .order-box{border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin:7px 0;background:var(--surface)}
@@ -574,6 +583,12 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <div class="form-row"><label>患者名</label><input type="text" id="cPname" placeholder="イニシャル推奨"></div>
     </div>
     <div class="hint" style="margin:-6px 0 10px">⚠ 院内IDは表示時、先頭にダミーの飾り(数字2＋英字1)が自動で付きます。例 47K12345678。先頭3文字を読み飛ばせば本当のIDです。第三者にはIDの境目が分からないので、のぞき見対策になります。</div>
+    <div class="form-grid">
+      <div class="form-row"><label>年齢</label><input type="text" id="cAge" placeholder="例 52歳 / 50代"></div>
+      <div class="form-row"><label>性別</label>
+        <select id="cSex"><option value="">—</option><option value="M">男性</option><option value="F">女性</option><option value="other">その他</option></select>
+      </div>
+    </div>
     <div class="form-row"><label>出会った日付</label><input type="date" id="cEncounter"></div>
     <div class="form-grid">
       <div class="form-row"><label>疾患カテゴリ</label><select id="cCategory"></select><div class="hint">カテゴリの追加・削除は⚙設定から</div></div>
@@ -767,6 +782,12 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       </div>
     </div>
     <div class="form-row"><label>患者ID(任意)</label><input type="text" id="imPid" placeholder="院内IDなど"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>年齢</label><input type="text" id="imAge" placeholder="例 32歳 / 30代"></div>
+      <div class="form-row"><label>性別</label>
+        <select id="imSex"><option value="">—</option><option value="M">男性</option><option value="F">女性</option><option value="other">その他</option></select>
+      </div>
+    </div>
     <div class="form-row"><label>タグ(カンマ区切り)</label><input type="text" id="imTags" placeholder="間質性肺炎, UIP, すりガラス"></div>
     <div class="form-row"><label>グループ(場面)</label><div id="imGroupWrap"></div><div class="hint">追加は⚙設定から(用途タブごとに管理)</div></div>
     <div class="form-row"><label>画像所見(テキストで)</label><textarea id="imFindings" style="min-height:110px" placeholder="## 所見&#10;- 小葉間隔壁肥厚&#10;- 胸膜直下優位のすりガラス影&#10;- 蜂巣肺あり"></textarea></div>
@@ -929,9 +950,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.24.0
+   Med OS v2.27.0
 ========================================================= */
-const APP_VERSION = 'v2.24.0';
+const APP_VERSION = 'v2.27.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1516,7 +1537,7 @@ function renderPlans(){
         <td class="t-conf">${p.priority==='high'?'高':p.priority==='low'?'低':'中'}</td>
       </tr>`;
     });
-    $('planTable').innerHTML=dtable(['テーマ','院内ID','種別','期日','状態','進捗','優先'],rows);
+    $('planTable').innerHTML=dtableSel('plans',['テーマ','院内ID','種別','期日','状態','進捗','優先'],rows,plans.map(p=>p.id));
   }
 }
 function setPlanKind(k){ activePlanKind=k; renderPlans(); }
@@ -1571,6 +1592,14 @@ function ensureIdPrefix(c){
 function displayPid(c){
   if(!c||!c.pid) return '';
   return ensureIdPrefix(c)+c.pid;
+}
+// 年齢・性別の表示文字列(例 52歳・男性)
+const SEX_LABEL={M:'男性', F:'女性', other:'その他'};
+function demoStr(c){
+  const parts=[];
+  if(c.age) parts.push(esc(c.age));
+  if(c.sex&&SEX_LABEL[c.sex]) parts.push(SEX_LABEL[c.sex]);
+  return parts.join('・');
 }
 function allTags(){
   const s=new Set(); liveCases().forEach(c=>(c.tags||[]).forEach(t=>s.add(t)));
@@ -1629,6 +1658,7 @@ function renderCases(){
           ${st?`<div class="stamp ${statusStampClass(c.status)}">${esc(st)}</div>`:''}
         </div>
         <div class="title">${esc(c.title)}</div>
+        ${demoStr(c)?`<div class="pid">🧑 ${demoStr(c)}</div>`:''}
         ${c.encounter?`<div class="pid">🗓 ${esc(fmtDate(c.encounter))}</div>`:''}
         ${c.doctor?`<div class="pid">👤 ${esc(c.doctor)}</div>`:''}
         ${(c.pid||c.pname)?`<div class="pid">🪪 ${esc(displayPid(c))}${c.pid&&c.pname?' / ':''}${esc(c.pname||'')}</div>`:''}
@@ -1643,6 +1673,8 @@ function renderCases(){
       const isConf=(c.source==='conf');
       return `<tr onclick="openCaseDetail('${c.id}')">
         <td class="t-title">${esc(c.title)}</td>
+        <td class="t-date">${c.age?esc(c.age):''}</td>
+        <td class="t-date">${c.sex&&SEX_LABEL[c.sex]?SEX_LABEL[c.sex]:''}</td>
         <td class="t-cat">${entGroups(c).length?esc(entGroups(c)[0]):''}</td>
         <td class="t-date">${c.pid?esc(displayPid(c)):''}</td>
         <td class="t-cat">${esc(c.category||'')}</td>
@@ -1652,10 +1684,8 @@ function renderCases(){
         <td class="t-date">${c.encounter?esc(fmtDate(c.encounter)):''}</td>
         <td><div class="t-tags">${(c.tags||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div></td>
       </tr>`;
-    }).join('');
-    $('caseTable').innerHTML = list.length ? `<div class="dtable-wrap"><table class="dtable">
-      <thead><tr><th>症例名</th><th>グループ</th><th>院内ID</th><th>カテゴリ</th><th>区分</th><th>ステータス</th><th>確度</th><th>出会った日</th><th>タグ</th></tr></thead>
-      <tbody>${rows}</tbody></table></div>` : '<div class="empty">症例カードはまだありません。＋で追加。</div>';
+    });
+    $('caseTable').innerHTML = dtableSel('cases',['症例名','年齢','性別','グループ','院内ID','カテゴリ','区分','ステータス','確度','出会った日','タグ'],rows,list.map(c=>c.id));
   }
 }
 let caseViewMode = 'card';
@@ -1683,6 +1713,58 @@ function dtable(headers, rows){
   if(!rows.length) return '<div class="empty">まだありません。＋で追加。</div>';
   return `<div class="dtable-wrap"><table class="dtable"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
 }
+// ===== 表モードの選択＆一括削除 =====
+// kind: cases/plans/notes/tx/ddx/papers/images/safety (stateの配列名に対応)
+const tableSel = {};
+function selSet(kind){ if(!tableSel[kind]) tableSel[kind]=new Set(); return tableSel[kind]; }
+function arrForKind(kind){
+  return ({cases:state.cases, plans:state.plans, notes:state.notes, tx:state.treatments, treatments:state.treatments,
+    ddx:state.ddx, papers:state.papers, images:state.images, safety:state.safety})[kind] || [];
+}
+function _reRenderKind(kind){
+  ({cases:()=>renderCases(), plans:()=>renderPlans(), notes:()=>renderNotes(), tx:()=>renderTx(), treatments:()=>renderTx(),
+    ddx:()=>renderDdx(), papers:()=>renderPapers(), safety:()=>renderSafety(),
+    images:()=>{renderGallery();renderStudy();renderImg();}}[kind]||function(){})();
+}
+function toggleSel(kind,id,ev){
+  if(ev) ev.stopPropagation();
+  const s=selSet(kind); s.has(id)?s.delete(id):s.add(id);
+  _reRenderKind(kind);
+}
+function selAll(kind,ids){
+  const s=selSet(kind);
+  const all=ids.every(id=>s.has(id));
+  if(all) ids.forEach(id=>s.delete(id)); else ids.forEach(id=>s.add(id));
+  _reRenderKind(kind);
+}
+function bulkDelete(kind){
+  const s=selSet(kind); if(!s.size) return;
+  if(!confirm(s.size+'件を削除しますか?')) return;
+  const arr=arrForKind(kind);
+  arr.forEach(e=>{ if(s.has(e.id)){ e.deleted=true; e.updatedAt=now(); } });
+  s.clear(); saveState(); _reRenderKind(kind); toast('削除しました');
+}
+// 選択列つきテーブル。rowsは既存の "<tr onclick=...>...</tr>" 文字列、idsは各行のid
+function dtableSel(kind, headers, rows, ids){
+  const s=selSet(kind);
+  const allChecked=ids.length&&ids.every(id=>s.has(id));
+  const bar=`<div class="sel-bar">
+    <label class="sel-all"><input type="checkbox" ${allChecked?'checked':''} onclick="selAll('${kind}',${JSON.stringify(ids).replace(/"/g,'&quot;')})"> 全選択</label>
+    <span class="sel-count">${s.size?s.size+'件選択中':''}</span>
+    <button class="btn danger sel-del" ${s.size?'':'disabled'} onclick="bulkDelete('${kind}')">🗑 選択を削除</button>
+  </div>`;
+  if(!rows.length) return bar+'<div class="empty">まだありません。＋で追加。</div>';
+  // 各<tr ...>の直後にチェックボックスのtdを差し込む
+  const body=rows.map((tr,idx)=>{
+    const id=ids[idx];
+    const checked=s.has(id)?'checked':'';
+    const cell=`<td class="sel-cell" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onclick="toggleSel('${kind}','${id}',event)"></td>`;
+    let out=tr.replace(/^(\s*<tr[^>]*>)/, `$1${cell}`);
+    if(s.has(id)) out=out.replace(/^(\s*<tr)/, `$1 class="row-sel"`);
+    return out;
+  }).join('');
+  return bar+`<div class="dtable-wrap"><table class="dtable"><thead><tr><th class="sel-cell"></th>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
 function toggleTag(i){
   const t=(window._tagList||[])[i]; if(t===undefined) return;
   activeTags.has(t)?activeTags.delete(t):activeTags.add(t);
@@ -1695,6 +1777,7 @@ function openCaseModal(id,presetPlanId){
   $('cTitle').value=c?.title||''; $('cPid').value=c?.pid||''; $('cPname').value=c?.pname||'';
   $('cSource').value=c?.source||'self'; $('cDoctor').value=c?.doctor||'';
   $('cEncounter').value=c?.encounter||'';
+  $('cAge').value=c?.age||''; $('cSex').value=c?.sex||'';
   $('cGroupWrap').innerHTML=groupSelectHtml('cases','cGroup', c?entGroups(c):(groupFilters['cases']?[groupFilters['cases']]:[]));
   const sts=getStatuses();
   const curSt=c?.status||(sts[0]?.id||'');
@@ -1723,6 +1806,7 @@ function saveCase(){
   if(!title){ toast('タイトルを入力してください'); return; }
   const data={
     title, pid:$('cPid').value.trim(), pname:$('cPname').value.trim(), encounter:$('cEncounter').value||'',
+    age:$('cAge').value.trim(), sex:$('cSex').value,
     source:$('cSource').value, doctor:$('cDoctor').value.trim(),
     category:$('cCategory').value, status:$('cStatus').value, confidence:$('cConfidence').value,
     groups: ($('cGroup')&&$('cGroup').value)?[$('cGroup').value]:[],
@@ -1757,6 +1841,7 @@ function openCaseDetail(id){
         ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
         <h3>${esc(c.title)}</h3>
         ${c.source==='conf'?`<div style="font-size:12.5px;color:var(--shu)">🩺 カンファ症例${c.doctor?' ／ '+esc(c.doctor):''}</div>`:''}
+        ${demoStr(c)?`<div style="font-size:12.5px;color:var(--ink-soft)">🧑 ${demoStr(c)}</div>`:''}
         ${(c.pid||c.pname)?`<div style="font-size:12.5px;color:var(--ink-soft)">🪪 ID: ${esc(displayPid(c)||'—')} ／ ${esc(c.pname||'—')}</div>`:''}
         ${c.encounter?`<div style="font-size:12.5px;color:var(--ink-soft)">🗓 出会った日: ${esc(fmtDate(c.encounter))}</div>`:''}
         ${c.confidence?`<div style="margin-top:4px">${confBadge(c.confidence)}</div>`:''}
@@ -1818,7 +1903,7 @@ function renderNotes(){
       <td class="t-title" style="color:var(--ink-soft);font-weight:400">${esc((n.body||'').replace(/[#*]/g,'').slice(0,60))}</td>
       <td class="t-date">${esc((n.updatedAt||'').slice(0,10))}</td>
     </tr>`);
-    $('noteTable').innerHTML=dtable(['フォルダ','グループ','タイトル','抜粋','更新日'],rows);
+    $('noteTable').innerHTML=dtableSel('notes',['フォルダ','グループ','タイトル','抜粋','更新日'],rows,list.map(n=>n.id));
   }
 }
 function selectFolder(i){
@@ -1975,7 +2060,7 @@ function renderTx(){
         <td><div class="t-tags">${(t.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
       </tr>`;
     });
-    $('txTable').innerHTML=dtable(['治療名','グループ','院内ID','薬剤','剤数','確度','タグ'],rows);
+    $('txTable').innerHTML=dtableSel('tx',['治療名','グループ','院内ID','薬剤','剤数','確度','タグ'],rows,list.map(t=>t.id));
   }
 }
 function toggleTxTag(i){
@@ -2081,7 +2166,7 @@ function renderDdx(){
       <td class="t-conf" style="color:var(--shu)">${(d.redflag||[]).length?'🚩 '+(d.redflag||[]).length:''}</td>
       <td><div class="t-tags">${(d.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
     </tr>`);
-    $('ddxTable').innerHTML=dtable(['主訴','グループ','Killer','鑑別数','Red flag','タグ'],rows);
+    $('ddxTable').innerHTML=dtableSel('ddx',['主訴','グループ','Killer','鑑別数','Red flag','タグ'],rows,list.map(d=>d.id));
   }
 }
 function toggleDdxTag(i){
@@ -2213,7 +2298,7 @@ function renderPapers(){
       <td class="t-title">${esc(p.conclusion||'')}</td>
       <td><div class="t-tags">${(p.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
     </tr>`);
-    $('paperTable').innerHTML=dtable(['タイトル','グループ','書誌','状態','一言結論','タグ'],rows);
+    $('paperTable').innerHTML=dtableSel('papers',['タイトル','グループ','書誌','状態','一言結論','タグ'],rows,list.map(p=>p.id));
   }
 }
 function togglePaperTag(i){
@@ -2347,6 +2432,7 @@ function renderImages(cfg){
         ${im.dx?`<div class="stamp st-1">${esc(im.dx.slice(0,16))}</div>`:''}
       </div>
       <div class="title">${esc(im.title)}</div>
+      ${demoStr(im)?`<div class="pid">🧑 ${demoStr(im)}</div>`:''}
       ${im.pid?`<div class="pid">🪪 ${esc(displayPid(im))}</div>`:''}
       ${im.findings?`<div class="point">${esc(im.findings.replace(/[#*]/g,'').slice(0,120))}</div>`:''}
       ${im.dx?`<div class="pid">Dx: ${esc(im.dx)}</div>`:''}
@@ -2356,6 +2442,8 @@ function renderImages(cfg){
     const showStar=(cfg.use!=='mine');
     const rows=list.map(im=>`<tr onclick="openImgDetail('${im.id}')">
       <td class="t-title">${esc(im.title)}</td>
+      <td class="t-date">${im.age?esc(im.age):''}</td>
+      <td class="t-date">${im.sex&&SEX_LABEL[im.sex]?SEX_LABEL[im.sex]:''}</td>
       <td class="t-cat">${entGroups(im).length?esc(entGroups(im)[0]):''}</td>
       ${showStar?`<td class="t-conf" style="color:var(--amber);white-space:nowrap">${im.difficulty?'★'.repeat(im.difficulty):''}</td>`:''}
       <td class="t-date">${im.pid?esc(displayPid(im)):''}</td>
@@ -2364,8 +2452,8 @@ function renderImages(cfg){
       <td class="t-date">${im.encounter?esc(fmtDate(im.encounter)):''}</td>
       <td><div class="t-tags">${(im.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
     </tr>`);
-    const headers=showStar?['タイトル','グループ','難易度','院内ID','モダリティ','診断','出会った日','タグ']:['タイトル','グループ','院内ID','モダリティ','診断','出会った日','タグ'];
-    $(cfg.table).innerHTML=dtable(headers,rows);
+    const headers=showStar?['タイトル','年齢','性別','グループ','難易度','院内ID','モダリティ','診断','出会った日','タグ']:['タイトル','年齢','性別','グループ','院内ID','モダリティ','診断','出会った日','タグ'];
+    $(cfg.table).innerHTML=dtableSel('images',headers,rows,list.map(im=>im.id));
   }
 }
 function renderGallery(){
@@ -2412,6 +2500,7 @@ function openImgModal(id, defUse){
   const useMode=im?.use||defUse||'typical';
   $('imUse').value=useMode; $('imPid').value=im?.pid||'';
   $('imDifficulty').value=String(im?.difficulty||0);
+  $('imAge').value=im?.age||''; $('imSex').value=im?.sex||'';
   $('imTags').value=(im?.tags||[]).join(', ');
   const gtab=useMode==='mine'?'img':useMode; // gallery/study/img
   $('imGroupWrap').innerHTML=groupSelectHtml(gtab,'imGroup', im?entGroups(im):(groupFilters[gtab]?[groupFilters[gtab]]:[]));
@@ -2429,6 +2518,7 @@ function saveImg(){
   const data={
     title, modality:$('imModality').value.trim(), region:$('imRegion').value.trim(),
     use:$('imUse').value, pid:$('imPid').value.trim(), difficulty:parseInt($('imDifficulty').value,10)||0,
+    age:$('imAge').value.trim(), sex:$('imSex').value,
     groups:($('imGroup')&&$('imGroup').value)?[$('imGroup').value]:[],
     tags:$('imTags').value.split(/[,、，]/).map(s=>s.trim()).filter(Boolean),
     findings:$('imFindings').value, ddx:splitLines($('imDdx').value),
@@ -2451,6 +2541,7 @@ function openImgDetail(id){
       <div class="cat" style="color:var(--pine)">🖼 ${esc(im.modality||'画像')} ／ ${IMG_USE_LABEL[im.use]||''}${im.difficulty?' ／ '+'★'.repeat(im.difficulty):''}</div>
       <h3>${esc(im.title)}</h3>
       ${im.region?`<div style="font-size:12.5px;color:var(--ink-soft)">部位: ${esc(im.region)}</div>`:''}
+      ${demoStr(im)?`<div style="font-size:12.5px;color:var(--ink-soft)">🧑 ${demoStr(im)}</div>`:''}
       ${im.pid?`<div style="font-size:12.5px;color:var(--ink-soft)">🪪 ${esc(displayPid(im))}</div>`:''}
       ${im.encounter?`<div style="font-size:12.5px;color:var(--ink-soft)">🗓 ${esc(fmtDate(im.encounter))}</div>`:''}
       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(im.tags||[]).map(x=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(x)}</span>`).join('')}</div>
@@ -2535,7 +2626,7 @@ function renderSafety(){
       <td class="t-date">${s.occurred?esc(fmtDate(s.occurred)):''}</td>
       <td><div class="t-tags">${(s.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
     </tr>`);
-    $('safetyTable').innerHTML=dtable(['件名','グループ','レベル','状態','発生日','タグ'],rows);
+    $('safetyTable').innerHTML=dtableSel('safety',['件名','グループ','レベル','状態','発生日','タグ'],rows,list.map(s=>s.id));
   }
 }
 function toggleSafetyTag(i){
@@ -2698,7 +2789,7 @@ function updateDoseTable(id){
 }
 
 /* ---------- import (fixed format) ---------- */
-const IMPORT_KEYS = ['title','category','folder','tags','confidence','point','memo','ic','links','doses','body','encounter','killer','list','approach','redflag','exams','labs','mixing','citation','conclusion','p','i','c','o','results','implication','jc','modality','region','findings','ddx','dx','use','source','doctor','severity','occurred','discovered','course','response','prevention','people','status','pid','difficulty'];
+const IMPORT_KEYS = ['title','category','folder','tags','confidence','point','memo','ic','links','doses','body','encounter','age','sex','killer','list','approach','redflag','exams','labs','mixing','citation','conclusion','p','i','c','o','results','implication','jc','modality','region','findings','ddx','dx','use','source','doctor','severity','occurred','discovered','course','response','prevention','people','status','pid','difficulty'];
 const MULTILINE_KEYS = new Set(['memo','ic','links','doses','body','killer','list','approach','redflag','exams','labs','mixing','results','implication','jc','findings','ddx','course','response','prevention']);
 function parseImport(text){
   const blocks = text.split(/^\s*---\s*$/m).map(b=>b.trim()).filter(Boolean);
@@ -2735,6 +2826,7 @@ function recToEntity(type, rec){
     return {kind:'case', data:{
       id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
       title:(rec.title||'').trim(), pid:'', pname:'', encounter:(rec.encounter||'').trim(),
+      age:(rec.age||'').trim(), sex:({'男':'M','男性':'M','M':'M','m':'M','女':'F','女性':'F','F':'F','f':'F'}[(rec.sex||'').trim()]||''),
       source:(rec.source==='conf'?'conf':'self'), doctor:(rec.doctor||'').trim(),
       category:(rec.category||'').trim(), status:(getStatuses()[0]?.id||''), confidence:conf,
       tags, point:(rec.point||'').trim(), memo:(rec.memo||'').trim(),
@@ -2783,6 +2875,7 @@ function recToEntity(type, rec){
       id:uid(), createdAt:now(), updatedAt:now(), deleted:false,
       title:(rec.title||'').trim(), modality:(rec.modality||'').trim(), region:(rec.region||'').trim(),
       use:(['mine','study','typical'].includes(rec.use)?rec.use:'typical'), pid:(rec.pid||'').trim(), difficulty:parseInt(rec.difficulty,10)||0,
+      age:(rec.age||'').trim(), sex:({'男':'M','男性':'M','M':'M','m':'M','女':'F','女性':'F','F':'F','f':'F'}[(rec.sex||'').trim()]||''),
       tags, findings:(rec.findings||rec.memo||'').trim(), ddx:splitLines(rec.ddx||''),
       dx:(rec.dx||'').trim(), body:(rec.body||'').trim(), encounter:(rec.encounter||'').trim()
     }};
