@@ -950,9 +950,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.27.0
+   Med OS v2.28.0
 ========================================================= */
-const APP_VERSION = 'v2.27.0';
+const APP_VERSION = 'v2.28.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1017,7 +1017,15 @@ let calSelected = '';
 /* ---------- utils ---------- */
 const $ = id => document.getElementById(id);
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-const now = () => new Date().toISOString();
+let _lastTs='';
+const now = () => {
+  let t=new Date().toISOString();
+  if(t<=_lastTs){ // 直前と同じ/古い場合は1ms進めて必ず新しくする
+    t=new Date(new Date(_lastTs).getTime()+1).toISOString();
+  }
+  _lastTs=t;
+  return t;
+};
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 
@@ -3037,9 +3045,26 @@ async function cloudSync(mode){
     if(!res.ok) throw new Error('HTTP '+res.status);
     const merged=await res.json();
     if(!merged||!Array.isArray(merged.cases)) throw new Error('不正な応答(GAS再デプロイを確認)');
-    // マージ結果をローカルに反映(updatedAtで既にサーバ側マージ済み)
-    state.cases=merged.cases; state.plans=merged.plans;
-    state.notes=merged.notes||[]; state.treatments=merged.treatments||[]; state.ddx=merged.ddx||[]; state.papers=merged.papers||[]; state.images=merged.images||[]; state.safety=merged.safety||[]; state.meta=merged.meta||[];
+    // サーバ応答をローカルにマージ。同期の往復中にローカルで加えた変更(より新しいupdatedAt)は守る
+    const mergeLocal=(localArr, serverArr)=>{
+      const map={};
+      (serverArr||[]).forEach(r=>{ if(r&&r.id) map[r.id]=r; });
+      (localArr||[]).forEach(r=>{
+        if(!r||!r.id) return;
+        const s=map[r.id];
+        if(!s || String(r.updatedAt||'')>String(s.updatedAt||'')) map[r.id]=r; // ローカルが新しければ優先
+      });
+      return Object.keys(map).map(k=>map[k]);
+    };
+    state.cases=mergeLocal(state.cases,merged.cases);
+    state.plans=mergeLocal(state.plans,merged.plans);
+    state.notes=mergeLocal(state.notes,merged.notes);
+    state.treatments=mergeLocal(state.treatments,merged.treatments);
+    state.ddx=mergeLocal(state.ddx,merged.ddx);
+    state.papers=mergeLocal(state.papers,merged.papers);
+    state.images=mergeLocal(state.images,merged.images);
+    state.safety=mergeLocal(state.safety,merged.safety);
+    state.meta=mergeLocal(state.meta,merged.meta);
     state.settings.lastSync=now();
     localStorage.setItem(LS_KEY, JSON.stringify(state)); // 再帰予約を避け直接保存
     applyTabLabels();
