@@ -105,6 +105,49 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 
 .plan-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;margin-bottom:10px;box-shadow:var(--shadow)}
 .plan-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.today-todo{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.today-todo .tt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.today-todo .tt-title{font-weight:700;font-size:15px}
+.today-todo .tt-datenav{display:flex;align-items:center;gap:8px}
+.today-todo .tt-datenav span{font-size:13px;color:var(--ink-soft);cursor:pointer;min-width:88px;text-align:center}
+.tt-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.tt-item:last-of-type{border-bottom:none}
+.tt-item input[type=checkbox]{width:19px;height:19px;flex-shrink:0;accent-color:var(--pine);cursor:pointer}
+.tt-item .tt-text{flex:1;font-size:14.5px}
+.tt-item.done .tt-text{text-decoration:line-through;color:var(--ink-soft)}
+.tt-item .tt-del{background:none;border:none;color:var(--ink-soft);font-size:17px;cursor:pointer;padding:0 4px;flex-shrink:0}
+.tt-input{width:100%;margin-top:10px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:14px;font-family:inherit}
+.tt-empty{font-size:13px;color:var(--ink-soft);padding:6px 0}
+.ward-datebar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.ward-datebar .ward-date-label{font-size:12px;color:var(--ink-soft)}
+.ward-datebar #wardDateLabel{font-size:14px;font-weight:600;cursor:pointer;min-width:96px;text-align:center}
+.ward-datebar .ward-showdis{font-size:12.5px;color:var(--ink-soft);display:flex;align-items:center;gap:5px;cursor:pointer}
+.ward-datebar .ward-showdis input{width:auto}
+.ward-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:11px}
+.ward-card.discharged{opacity:.55}
+.ward-card .wc-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.ward-card .wc-id{font-weight:700;font-size:15px}
+.ward-card .wc-demo{font-size:12.5px;color:var(--ink-soft);margin-left:2px}
+.ward-card .wc-room{font-size:11.5px;color:var(--ink-soft);background:var(--wash);border-radius:5px;padding:1px 7px;margin-left:6px}
+.ward-card .wc-dx{font-size:13.5px;margin:2px 0 8px;color:var(--ink)}
+.ward-card .wc-edit{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:13px;flex-shrink:0}
+.ward-checks{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}
+.ward-check{display:flex;align-items:center;gap:5px;font-size:12.5px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:var(--paper);cursor:pointer;user-select:none}
+.ward-check.on{background:var(--pine-soft);border-color:var(--pine);color:var(--pine);font-weight:600}
+.ward-check .wk-dot{font-size:11px}
+.ward-tasks{margin-top:8px}
+.ward-task{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:13.5px}
+.ward-task input[type=checkbox]{width:17px;height:17px;flex-shrink:0;accent-color:var(--pine);cursor:pointer}
+.ward-task.done span{text-decoration:line-through;color:var(--ink-soft)}
+.ward-task .wt-txt{flex:1}
+.ward-task .wt-date{font-size:11px;color:var(--amber);background:var(--amber-soft);border-radius:4px;padding:0 5px;flex-shrink:0}
+.ward-task .wt-del{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:15px;flex-shrink:0}
+.ward-addtask{display:flex;gap:6px;margin-top:8px;align-items:center}
+.ward-addtask input[type=text]{flex:1;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-size:13px;font-family:inherit}
+.ward-addtask input[type=date]{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-size:12px;font-family:inherit;width:140px}
+.ward-card .wc-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.ward-card .wc-actions .btn{padding:6px 12px;font-size:12.5px}
+.ward-note-box{background:var(--wash);border-radius:8px;padding:8px 11px;margin-top:8px;font-size:12.5px}
 .sel-bar{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
 .sel-bar .sel-all{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
 .sel-bar .sel-all input{width:auto}
@@ -347,11 +390,24 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   <button id="tabStudy" onclick="switchTab('study')"><span class="tab-label" data-tab="study">勉強用</span></button>
   <button id="tabImg" onclick="switchTab('img')"><span class="tab-label" data-tab="img">画 像</span></button>
   <button id="tabSafety" onclick="switchTab('safety')"><span class="tab-label" data-tab="safety">安 全</span></button>
+  <button id="tabWard" onclick="switchTab('ward')"><span class="tab-label" data-tab="ward">病 棟</span></button>
 </nav>
 
 <main>
   <!-- ===== plans ===== -->
   <section id="viewPlans">
+    <div class="today-todo">
+      <div class="tt-head">
+        <span class="tt-title">今日のやりたいこと</span>
+        <div class="tt-datenav">
+          <button class="cal-nav" onclick="todoDateMove(-1)">◀</button>
+          <span id="todoDateLabel" onclick="todoDateToday()" title="タップで今日へ"></span>
+          <button class="cal-nav" onclick="todoDateMove(1)">▶</button>
+        </div>
+      </div>
+      <div id="todoList"></div>
+      <input type="text" id="todoInput" class="tt-input" placeholder="やりたいことを入力してEnter" onkeydown="if(event.key==='Enter')addTodo()">
+    </div>
     <div class="cal">
       <div class="cal-head">
         <button class="cal-nav" onclick="calMove(-1)">◀</button>
@@ -522,6 +578,22 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
     <div class="tag-chips" id="safetyChips"></div>
     <div class="case-grid" id="safetyGrid"></div>
     <div id="safetyTable" style="display:none"></div>
+  </section>
+
+  <!-- ===== ward (病棟患者) ===== -->
+  <section id="viewWard" style="display:none">
+    <div class="ward-datebar">
+      <span class="ward-date-label">対象日</span>
+      <button class="cal-nav" onclick="wardDateMove(-1)">◀</button>
+      <span id="wardDateLabel" onclick="wardDateToday()" title="タップで今日へ"></span>
+      <button class="cal-nav" onclick="wardDateMove(1)">▶</button>
+      <div class="spacer"></div>
+      <label class="ward-showdis"><input type="checkbox" id="wardShowDischarged" onchange="renderWard()"> 退院も表示</label>
+    </div>
+    <div class="filter-bar">
+      <input type="search" id="wardSearch" placeholder="患者を検索(ID・病名・メモ)" oninput="renderWard()">
+    </div>
+    <div class="case-grid" id="wardGrid"></div>
   </section>
 </main>
 
@@ -845,6 +917,32 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   </div>
 </div>
 
+<!-- ===== ward patient modal ===== -->
+<div class="overlay" id="wardOverlay">
+  <div class="modal">
+    <h3 id="wardModalTitle">患者を追加</h3>
+    <div class="hint" style="margin:-6px 0 12px">⚠ 個人が特定されない形(院内ID・匿名)で。氏名は入れないでください。</div>
+    <div class="form-grid">
+      <div class="form-row"><label>患者ID</label><input type="text" id="wPid" placeholder="院内IDなど"></div>
+      <div class="form-row"><label>部屋・ベッド(任意)</label><input type="text" id="wRoom" placeholder="例 502-A"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>年齢</label><input type="text" id="wAge" placeholder="例 72歳"></div>
+      <div class="form-row"><label>性別</label>
+        <select id="wSex"><option value="">—</option><option value="M">男性</option><option value="F">女性</option><option value="other">その他</option></select>
+      </div>
+    </div>
+    <div class="form-row"><label>病名・一言サマリー</label><input type="text" id="wDx" placeholder="例 市中肺炎(右下葉)/ COPD急性増悪"></div>
+    <div class="form-row"><label>注意点・申し送り(簡易Markdown可)</label><textarea id="wNote" style="min-height:90px" placeholder="## 注意&#10;- 転倒リスク&#10;- 腎機能低下、造影注意"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn danger" id="wDeleteBtn" onclick="deleteWard()" style="display:none">完全に削除</button>
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('wardOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="saveWard()">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== detail modal (shared) ===== -->
 <div class="overlay" id="detailOverlay">
   <div class="modal" id="detailBody"></div>
@@ -950,9 +1048,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.28.0
+   Med OS v2.29.0
 ========================================================= */
-const APP_VERSION = 'v2.28.0';
+const APP_VERSION = 'v2.29.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1007,7 +1105,7 @@ function planChecklist(p){
 }
 const WD = ['日','月','火','水','木','金','土'];
 
-let state = { cases:[], plans:[], notes:[], treatments:[], ddx:[], papers:[], images:[], safety:[], meta:[], settings:{ gasUrl:'', lastSync:null, lastWeight:'', globalWeight:'', theme:'', autoSync:true } };
+let state = { cases:[], plans:[], notes:[], treatments:[], ddx:[], papers:[], images:[], safety:[], todos:[], ward:[], meta:[], settings:{ gasUrl:'', lastSync:null, lastWeight:'', globalWeight:'', theme:'', autoSync:true } };
 let activeTab = 'plans';
 let editingPlanId=null, editingCaseId=null, editingNoteId=null, editingTxId=null;
 let activeTags=new Set(), activeFolder='', activeTxTags=new Set();
@@ -1230,8 +1328,8 @@ function groupMgmtRemove(tab, i){
 }
 
 /* ---------- タブ名のカスタマイズ ---------- */
-const TAB_ORDER=['plans','cases','notes','tx','ddx','papers','gallery','study','img','safety'];
-const TAB_DEFAULT={plans:'計 画',cases:'症 例',notes:'ノート',tx:'治 療',ddx:'鑑 別',papers:'論 文',gallery:'症例集',study:'勉強用',img:'画 像',safety:'安 全'};
+const TAB_ORDER=['plans','cases','notes','tx','ddx','papers','gallery','study','img','safety','ward'];
+const TAB_DEFAULT={plans:'計 画',cases:'症 例',notes:'ノート',tx:'治 療',ddx:'鑑 別',papers:'論 文',gallery:'症例集',study:'勉強用',img:'画 像',safety:'安 全',ward:'病 棟'};
 function tabLabelRecord(){
   let r=state.meta.find(m=>m.id==='tabLabels');
   if(!r){ r={id:'tabLabels', map:{}, updatedAt:now()}; state.meta.push(r); }
@@ -1337,7 +1435,7 @@ function md(src){
 /* ---------- tabs ---------- */
 function switchTab(tab){
   activeTab=tab;
-  for(const [id,t] of [['tabPlans','plans'],['tabCases','cases'],['tabNotes','notes'],['tabTx','tx'],['tabDdx','ddx'],['tabPapers','papers'],['tabGallery','gallery'],['tabStudy','study'],['tabImg','img'],['tabSafety','safety']])
+  for(const [id,t] of [['tabPlans','plans'],['tabCases','cases'],['tabNotes','notes'],['tabTx','tx'],['tabDdx','ddx'],['tabPapers','papers'],['tabGallery','gallery'],['tabStudy','study'],['tabImg','img'],['tabSafety','safety'],['tabWard','ward']])
     $(id).classList.toggle('active', tab===t);
   $('viewPlans').style.display = tab==='plans'?'':'none';
   $('viewCases').style.display = tab==='cases'?'':'none';
@@ -1349,6 +1447,7 @@ function switchTab(tab){
   $('viewStudy').style.display = tab==='study'?'':'none';
   $('viewImg').style.display   = tab==='img'?'':'none';
   $('viewSafety').style.display= tab==='safety'?'':'none';
+  $('viewWard').style.display  = tab==='ward'?'':'none';
   render();
 }
 function fabClick(){
@@ -1361,6 +1460,7 @@ function fabClick(){
   else if(activeTab==='gallery') openImgModal(null,'typical');
   else if(activeTab==='study') openImgModal(null,'study');
   else if(activeTab==='img') openImgModal(null,'mine');
+  else if(activeTab==='ward') openWardModal();
   else openSafetyModal();
 }
 
@@ -1484,7 +1584,192 @@ function togglePlanDone(id){
   }
   p.updatedAt=now(); saveState(); renderPlans();
 }
+/* ---------- 今日のやりたいこと(デイリーToDo) ---------- */
+let todoDate = todayStr();
+function liveTodos(){ return (state.todos||[]).filter(t=>!t.deleted); }
+function todosOf(date){ return liveTodos().filter(t=>t.date===date).sort((a,b)=>(a.createdAt||'')<(b.createdAt||'')?-1:1); }
+function fmtTodoDate(d){
+  const dt=new Date(d+'T00:00:00');
+  const wd=['日','月','火','水','木','金','土'][dt.getDay()];
+  const t=todayStr();
+  let rel='';
+  if(d===t) rel='今日';
+  else{
+    const diff=Math.round((dt-new Date(t+'T00:00:00'))/86400000);
+    if(diff===1) rel='明日'; else if(diff===2) rel='明後日'; else if(diff===-1) rel='昨日';
+  }
+  return `${dt.getMonth()+1}/${dt.getDate()}(${wd})${rel?' '+rel:''}`;
+}
+function renderTodos(){
+  const lbl=$('todoDateLabel'); if(lbl) lbl.textContent=fmtTodoDate(todoDate);
+  const host=$('todoList'); if(!host) return;
+  const list=todosOf(todoDate);
+  host.innerHTML = list.length ? list.map(t=>`
+    <div class="tt-item ${t.done?'done':''}">
+      <input type="checkbox" ${t.done?'checked':''} onclick="toggleTodo('${t.id}')">
+      <span class="tt-text">${esc(t.text)}</span>
+      <button class="tt-del" onclick="deleteTodo('${t.id}')" title="削除">×</button>
+    </div>`).join('') : '<div class="tt-empty">この日のやりたいことはまだありません。下に入力してEnter。</div>';
+}
+function addTodo(){
+  const el=$('todoInput'); if(!el) return;
+  const text=el.value.trim(); if(!text) return;
+  state.todos.push({id:uid(), date:todoDate, text, done:false, createdAt:now(), updatedAt:now(), deleted:false});
+  el.value=''; saveState(); renderTodos();
+}
+function toggleTodo(id){
+  const t=state.todos.find(x=>x.id===id); if(!t) return;
+  t.done=!t.done; t.updatedAt=now(); saveState(); renderTodos();
+}
+function deleteTodo(id){
+  const t=state.todos.find(x=>x.id===id); if(!t) return;
+  t.deleted=true; t.updatedAt=now(); saveState(); renderTodos();
+}
+function todoDateMove(n){
+  const d=new Date(todoDate+'T00:00:00'); d.setDate(d.getDate()+n);
+  todoDate=d.toISOString().slice(0,10); renderTodos();
+}
+function todoDateToday(){ todoDate=todayStr(); renderTodos(); }
+
+/* ---------- 病棟患者 ---------- */
+let wardDate = todayStr();
+let editingWardId = null;
+const WARD_CHECKS = [
+  {key:'labs', label:'採血', icon:'🩸'},
+  {key:'xray', label:'レントゲン', icon:'📷'},
+  {key:'rx', label:'定期処方', icon:'💊'},
+  {key:'drip', label:'点滴', icon:'💧'}
+];
+function liveWard(){ return (state.ward||[]).filter(w=>!w.deleted); }
+function fmtWardDate(d){
+  const dt=new Date(d+'T00:00:00');
+  const wd=['日','月','火','水','木','金','土'][dt.getDay()];
+  const t=todayStr(); let rel='';
+  if(d===t) rel='今日';
+  else{ const diff=Math.round((dt-new Date(t+'T00:00:00'))/86400000);
+    if(diff===1) rel='明日'; else if(diff===2) rel='明後日'; else if(diff===-1) rel='昨日'; }
+  return `${dt.getMonth()+1}/${dt.getDate()}(${wd})${rel?' '+rel:''}`;
+}
+// その患者・その日のチェック状態(採血など)。w.checks = { '2026-07-21': {labs:true,...} }
+function wardCheckOn(w, date, key){ return !!(w.checks && w.checks[date] && w.checks[date][key]); }
+function toggleWardCheck(id, key){
+  const w=state.ward.find(x=>x.id===id); if(!w) return;
+  if(!w.checks) w.checks={};
+  if(!w.checks[wardDate]) w.checks[wardDate]={};
+  w.checks[wardDate][key]=!w.checks[wardDate][key];
+  w.updatedAt=now(); saveState(); renderWard();
+}
+function wardTasksOf(w, date){ return (w.tasks||[]).filter(t=>!t.deleted && t.date===date).sort((a,b)=>(a.createdAt||'')<(b.createdAt||'')?-1:1); }
+function addWardTask(id){
+  const w=state.ward.find(x=>x.id===id); if(!w) return;
+  const txt=$('wtInput_'+id); const dt=$('wtDate_'+id);
+  const text=txt?txt.value.trim():''; if(!text) return;
+  const date=(dt&&dt.value)?dt.value:wardDate;
+  if(!w.tasks) w.tasks=[];
+  w.tasks.push({id:uid(), date, text, done:false, createdAt:now()});
+  w.updatedAt=now(); saveState(); renderWard();
+}
+function toggleWardTask(wid, tid){
+  const w=state.ward.find(x=>x.id===wid); if(!w) return;
+  const t=(w.tasks||[]).find(x=>x.id===tid); if(!t) return;
+  t.done=!t.done; w.updatedAt=now(); saveState(); renderWard();
+}
+function deleteWardTask(wid, tid){
+  const w=state.ward.find(x=>x.id===wid); if(!w) return;
+  const t=(w.tasks||[]).find(x=>x.id===tid); if(!t) return;
+  t.deleted=true; w.updatedAt=now(); saveState(); renderWard();
+}
+function dischargeWard(id){
+  const w=state.ward.find(x=>x.id===id); if(!w) return;
+  if(!confirm('この患者を退院にしてリストから外しますか?(記録は残ります)')) return;
+  w.active=false; w.dischargedAt=now(); w.updatedAt=now(); saveState(); renderWard(); toast('退院にしました');
+}
+function readmitWard(id){
+  const w=state.ward.find(x=>x.id===id); if(!w) return;
+  w.active=true; w.dischargedAt=null; w.updatedAt=now(); saveState(); renderWard();
+}
+function wardDateMove(n){
+  const d=new Date(wardDate+'T00:00:00'); d.setDate(d.getDate()+n);
+  wardDate=d.toISOString().slice(0,10); renderWard();
+}
+function wardDateToday(){ wardDate=todayStr(); renderWard(); }
+function renderWard(){
+  const lbl=$('wardDateLabel'); if(lbl) lbl.textContent=fmtWardDate(wardDate);
+  const showDis=$('wardShowDischarged') && $('wardShowDischarged').checked;
+  const q=($('wardSearch')?$('wardSearch').value:'').trim().toLowerCase();
+  let list=liveWard().filter(w=>{
+    if(!showDis && w.active===false) return false;
+    if(q){ const hay=[w.pid,w.dx,w.note,w.room,w.age].join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
+    return true;
+  }).sort((a,b)=>{
+    if((a.active===false)!==(b.active===false)) return a.active===false?1:-1;
+    return (a.pid||'').localeCompare(b.pid||'','ja');
+  });
+  $('wardGrid').innerHTML = list.length ? list.map(w=>{
+    const demo=[w.age,(w.sex&&SEX_LABEL[w.sex])].filter(Boolean).join('・');
+    const checks=WARD_CHECKS.map(c=>`<div class="ward-check ${wardCheckOn(w,wardDate,c.key)?'on':''}" onclick="toggleWardCheck('${w.id}','${c.key}')"><span class="wk-dot">${c.icon}</span>${c.label}</div>`).join('');
+    const tasks=wardTasksOf(w,wardDate).map(t=>`
+      <div class="ward-task ${t.done?'done':''}">
+        <input type="checkbox" ${t.done?'checked':''} onclick="toggleWardTask('${w.id}','${t.id}')">
+        <span class="wt-txt">${esc(t.text)}</span>
+        <button class="wt-del" onclick="deleteWardTask('${w.id}','${t.id}')">×</button>
+      </div>`).join('');
+    // 別日の予定タスク数(先の日付に入っているもの)
+    const future=(w.tasks||[]).filter(t=>!t.deleted && t.date>wardDate && !t.done).length;
+    return `<div class="ward-card ${w.active===false?'discharged':''}">
+      <div class="wc-top">
+        <div style="flex:1">
+          <span class="wc-id">🪪 ${esc(displayPid(w))}</span>
+          ${demo?`<span class="wc-demo">${esc(demo)}</span>`:''}
+          ${w.room?`<span class="wc-room">${esc(w.room)}</span>`:''}
+          ${w.active===false?`<span class="wc-room" style="color:var(--shu)">退院</span>`:''}
+        </div>
+        <button class="wc-edit" onclick="openWardModal('${w.id}')">編集</button>
+      </div>
+      ${w.dx?`<div class="wc-dx">${esc(w.dx)}</div>`:''}
+      <div class="ward-checks">${checks}</div>
+      ${w.note?`<div class="ward-note-box">${md(w.note)}</div>`:''}
+      <div class="ward-tasks">${tasks||''}</div>
+      <div class="ward-addtask">
+        <input type="text" id="wtInput_${w.id}" placeholder="この患者のやること" onkeydown="if(event.key==='Enter')addWardTask('${w.id}')">
+        <input type="date" id="wtDate_${w.id}" value="${wardDate}" title="タスクの日付">
+      </div>
+      ${future?`<div class="hint" style="margin-top:5px">先の日付に未完了タスク ${future}件</div>`:''}
+      <div class="wc-actions">
+        ${w.active===false
+          ? `<button class="btn" onclick="readmitWard('${w.id}')">再入院に戻す</button>`
+          : `<button class="btn" onclick="dischargeWard('${w.id}')">✓ 退院にする</button>`}
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty">病棟患者はまだいません。＋で追加。</div>';
+}
+function openWardModal(id){
+  editingWardId=id||null;
+  const w=id?state.ward.find(x=>x.id===id):null;
+  $('wardModalTitle').textContent=w?'患者を編集':'患者を追加';
+  $('wPid').value=w?.pid||''; $('wRoom').value=w?.room||'';
+  $('wAge').value=w?.age||''; $('wSex').value=w?.sex||'';
+  $('wDx').value=w?.dx||''; $('wNote').value=w?.note||'';
+  $('wDeleteBtn').style.display=w?'':'none';
+  closeOverlay('detailOverlay'); $('wardOverlay').classList.add('open');
+}
+function saveWard(){
+  const pid=$('wPid').value.trim();
+  if(!pid){ toast('患者IDを入力してください'); return; }
+  const data={ pid, room:$('wRoom').value.trim(), age:$('wAge').value.trim(), sex:$('wSex').value,
+    dx:$('wDx').value.trim(), note:$('wNote').value, updatedAt:now() };
+  if(editingWardId) Object.assign(state.ward.find(x=>x.id===editingWardId),data);
+  else state.ward.push(Object.assign({id:uid(),active:true,checks:{},tasks:[],createdAt:now(),deleted:false},data));
+  saveState(); closeOverlay('wardOverlay'); renderWard(); toast('保存しました');
+}
+function deleteWard(){
+  if(!editingWardId||!confirm('この患者を完全に削除しますか?')) return;
+  const w=state.ward.find(x=>x.id===editingWardId);
+  w.deleted=true; w.updatedAt=now(); saveState(); closeOverlay('wardOverlay'); renderWard(); toast('削除しました');
+}
+
 function renderPlans(){
+  renderTodos();
   renderCalendar();
   // kind filter chips
   const kinds=['study','opd','conf','surg','other'];
@@ -3040,7 +3325,7 @@ async function cloudSync(mode){
     const res=await fetch(state.settings.gasUrl,{
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({cases:state.cases,plans:state.plans,notes:state.notes,treatments:state.treatments,ddx:state.ddx,papers:state.papers,images:state.images,safety:state.safety,meta:state.meta})
+      body:JSON.stringify({cases:state.cases,plans:state.plans,notes:state.notes,treatments:state.treatments,ddx:state.ddx,papers:state.papers,images:state.images,safety:state.safety,todos:state.todos,ward:state.ward,meta:state.meta})
     });
     if(!res.ok) throw new Error('HTTP '+res.status);
     const merged=await res.json();
@@ -3064,6 +3349,8 @@ async function cloudSync(mode){
     state.papers=mergeLocal(state.papers,merged.papers);
     state.images=mergeLocal(state.images,merged.images);
     state.safety=mergeLocal(state.safety,merged.safety);
+    state.todos=mergeLocal(state.todos,merged.todos);
+    state.ward=mergeLocal(state.ward,merged.ward);
     state.meta=mergeLocal(state.meta,merged.meta);
     state.settings.lastSync=now();
     localStorage.setItem(LS_KEY, JSON.stringify(state)); // 再帰予約を避け直接保存
@@ -3111,6 +3398,7 @@ function render(){
   else if(activeTab==='gallery') renderGallery();
   else if(activeTab==='study') renderStudy();
   else if(activeTab==='img') renderImg();
+  else if(activeTab==='ward') renderWard();
   else renderSafety();
 }
 
