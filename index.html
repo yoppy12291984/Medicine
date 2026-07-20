@@ -71,7 +71,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .cal-wd{font-size:11px;color:var(--ink-soft);text-align:center;padding:2px 0;font-weight:700}
 .cal-wd.sun{color:var(--shu)} .cal-wd.sat{color:#3D6B9E}
-.cal-cell{min-height:46px;border-radius:7px;padding:3px 4px;font-size:12px;position:relative;cursor:pointer;border:1px solid transparent}
+.cal-cell{min-height:58px;border-radius:7px;padding:3px 4px;font-size:12px;position:relative;cursor:pointer;border:1px solid transparent;overflow:hidden}
 .cal-cell:hover{background:var(--paper)}
 .cal-cell.other{opacity:.32}
 .cal-cell.today{border-color:var(--pine);font-weight:700}
@@ -83,6 +83,12 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .cal-dots i.overdue{background:var(--shu)}
 .cal-dots i.open{background:var(--amber)}
 .cal-dots i.done{background:var(--pine)}
+.cal-evs{display:flex;flex-direction:column;gap:2px;margin-top:2px}
+.cal-ev{font-size:9px;line-height:1.25;padding:1px 3px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;border-left:2px solid transparent}
+.cal-ev.open{background:var(--amber-soft);border-left-color:var(--amber);color:var(--ink)}
+.cal-ev.overdue{background:var(--shu-soft);border-left-color:var(--shu);color:var(--shu)}
+.cal-ev.done{background:var(--wash);border-left-color:var(--pine);color:var(--ink-soft);text-decoration:line-through}
+.cal-more{font-size:9px;color:var(--ink-soft);padding-left:3px}
 .cal-day-panel{border-top:1px dashed var(--line);margin-top:8px;padding:8px 4px 4px;display:none}
 .cal-day-panel.open{display:block}
 .cal-day-panel .dp-title{font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
@@ -105,19 +111,21 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 
 .plan-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;margin-bottom:10px;box-shadow:var(--shadow)}
 .plan-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.today-todo{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
-.today-todo .tt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.today-todo .tt-title{font-weight:700;font-size:15px}
-.today-todo .tt-datenav{display:flex;align-items:center;gap:8px}
-.today-todo .tt-datenav span{font-size:13px;color:var(--ink-soft);cursor:pointer;min-width:88px;text-align:center}
-.tt-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.today-todo{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:14px}
+.today-todo .tt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.today-todo .tt-title{font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.today-todo .tt-datenav{display:flex;align-items:center;gap:6px}
+.today-todo .tt-datenav span{font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;min-width:92px;text-align:center;letter-spacing:.01em}
+.tt-item{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--line)}
 .tt-item:last-of-type{border-bottom:none}
-.tt-item input[type=checkbox]{width:19px;height:19px;flex-shrink:0;accent-color:var(--pine);cursor:pointer}
-.tt-item .tt-text{flex:1;font-size:14.5px}
+.tt-item input[type=checkbox]{width:18px;height:18px;flex-shrink:0;accent-color:var(--pine);cursor:pointer}
+.tt-item .tt-text{flex:1;font-size:14px;line-height:1.35;letter-spacing:.01em}
 .tt-item.done .tt-text{text-decoration:line-through;color:var(--ink-soft)}
-.tt-item .tt-del{background:none;border:none;color:var(--ink-soft);font-size:17px;cursor:pointer;padding:0 4px;flex-shrink:0}
-.tt-input{width:100%;margin-top:10px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:14px;font-family:inherit}
-.tt-empty{font-size:13px;color:var(--ink-soft);padding:6px 0}
+.tt-item .tt-del{background:none;border:none;color:var(--ink-soft);font-size:16px;cursor:pointer;padding:0 2px;flex-shrink:0;opacity:.6}
+.tt-item .tt-del:hover{opacity:1}
+.tt-input{width:100%;margin-top:9px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);font-size:13.5px;letter-spacing:.01em;font-family:inherit}
+.tt-input::placeholder{color:var(--ink-soft);opacity:.7}
+.tt-empty{font-size:12.5px;color:var(--ink-soft);padding:4px 0;letter-spacing:.01em}
 .ward-datebar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .ward-datebar .ward-date-label{font-size:12px;color:var(--ink-soft)}
 .ward-datebar #wardDateLabel{font-size:14px;font-weight:600;cursor:pointer;min-width:96px;text-align:center}
@@ -148,6 +156,11 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .ward-card .wc-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .ward-card .wc-actions .btn{padding:6px 12px;font-size:12.5px}
 .ward-note-box{background:var(--wash);border-radius:8px;padding:8px 11px;margin-top:8px;font-size:12.5px}
+.tab-order-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.tab-order-btns{display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+.tab-order-btns .btn{padding:1px 7px;font-size:10px;line-height:1.3;min-width:0}
+.tab-order-btns .btn:disabled{opacity:.3;cursor:not-allowed}
+.tab-order-row input{flex:1}
 .sel-bar{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
 .sel-bar .sel-all{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
 .sel-bar .sel-all input{width:auto}
@@ -197,6 +210,10 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .kind-conf{background:var(--shu-soft);color:var(--shu)}
 .kind-surg{background:var(--pine-soft);color:var(--pine)}
 .kind-other{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line)}
+.kind-paper{background:var(--amber-soft);color:var(--gold)}
+.kind-consult{background:var(--shu-soft);color:var(--shu)}
+.kind-submit{background:var(--amber-soft);color:var(--amber)}
+.kind-exam{background:var(--pine-soft);color:var(--pine)}
 .sev-badge{font-size:11px;padding:1px 8px;border-radius:6px;font-weight:700}
 .sev-low{background:var(--pine-soft);color:var(--pine)}
 .sev-mid{background:var(--amber-soft);color:var(--amber)}
@@ -594,6 +611,17 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <input type="search" id="wardSearch" placeholder="患者を検索(ID・病名・メモ)" oninput="renderWard()">
     </div>
     <div class="case-grid" id="wardGrid"></div>
+    <div class="cal" style="margin-top:16px">
+      <div class="cal-head">
+        <button class="cal-nav" onclick="wardCalMove(-1)">◀</button>
+        <div class="title" id="wardCalTitle"></div>
+        <button class="cal-nav" onclick="wardCalMove(1)">▶</button>
+        <button class="cal-today-btn" onclick="wardCalToday()">今日</button>
+      </div>
+      <div class="hint" style="margin:0 0 6px">患者ごとの日付つきタスクを表示します。日付をタップで一覧。</div>
+      <div class="cal-grid" id="wardCalGrid"></div>
+      <div class="cal-day-panel" id="wardCalDayPanel"></div>
+    </div>
   </section>
 </main>
 
@@ -608,6 +636,10 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
     <div class="form-grid">
       <div class="form-row"><label>種別</label>
         <select id="pKind">
+          <option value="paper">論文(締め切り)</option>
+          <option value="consult">コンサルト</option>
+          <option value="submit">提出物</option>
+          <option value="exam">検査</option>
           <option value="study">学習</option>
           <option value="opd">外来予習</option>
           <option value="conf">カンファ提出</option>
@@ -1025,9 +1057,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <div class="hint">各タブのカードを場面で分類できます(例 治療:救急/ICU/病棟/抗癌剤)。カード編集画面でグループを選び、タブ上部のチップで絞り込めます。</div>
     </div>
     <div class="form-row">
-      <label>タブ名のカスタマイズ</label>
+      <label>タブの並び替え・名前変更</label>
       <div id="tabLabelList"></div>
-      <div class="hint">各タブの表示名を自由に変えられます。空欄にすると左の既定名に戻ります。変更は全端末に同期されます。</div>
+      <div class="hint">▲▼でタブの順番を入れ替え、右の欄で表示名を変えられます。空欄で既定名に戻ります。変更は全端末に同期されます。</div>
     </div>
     <div class="form-row">
       <label>画像タグの管理(症例集・勉強用・画像 共通)</label>
@@ -1048,9 +1080,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.29.0
+   Med OS v2.33.0
 ========================================================= */
-const APP_VERSION = 'v2.29.0';
+const APP_VERSION = 'v2.33.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1084,8 +1116,8 @@ const CONF_LABEL = {confirmed:'確定', review:'要確認', ai:'AI初期知識'}
 const CONF_ALIAS = {'確定':'confirmed','裏取り済':'confirmed','確定(裏取り済)':'confirmed','要確認':'review','ai初期知識':'ai','ai':'ai','初期知識':'ai'};
 const PLAN_STATUS = ['todo','doing','done'];
 const PLAN_STATUS_LABEL = {todo:'To Do', doing:'In Progress', done:'Done'};
-const PLAN_KIND_LABEL = {study:'学習', opd:'外来予習', conf:'カンファ提出', surg:'外科相談', other:'その他'};
-const PLAN_KIND_CLASS = {study:'kind-study', opd:'kind-opd', conf:'kind-conf', surg:'kind-surg', other:'kind-other'};
+const PLAN_KIND_LABEL = {study:'学習', opd:'外来予習', conf:'カンファ提出', surg:'外科相談', paper:'論文', consult:'コンサルト', submit:'提出物', exam:'検査', other:'その他'};
+const PLAN_KIND_CLASS = {study:'kind-study', opd:'kind-opd', conf:'kind-conf', surg:'kind-surg', paper:'kind-paper', consult:'kind-consult', submit:'kind-submit', exam:'kind-exam', other:'kind-other'};
 let activePlanKind = '';
 // checklist: parse text lines into [{text,done}], and serialize back
 function parseChecklist(text){
@@ -1345,12 +1377,48 @@ function applyTabLabels(){
     const t=el.getAttribute('data-tab'); if(t) el.textContent=tabLabel(t);
   });
 }
+// タブ並び順(metaに保存)。未設定/欠けたタブはTAB_ORDERで補完
+function tabOrderRecord(){
+  let r=state.meta.find(m=>m.id==='tabOrder');
+  if(!r){ r={id:'tabOrder', order:[], updatedAt:now()}; state.meta.push(r); }
+  if(!Array.isArray(r.order)) r.order=[];
+  return r;
+}
+function orderedTabs(){
+  const saved=tabOrderRecord().order.filter(t=>TAB_ORDER.includes(t));
+  const rest=TAB_ORDER.filter(t=>!saved.includes(t));
+  return [...saved, ...rest];
+}
+// nav内のボタンを保存順に物理的に並べ替える
+function applyTabOrder(){
+  const nav=document.querySelector('.tabs'); if(!nav) return;
+  orderedTabs().forEach(t=>{
+    const btn=$('tab'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(btn) nav.appendChild(btn);
+  });
+}
+function moveTab(tab, dir){
+  const order=orderedTabs();
+  const i=order.indexOf(tab); if(i<0) return;
+  const j=i+dir;
+  if(j<0||j>=order.length) return;
+  [order[i],order[j]]=[order[j],order[i]];
+  const r=tabOrderRecord(); r.order=order; r.updatedAt=now();
+  saveState(); applyTabOrder(); renderTabLabelList();
+}
 function renderTabLabelList(){
   const r=tabLabelRecord();
-  $('tabLabelList').innerHTML=TAB_ORDER.map(t=>{
+  const order=orderedTabs();
+  $('tabLabelList').innerHTML=order.map((t,idx)=>{
     const cur=r.map[t]||'';
-    return `<div class="cat-add-row" style="margin-bottom:6px">
-      <span class="hint" style="margin:0;min-width:56px">${esc(TAB_DEFAULT[t])}</span>
+    const upDis=idx===0?'disabled':'';
+    const downDis=idx===order.length-1?'disabled':'';
+    return `<div class="tab-order-row">
+      <div class="tab-order-btns">
+        <button class="btn" ${upDis} onclick="moveTab('${t}',-1)" title="上へ">▲</button>
+        <button class="btn" ${downDis} onclick="moveTab('${t}',1)" title="下へ">▼</button>
+      </div>
+      <span class="hint" style="margin:0;min-width:52px">${esc(TAB_DEFAULT[t])}</span>
       <input type="text" value="${esc(cur)}" placeholder="${esc(TAB_DEFAULT[t])}" oninput="setTabLabel('${t}',this.value)">
     </div>`;
   }).join('');
@@ -1501,23 +1569,26 @@ function renderCalendar(){
     const dt = new Date(cy,cm,cd);
     const ds = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
     const list = dues[ds]||[];
-    const dots = list.slice(0,4).map(p=>{
+    const labels = list.slice(0,3).map(p=>{
       const cls = p.status==='done' ? 'done' : (ds<today ? 'overdue' : 'open');
-      return `<i class="${cls}"></i>`;
+      const k = p.kind&&PLAN_KIND_LABEL[p.kind] ? PLAN_KIND_LABEL[p.kind].slice(0,3)+' ' : '';
+      return `<span class="cal-ev ${cls}" title="${esc(p.theme)}">${esc(k)}${esc(p.theme)}</span>`;
     }).join('');
+    const more = list.length>3 ? `<span class="cal-more">+${list.length-3}</span>` : '';
     cells += `<div class="cal-cell ${other} ${ds===today?'today':''} ${ds===calSelected?'selected':''}" onclick="calSelect('${ds}')">
-      <span class="num">${cd}</span><span class="cal-dots">${dots}</span></div>`;
+      <span class="num">${cd}</span><div class="cal-evs">${labels}${more}</div></div>`;
   }
   $('calGrid').innerHTML = cells;
   // day panel
   const panel = $('calDayPanel');
   if(calSelected && (dues[calSelected]||[]).length){
     panel.classList.add('open');
-    panel.innerHTML = `<div class="dp-title">📅 ${fmtDue(calSelected)} 期日の計画</div>` +
+    panel.innerHTML = `<div class="dp-title">📅 ${fmtDue(calSelected)} 期日の予定</div>` +
       dues[calSelected].map(p =>
         `<div class="dp-item" onclick="openPlanModal('${p.id}')">
            <span class="st ${esc(p.status)}">${PLAN_STATUS_LABEL[p.status]||''}</span>
-           <span>${esc(p.theme)}</span></div>`).join('');
+           ${p.kind&&PLAN_KIND_LABEL[p.kind]?`<span class="kind-badge ${PLAN_KIND_CLASS[p.kind]}">${PLAN_KIND_LABEL[p.kind]}</span>`:''}
+           <span>${esc(p.theme)}</span>${p.pid?`<span class="hint" style="margin:0">🪪${esc(displayPid(p))}</span>`:''}</div>`).join('');
   }else if(calSelected){
     panel.classList.add('open');
     panel.innerHTML = `<div class="dp-title">📅 ${fmtDue(calSelected)} — 期日の計画はありません</div>`;
@@ -1742,6 +1813,7 @@ function renderWard(){
       </div>
     </div>`;
   }).join('') : '<div class="empty">病棟患者はまだいません。＋で追加。</div>';
+  renderWardCal();
 }
 function openWardModal(id){
   editingWardId=id||null;
@@ -1767,6 +1839,67 @@ function deleteWard(){
   const w=state.ward.find(x=>x.id===editingWardId);
   w.deleted=true; w.updatedAt=now(); saveState(); closeOverlay('wardOverlay'); renderWard(); toast('削除しました');
 }
+
+/* ---------- 病棟カレンダー(患者タスクを日付で俯瞰) ---------- */
+let wardCalBase = (function(){ const d=new Date(); d.setDate(1); return d; })();
+let wardCalSelected = '';
+// 全患者の日付つきタスクを {date:[{w, task}]} に集約
+function wardTasksByDate(){
+  const map={};
+  liveWard().forEach(w=>{
+    (w.tasks||[]).forEach(t=>{
+      if(t.deleted||!t.date) return;
+      (map[t.date]=map[t.date]||[]).push({w, task:t});
+    });
+  });
+  return map;
+}
+function renderWardCal(){
+  const y=wardCalBase.getFullYear(), m=wardCalBase.getMonth();
+  const tt=$('wardCalTitle'); if(tt) tt.textContent=y+'年 '+(m+1)+'月';
+  const byDate=wardTasksByDate();
+  const first=new Date(y,m,1).getDay();
+  const dim=new Date(y,m+1,0).getDate();
+  const dimPrev=new Date(y,m,0).getDate();
+  const today=todayStr();
+  let cells=WD.map((w,i)=>`<div class="cal-wd ${i===0?'sun':i===6?'sat':''}">${w}</div>`).join('');
+  const total=Math.ceil((first+dim)/7)*7;
+  for(let i=0;i<total;i++){
+    const dayNum=i-first+1;
+    let cy=y,cm=m,cd=dayNum,other='';
+    if(dayNum<1){ other='other'; cm=m-1; cd=dimPrev+dayNum; }
+    else if(dayNum>dim){ other='other'; cm=m+1; cd=dayNum-dim; }
+    const dt=new Date(cy,cm,cd);
+    const ds=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+    const list=byDate[ds]||[];
+    const labels=list.slice(0,3).map(({w,task})=>{
+      const cls=task.done?'done':(ds<today?'overdue':'open');
+      return `<span class="cal-ev ${cls}" title="${esc(displayPid(w))}: ${esc(task.text)}">${esc(task.text)}</span>`;
+    }).join('');
+    const more=list.length>3?`<span class="cal-more">+${list.length-3}</span>`:'';
+    cells+=`<div class="cal-cell ${other} ${ds===today?'today':''} ${ds===wardCalSelected?'selected':''}" onclick="wardCalSelect('${ds}')">
+      <span class="num">${cd}</span><div class="cal-evs">${labels}${more}</div></div>`;
+  }
+  const grid=$('wardCalGrid'); if(grid) grid.innerHTML=cells;
+  const panel=$('wardCalDayPanel'); if(!panel) return;
+  if(wardCalSelected && (byDate[wardCalSelected]||[]).length){
+    panel.classList.add('open');
+    panel.innerHTML=`<div class="dp-title">📅 ${fmtDue(wardCalSelected)} の患者タスク</div>`+
+      byDate[wardCalSelected].map(({w,task})=>
+        `<div class="dp-item" onclick="openWardModal('${w.id}')">
+          <span class="st ${task.done?'done':''}">${task.done?'済':'未'}</span>
+          <span class="hint" style="margin:0">🪪${esc(displayPid(w))}</span>
+          <span>${esc(task.text)}</span></div>`).join('');
+  }else if(wardCalSelected){
+    panel.classList.add('open');
+    panel.innerHTML=`<div class="dp-title">📅 ${fmtDue(wardCalSelected)} — 患者タスクはありません</div>`;
+  }else{
+    panel.classList.remove('open'); panel.innerHTML='';
+  }
+}
+function wardCalMove(n){ wardCalBase.setMonth(wardCalBase.getMonth()+n); wardCalSelected=''; renderWardCal(); }
+function wardCalToday(){ wardCalBase=new Date(); wardCalBase.setDate(1); wardCalSelected=todayStr(); renderWardCal(); }
+function wardCalSelect(ds){ wardCalSelected=(wardCalSelected===ds)?'':ds; renderWardCal(); }
 
 function renderPlans(){
   renderTodos();
@@ -3354,7 +3487,7 @@ async function cloudSync(mode){
     state.meta=mergeLocal(state.meta,merged.meta);
     state.settings.lastSync=now();
     localStorage.setItem(LS_KEY, JSON.stringify(state)); // 再帰予約を避け直接保存
-    applyTabLabels();
+    applyTabLabels(); applyTabOrder();
     render();
     if(mode==='manual') toast('同期しました');
   }catch(e){
@@ -3423,7 +3556,7 @@ function setThemeFromSettings(t){
 
 loadState();
 const _vb=$('verBadge'); if(_vb) _vb.textContent=APP_VERSION;
-applyTabLabels();
+applyTabLabels(); applyTabOrder();
 applyTheme(state.settings.theme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 updateSyncStatus();
 render();
