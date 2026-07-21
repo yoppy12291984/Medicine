@@ -1207,9 +1207,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.50.0
+   Med OS v2.51.0
 ========================================================= */
-const APP_VERSION = 'v2.50.0';
+const APP_VERSION = 'v2.51.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1883,12 +1883,13 @@ function addWardOrder(name){
   r.list.push(v); r.updatedAt=now(); saveState(); renderWardOrderMgmt(); renderWard();
 }
 function removeWardOrder(name){
+  if(!confirm(`検査ボタン「${name}」を削除しますか?`)) return;
   const r=wardOrdersRecord(); r.list=r.list.filter(x=>x!==name); r.updatedAt=now();
   saveState(); renderWardOrderMgmt(); renderWard();
 }
 function renderWardOrderMgmt(){
   const host=$('wardOrderList'); if(!host) return;
-  host.innerHTML=wardOrders().map(o=>`<div class="cat-chip">${esc(o)}<button onclick="removeWardOrder('${esc(o)}')">×</button></div>`).join('')||'<span class="hint">ボタンがありません。下で追加してください。</span>';
+  host.innerHTML=wardOrders().map(o=>`<div class="cat-chip">${esc(o)}<button onclick="removeWardOrder('${esc(o)}')" style="color:var(--shu);font-weight:700;padding:0 4px" title="削除">✕</button></div>`).join('')||'<span class="hint">ボタンがありません。下で追加してください。</span>';
 }
 let pendingOrder = null; // {wid, label, type, key}
 // 継続オーダー(期限管理)の種類
