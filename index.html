@@ -124,6 +124,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .th-state.del{background:var(--shu-soft);color:var(--shu)}
 .th-state.done{background:var(--pine-soft);color:var(--pine)}
 .th-text{flex:1;font-size:13.5px}
+.exam-picker-modal{background:transparent!important;box-shadow:none!important;border:none!important;padding:0!important;max-width:1px;max-height:1px;overflow:hidden;opacity:0}
 .tt-item{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--line)}
 .tt-item:last-of-type{border-bottom:none}
 .tt-item input[type=checkbox]{width:18px;height:18px;flex-shrink:0;accent-color:var(--pine);cursor:pointer}
@@ -1062,15 +1063,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 </div>
 
 <!-- ===== ward exam date picker modal ===== -->
-<div class="overlay" id="orderExamOverlay">
-  <div class="modal" style="max-width:340px">
-    <h3 id="orderExamTitle">日付を選択</h3>
-    <div class="form-row"><label>日付を選ぶと登録されます</label><input type="date" id="orderExamDate" class="big-date" onchange="onExamDateChange()"></div>
-    <div class="modal-actions">
-      <div class="spacer"></div>
-      <button class="btn" onclick="pendingOrder=null;closeOverlay('orderExamOverlay')">キャンセル</button>
-      <button class="btn primary" onclick="confirmOrderExam()">この日に予定</button>
-    </div>
+<div class="overlay" id="orderExamOverlay" onclick="if(event.target===this){pendingOrder=null;closeOverlay('orderExamOverlay');}">
+  <div class="modal exam-picker-modal">
+    <input type="date" id="orderExamDate" class="big-date" onchange="onExamDateChange()">
   </div>
 </div>
 
@@ -1204,9 +1199,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.44.0
+   Med OS v2.45.0
 ========================================================= */
-const APP_VERSION = 'v2.44.0';
+const APP_VERSION = 'v2.45.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1892,18 +1887,16 @@ function orderWardExam(wid, label){
   pendingOrder = {wid, label};
   const el=$('orderExamDate');
   el.value = wardDate;
-  // 入力欄を画面内に置いてからネイティブのカレンダーを直接開く(確認画面なし)
   $('orderExamOverlay').classList.add('open');
-  const t=$('orderExamTitle'); if(t) t.textContent = label + 'の日付を選択';
-  // ユーザー操作(ボタンtap)から同期的にpickerを開く
+  // ユーザー操作(ボタンtap)から同期的にネイティブのカレンダーを開く
   requestAnimationFrame(()=>{
     try{ if(el.showPicker){ el.showPicker(); } else { el.focus(); el.click(); } }catch(e){ el.focus(); }
   });
 }
-// カレンダーで日付を選んだ瞬間に予定を登録(確認不要)
+// カレンダーで日付を選んだ瞬間に予定を登録して閉じる(確認不要)
 function onExamDateChange(){
-  if(!pendingOrder) return;
-  const date=$('orderExamDate').value; if(!date) return;
+  if(!pendingOrder){ closeOverlay('orderExamOverlay'); return; }
+  const date=$('orderExamDate').value; if(!date){ pendingOrder=null; closeOverlay('orderExamOverlay'); return; }
   const w=state.ward.find(x=>x.id===pendingOrder.wid); if(!w){ pendingOrder=null; closeOverlay('orderExamOverlay'); return; }
   if(!w.tasks) w.tasks=[];
   w.tasks.push({id:uid(), date, text:pendingOrder.label, done:false, createdAt:now()});
