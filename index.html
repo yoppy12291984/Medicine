@@ -191,6 +191,9 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .ward-order-row .wo-label{font-size:11.5px;color:var(--ink-soft);margin-right:2px}
 .wo-btn{font-size:12px;padding:4px 11px;border-radius:999px;border:1px solid var(--pine);background:var(--pine-soft);color:var(--pine);cursor:pointer;font-weight:600}
 .wo-btn:hover{background:var(--pine);color:#fff}
+.wo-btn.scheduled{background:var(--amber);color:#fff;border-color:var(--amber)}
+.wo-btn.scheduled:hover{background:var(--amber);opacity:.9}
+.wo-btn .wo-when{font-size:10px;margin-left:5px;opacity:.95;font-weight:700}
 .ward-task{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:13.5px}
 .ward-task input[type=checkbox]{width:17px;height:17px;flex-shrink:0;accent-color:var(--pine);cursor:pointer}
 .ward-task.done span{text-decoration:line-through;color:var(--ink-soft)}
@@ -487,6 +490,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
     </div>
     <div class="plan-toolbar">
       <div class="tag-chips" id="planKindChips" style="flex:1"></div>
+      <button class="icon-btn" onclick="openPlanHistory()" title="削除した計画">履歴</button>
       <button class="icon-btn" id="planViewToggle" onclick="toggleView('plan')">⊞ 表</button>
     </div>
     <div class="planlist" id="planKanban">
@@ -1031,6 +1035,19 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   </div>
 </div>
 
+<!-- ===== plan history modal ===== -->
+<div class="overlay" id="planHistOverlay">
+  <div class="modal" style="max-width:420px">
+    <h3>計画 履歴(削除したもの)</h3>
+    <div class="hint" style="margin:-6px 0 10px">削除した計画を表示します。「戻す」で元の状態(やること/進行中/完了)に復活します。</div>
+    <div id="planHistBody" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('planHistOverlay')">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== todo history modal ===== -->
 <div class="overlay" id="todoHistOverlay">
   <div class="modal" style="max-width:420px">
@@ -1187,9 +1204,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.42.0
+   Med OS v2.44.0
 ========================================================= */
-const APP_VERSION = 'v2.42.0';
+const APP_VERSION = 'v2.44.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1446,7 +1463,7 @@ function renderGroupMgmt(){
     const chips=gs.map((g,i)=>`<span class="cat-item">${esc(g)}<button onclick="groupMgmtRemove('${tab}',${i})" title="削除">×</button></span>`).join('')
       || '<span class="hint" style="margin:0">なし</span>';
     return `<div style="margin-bottom:12px">
-      <div style="font-weight:700;font-size:13px;margin-bottom:5px">${GROUP_TABS[tab]}</div>
+      <div style="font-weight:700;font-size:13px;margin-bottom:5px">${esc(tabLabel(tab))}</div>
       <div class="cat-add-row" style="margin-bottom:5px">
         <input type="text" id="newGroup_${tab}" placeholder="グループを追加(例 ICU)">
         <button class="btn" onclick="groupMgmtAdd('${tab}')">追加</button>
@@ -2032,7 +2049,14 @@ function renderWard(){
       <div class="ward-checks">${checks}</div>
       <div class="ward-order-row">
         <span class="wo-label">検査を予定:</span>
-        ${wardOrders().map(o=>`<button class="wo-btn" onclick="orderWardExam('${w.id}','${esc(o)}')">${esc(o)}</button>`).join('')}
+        ${wardOrders().map(o=>{
+          // この検査が未来(または今日以降)に予定されているか
+          const upcoming=(w.tasks||[]).filter(t=>!t.deleted && !t.done && t.text===o && t.date>=todayStr())
+            .sort((a,b)=>a.date<b.date?-1:1);
+          const has=upcoming.length>0;
+          const nextD=has?fmtDue(upcoming[0].date):'';
+          return `<button class="wo-btn ${has?'scheduled':''}" onclick="orderWardExam('${w.id}','${esc(o)}')">${esc(o)}${has?`<span class="wo-when">${esc(nextD)}${upcoming.length>1?' +'+(upcoming.length-1):''}</span>`:''}</button>`;
+        }).join('')}
       </div>
       ${w.note?`<div class="ward-note-box">${md(w.note)}</div>`:''}
       <div class="ward-tasks">${tasks||''}</div>
@@ -2243,7 +2267,24 @@ function quickStatus(id,status){
 function deletePlanQuick(id){
   const p=state.plans.find(x=>x.id===id); if(!p) return;
   if(!confirm('この計画を削除しますか?')) return;
-  p.deleted=true; p.updatedAt=now(); saveState(); renderPlans(); toast('削除しました');
+  p.deleted=true; p.updatedAt=now(); saveState(); renderPlans(); toast('削除しました(履歴から戻せます)');
+}
+function openPlanHistory(){ renderPlanHistory(); $('planHistOverlay').classList.add('open'); }
+function renderPlanHistory(){
+  const all=(state.plans||[]).filter(p=>p.deleted)
+    .sort((a,b)=>(a.updatedAt||'')<(b.updatedAt||'')?1:-1);
+  const host=$('planHistBody'); if(!host) return;
+  if(!all.length){ host.innerHTML='<div class="tt-empty">削除した計画はありません。</div>'; return; }
+  host.innerHTML=all.map(p=>`
+    <div class="th-item">
+      <span class="th-state del">削除</span>
+      <span class="th-text">${esc(p.theme)}${p.kind&&PLAN_KIND_LABEL[p.kind]?` <span class="hint" style="margin:0">${PLAN_KIND_LABEL[p.kind]}</span>`:''}</span>
+      <button class="pl-btn" onclick="restorePlan('${p.id}')">戻す</button>
+    </div>`).join('');
+}
+function restorePlan(id){
+  const p=state.plans.find(x=>x.id===id); if(!p) return;
+  p.deleted=false; p.updatedAt=now(); saveState(); renderPlanHistory(); renderPlans(); toast('戻しました');
 }
 function openPlanModal(id){
   editingPlanId=id||null;
