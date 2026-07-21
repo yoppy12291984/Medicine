@@ -124,7 +124,10 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .th-state.del{background:var(--shu-soft);color:var(--shu)}
 .th-state.done{background:var(--pine-soft);color:var(--pine)}
 .th-text{flex:1;font-size:13.5px}
-.exam-picker-modal{background:transparent!important;box-shadow:none!important;border:none!important;padding:0!important;max-width:1px;max-height:1px;overflow:hidden;opacity:0}
+.exam-picker-modal{max-width:320px}
+.exam-picker-modal .epm-title{font-size:15px;font-weight:700;margin-bottom:10px}
+.exam-picker-modal .big-date{width:100%;font-size:16px;padding:12px}
+.exam-picker-modal .epm-hint{font-size:12px;color:var(--ink-soft);margin-top:8px}
 .tt-item{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--line)}
 .tt-item:last-of-type{border-bottom:none}
 .tt-item input[type=checkbox]{width:18px;height:18px;flex-shrink:0;accent-color:var(--pine);cursor:pointer}
@@ -183,10 +186,9 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .ward-card .wc-room{font-size:11.5px;color:var(--ink-soft);background:var(--wash);border-radius:5px;padding:1px 7px;margin-left:6px}
 .ward-card .wc-dx{font-size:13.5px;margin:2px 0 8px;color:var(--ink)}
 .ward-card .wc-edit{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:13px;flex-shrink:0}
-.ward-checks{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}
-.ward-check{display:flex;align-items:center;gap:5px;font-size:12.5px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:var(--paper);cursor:pointer;user-select:none}
+.ward-checks{display:flex;gap:6px;margin:8px 0}
+.ward-check{flex:1;text-align:center;font-size:12px;padding:5px 4px;border-radius:8px;border:1px solid var(--line);background:var(--paper);cursor:pointer;user-select:none;white-space:nowrap}
 .ward-check.on{background:var(--pine-soft);border-color:var(--pine);color:var(--pine);font-weight:600}
-.ward-check .wk-dot{font-size:11px}
 .ward-tasks{margin-top:8px}
 .ward-order-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
 .ward-order-row .wo-label{font-size:11.5px;color:var(--ink-soft);margin-right:2px}
@@ -1065,7 +1067,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <!-- ===== ward exam date picker modal ===== -->
 <div class="overlay" id="orderExamOverlay" onclick="if(event.target===this){pendingOrder=null;closeOverlay('orderExamOverlay');}">
   <div class="modal exam-picker-modal">
+    <div class="epm-title" id="orderExamTitle">日付を選択</div>
     <input type="date" id="orderExamDate" class="big-date" onchange="onExamDateChange()">
+    <div class="epm-hint">日付をタップして選ぶと予定に入ります</div>
   </div>
 </div>
 
@@ -1199,9 +1203,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.45.0
+   Med OS v2.47.0
 ========================================================= */
-const APP_VERSION = 'v2.45.0';
+const APP_VERSION = 'v2.47.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1887,10 +1891,11 @@ function orderWardExam(wid, label){
   pendingOrder = {wid, label};
   const el=$('orderExamDate');
   el.value = wardDate;
+  const t=$('orderExamTitle'); if(t) t.textContent = label + 'の日付を選択';
   $('orderExamOverlay').classList.add('open');
-  // ユーザー操作(ボタンtap)から同期的にネイティブのカレンダーを開く
+  // カレンダーを自動で開こうと試みる。失敗する端末では、見えている日付欄をタップして開けばよい
   requestAnimationFrame(()=>{
-    try{ if(el.showPicker){ el.showPicker(); } else { el.focus(); el.click(); } }catch(e){ el.focus(); }
+    try{ if(el.showPicker) el.showPicker(); }catch(e){}
   });
 }
 // カレンダーで日付を選んだ瞬間に予定を登録して閉じる(確認不要)
@@ -2013,7 +2018,7 @@ function renderWard(){
   });
   $('wardGrid').innerHTML = list.length ? list.map(w=>{
     const demo=[w.age,(w.sex&&SEX_LABEL[w.sex])].filter(Boolean).join('・');
-    const checks=WARD_CHECKS.map(c=>`<div class="ward-check ${wardCheckOn(w,wardDate,c.key)?'on':''}" onclick="toggleWardCheck('${w.id}','${c.key}')"><span class="wk-dot">${c.icon}</span>${c.label}</div>`).join('');
+    const checks=WARD_CHECKS.map(c=>`<div class="ward-check ${wardCheckOn(w,wardDate,c.key)?'on':''}" onclick="toggleWardCheck('${w.id}','${c.key}')">${c.label}</div>`).join('');
     const tasks=wardTasksOf(w,wardDate).map(t=>`
       <div class="ward-task ${t.done?'done':''}">
         <input type="checkbox" ${t.done?'checked':''} onclick="toggleWardTask('${w.id}','${t.id}')">
