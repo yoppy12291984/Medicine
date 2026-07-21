@@ -126,6 +126,25 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .tt-input{width:100%;margin-top:9px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);font-size:13.5px;letter-spacing:.01em;font-family:inherit}
 .tt-input::placeholder{color:var(--ink-soft);opacity:.7}
 .tt-empty{font-size:12.5px;color:var(--ink-soft);padding:4px 0;letter-spacing:.01em}
+.planlist{display:flex;flex-direction:column;gap:16px}
+.pl-sec .pl-head{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--ink-soft);margin:0 0 6px;text-transform:none}
+.pl-head .pl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pl-head .pl-dot.todo{background:var(--amber)}
+.pl-head .pl-dot.doing{background:var(--pine)}
+.pl-head .pl-dot.done{background:var(--ink-soft)}
+.pl-head .count{font-weight:600;color:var(--ink-soft)}
+.pl-item{display:flex;align-items:flex-start;gap:11px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:7px}
+.pl-check{width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:var(--pine);cursor:pointer}
+.pl-body{flex:1;min-width:0;cursor:pointer}
+.pl-theme{font-size:14.5px;line-height:1.35;font-weight:600;letter-spacing:.01em}
+.pl-theme.pl-themedone{text-decoration:line-through;color:var(--ink-soft);font-weight:400}
+.pl-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:5px}
+.pl-meta>span{font-size:11.5px;color:var(--ink-soft)}
+.pl-meta .pl-due.overdue{color:var(--shu);font-weight:600}
+.pl-meta .pl-pri{background:var(--shu-soft);color:var(--shu);padding:1px 7px;border-radius:999px;font-weight:600}
+.pl-meta .pl-prog{color:var(--pine)}
+.pl-status{flex-shrink:0;font-size:12px;padding:5px 7px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--ink);font-family:inherit}
+.pl-empty{font-size:12.5px;color:var(--ink-soft);padding:2px 2px 4px}
 .ward-datebar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .ward-datebar .ward-date-label{font-size:12px;color:var(--ink-soft)}
 .ward-datebar #wardDateLabel{font-size:14px;font-weight:600;cursor:pointer;min-width:96px;text-align:center}
@@ -414,17 +433,17 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 </header>
 
 <nav class="tabs">
-  <button id="tabPlans" class="active" onclick="switchTab('plans')"><span class="tab-label" data-tab="plans">計 画</span></button>
-  <button id="tabCases" onclick="switchTab('cases')"><span class="tab-label" data-tab="cases">症 例</span></button>
-  <button id="tabNotes" onclick="switchTab('notes')"><span class="tab-label" data-tab="notes">ノート</span></button>
-  <button id="tabTx" onclick="switchTab('tx')"><span class="tab-label" data-tab="tx">治 療</span></button>
-  <button id="tabDdx" onclick="switchTab('ddx')"><span class="tab-label" data-tab="ddx">鑑 別</span></button>
-  <button id="tabPapers" onclick="switchTab('papers')"><span class="tab-label" data-tab="papers">論 文</span></button>
-  <button id="tabGallery" onclick="switchTab('gallery')"><span class="tab-label" data-tab="gallery">症例集</span></button>
-  <button id="tabStudy" onclick="switchTab('study')"><span class="tab-label" data-tab="study">勉強用</span></button>
-  <button id="tabImg" onclick="switchTab('img')"><span class="tab-label" data-tab="img">画 像</span></button>
-  <button id="tabSafety" onclick="switchTab('safety')"><span class="tab-label" data-tab="safety">安 全</span></button>
-  <button id="tabWard" onclick="switchTab('ward')"><span class="tab-label" data-tab="ward">病 棟</span></button>
+  <button id="tabPlans" class="active" onclick="switchTab('plans')"><span class="tab-label" data-tab="plans">Plan</span></button>
+  <button id="tabCases" onclick="switchTab('cases')"><span class="tab-label" data-tab="cases">Case</span></button>
+  <button id="tabNotes" onclick="switchTab('notes')"><span class="tab-label" data-tab="notes">Note</span></button>
+  <button id="tabTx" onclick="switchTab('tx')"><span class="tab-label" data-tab="tx">Tx</span></button>
+  <button id="tabDdx" onclick="switchTab('ddx')"><span class="tab-label" data-tab="ddx">ER/DDx</span></button>
+  <button id="tabPapers" onclick="switchTab('papers')"><span class="tab-label" data-tab="papers">Papers</span></button>
+  <button id="tabGallery" onclick="switchTab('gallery')"><span class="tab-label" data-tab="gallery">CR</span></button>
+  <button id="tabStudy" onclick="switchTab('study')"><span class="tab-label" data-tab="study">CT</span></button>
+  <button id="tabImg" onclick="switchTab('img')"><span class="tab-label" data-tab="img">CT/DDx</span></button>
+  <button id="tabSafety" onclick="switchTab('safety')"><span class="tab-label" data-tab="safety">Safety</span></button>
+  <button id="tabWard" onclick="switchTab('ward')"><span class="tab-label" data-tab="ward">Ward</span></button>
 </nav>
 
 <main>
@@ -456,10 +475,10 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <div class="tag-chips" id="planKindChips" style="flex:1"></div>
       <button class="icon-btn" id="planViewToggle" onclick="toggleView('plan')">⊞ 表</button>
     </div>
-    <div class="kanban" id="planKanban">
-      <div class="kcol todo"><h3><span class="dot"></span>To Do <span class="count" id="cntTodo"></span></h3><div id="colTodo"></div></div>
-      <div class="kcol doing"><h3><span class="dot"></span>In Progress <span class="count" id="cntDoing"></span></h3><div id="colDoing"></div></div>
-      <div class="kcol done"><h3><span class="dot"></span>Done <span class="count" id="cntDone"></span></h3><div id="colDone"></div></div>
+    <div class="planlist" id="planKanban">
+      <div class="pl-sec"><h3 class="pl-head"><span class="pl-dot todo"></span>やること <span class="count" id="cntTodo"></span></h3><div id="colTodo"></div></div>
+      <div class="pl-sec"><h3 class="pl-head"><span class="pl-dot doing"></span>進行中 <span class="count" id="cntDoing"></span></h3><div id="colDoing"></div></div>
+      <div class="pl-sec"><h3 class="pl-head"><span class="pl-dot done"></span>完了 <span class="count" id="cntDone"></span></h3><div id="colDone"></div></div>
     </div>
     <div id="planTable" style="display:none"></div>
   </section>
@@ -1141,9 +1160,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.39.0
+   Med OS v2.41.0
 ========================================================= */
-const APP_VERSION = 'v2.39.0';
+const APP_VERSION = 'v2.41.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1176,7 +1195,7 @@ function statusStampClass(id){
 const CONF_LABEL = {confirmed:'確定', review:'要確認', ai:'AI初期知識'};
 const CONF_ALIAS = {'確定':'confirmed','裏取り済':'confirmed','確定(裏取り済)':'confirmed','要確認':'review','ai初期知識':'ai','ai':'ai','初期知識':'ai'};
 const PLAN_STATUS = ['todo','doing','done'];
-const PLAN_STATUS_LABEL = {todo:'To Do', doing:'In Progress', done:'Done'};
+const PLAN_STATUS_LABEL = {todo:'やること', doing:'進行中', done:'完了'};
 const PLAN_KIND_LABEL = {study:'学習', opd:'外来予習', conf:'カンファ提出', surg:'外科相談', paper:'論文', consult:'コンサルト', submit:'提出物', exam:'検査', other:'その他'};
 const PLAN_KIND_CLASS = {study:'kind-study', opd:'kind-opd', conf:'kind-conf', surg:'kind-surg', paper:'kind-paper', consult:'kind-consult', submit:'kind-submit', exam:'kind-exam', other:'kind-other'};
 let activePlanKind = '';
@@ -1422,7 +1441,7 @@ function groupMgmtRemove(tab, i){
 
 /* ---------- タブ名のカスタマイズ ---------- */
 const TAB_ORDER=['plans','cases','notes','tx','ddx','papers','gallery','study','img','safety','ward'];
-const TAB_DEFAULT={plans:'計 画',cases:'症 例',notes:'ノート',tx:'治 療',ddx:'鑑 別',papers:'論 文',gallery:'症例集',study:'勉強用',img:'画 像',safety:'安 全',ward:'病 棟'};
+const TAB_DEFAULT={plans:'Plan',cases:'Case',notes:'Note',tx:'Tx',ddx:'ER/DDx',papers:'Papers',gallery:'CR',study:'CT',img:'CT/DDx',safety:'Safety',ward:'Ward'};
 function tabLabelRecord(){
   let r=state.meta.find(m=>m.id==='tabLabels');
   if(!r){ r={id:'tabLabels', map:{}, updatedAt:now()}; state.meta.push(r); }
@@ -2105,29 +2124,29 @@ function renderPlans(){
   });
   for(const p of plans){
     const linked=(p.caseIds||[]).filter(id=>state.cases.some(c=>c.id===id&&!c.deleted));
+    const cl=planChecklist(p); const cldone=cl.filter(x=>x.done).length;
     cols[PLAN_STATUS.includes(p.status)?p.status:'todo'].push(`
-    <div class="plan-card">
-      <div class="theme-row">
-        <input type="checkbox" class="theme-check" ${p.status==='done'?'checked':''} onclick="event.stopPropagation();togglePlanDone('${p.id}')" title="完了にする">
-        <div class="theme ${p.status==='done'?'theme-done':''}">${esc(p.theme)}</div>
+    <div class="pl-item">
+      <input type="checkbox" class="pl-check" ${p.status==='done'?'checked':''} onclick="event.stopPropagation();togglePlanDone('${p.id}')" title="完了にする">
+      <div class="pl-body" onclick="openPlanModal('${p.id}')">
+        <div class="pl-theme ${p.status==='done'?'pl-themedone':''}">${esc(p.theme)}</div>
+        <div class="pl-meta">
+          ${p.kind&&PLAN_KIND_LABEL[p.kind]?`<span class="kind-badge ${PLAN_KIND_CLASS[p.kind]}">${PLAN_KIND_LABEL[p.kind]}</span>`:''}
+          ${p.due?`<span class="pl-due ${p.status!=='done'&&p.due<todayStr()?'overdue':''}">🗓 ${esc(fmtDue(p.due))}</span>`:''}
+          ${p.pid?`<span class="pl-pid">🪪 ${esc(displayPid(p))}</span>`:''}
+          ${cl.length?`<span class="pl-prog">✓ ${cldone}/${cl.length}</span>`:''}
+          ${linked.length?`<span class="pl-link">📎 ${linked.length}</span>`:''}
+          ${p.priority==='high'?`<span class="pl-pri">優先</span>`:''}
+        </div>
       </div>
-      ${dueRow(p)}
-      ${p.pid?`<div class="pid" style="margin:2px 0 4px">🪪 ${esc(displayPid(p))}</div>`:''}
-      <div class="badges">${planBadges(p)}</div>
-      ${planChecklistHtml(p)}
-      <div class="foot">
-        <span class="linked">${linked.length?'📎 症例 '+linked.length+'件':''}</span>
-        <select class="status-sel" onchange="quickStatus('${p.id}',this.value)">
-          ${PLAN_STATUS.map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${PLAN_STATUS_LABEL[s]}</option>`).join('')}
-        </select>
-        <button class="mini-btn" onclick="openPlanModal('${p.id}')">編集</button>
-        <button class="mini-btn shu" onclick="openCaseModal(null,'${p.id}')">＋症例</button>
-      </div>
+      <select class="pl-status" onclick="event.stopPropagation()" onchange="quickStatus('${p.id}',this.value)">
+        ${PLAN_STATUS.map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${PLAN_STATUS_LABEL[s]}</option>`).join('')}
+      </select>
     </div>`);
   }
-  $('colTodo').innerHTML=cols.todo.join('')||'<div class="empty">計画はまだありません。＋で追加。</div>';
-  $('colDoing').innerHTML=cols.doing.join('')||'<div class="empty">—</div>';
-  $('colDone').innerHTML=cols.done.join('')||'<div class="empty">—</div>';
+  $('colTodo').innerHTML=cols.todo.join('')||'<div class="pl-empty">なし</div>';
+  $('colDoing').innerHTML=cols.doing.join('')||'<div class="pl-empty">なし</div>';
+  $('colDone').innerHTML=cols.done.join('')||'<div class="pl-empty">なし</div>';
   $('cntTodo').textContent=cols.todo.length||'';
   $('cntDoing').textContent=cols.doing.length||'';
   $('cntDone').textContent=cols.done.length||'';
