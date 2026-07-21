@@ -221,6 +221,7 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px;overflow-x:hidden}
 .ward-table tbody tr:hover{background:var(--paper)}
 .ward-table .wt-num{color:var(--ink-soft);font-weight:700;text-align:center;width:32px}
 .ward-table .wt-name>div:first-child{font-weight:600}
+.ward-table .wt-id{color:var(--ink-soft);font-size:12px;white-space:nowrap}
 .ward-table .wt-sub{font-size:11px;color:var(--ink-soft)}
 .ward-table .wt-dx{color:var(--ink-soft);max-width:180px;overflow:hidden;text-overflow:ellipsis}
 .ward-table .wt-when{color:var(--amber);font-weight:600}
@@ -678,6 +679,19 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 
   <!-- ===== ward (病棟患者) ===== -->
   <section id="viewWard" style="display:none">
+    <div class="today-todo">
+      <div class="tt-head">
+        <span class="tt-title">今日のやりたいこと</span>
+        <div class="tt-datenav">
+          <button class="cal-nav" onclick="todoDateMove(-1)">◀</button>
+          <span id="todoDateLabelW" onclick="todoDateToday()" title="タップで今日へ"></span>
+          <button class="cal-nav" onclick="todoDateMove(1)">▶</button>
+          <button class="tt-hist-btn" onclick="openTodoHistory()" title="履歴を見る">履歴</button>
+        </div>
+      </div>
+      <div id="todoListW"></div>
+      <input type="text" id="todoInputW" class="tt-input" placeholder="やりたいことを入力してEnter" onkeydown="if(event.key==='Enter')addTodoW()">
+    </div>
     <div class="ward-datebar">
       <span class="ward-date-label">対象日</span>
       <button class="cal-nav" onclick="wardDateMove(-1)">◀</button>
@@ -1241,9 +1255,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.56.0
+   Med OS v2.57.0
 ========================================================= */
-const APP_VERSION = 'v2.56.0';
+const APP_VERSION = 'v2.57.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1833,18 +1847,27 @@ function fmtTodoDate(d){
   return `${dt.getMonth()+1}/${dt.getDate()}(${wd})${rel?' '+rel:''}`;
 }
 function renderTodos(){
-  const lbl=$('todoDateLabel'); if(lbl) lbl.textContent=fmtTodoDate(todoDate);
-  const host=$('todoList'); if(!host) return;
   const list=todosOf(todoDate);
-  host.innerHTML = list.length ? list.map(t=>`
+  const rowsHtml = list.length ? list.map(t=>`
     <div class="tt-item ${t.done?'done':''}">
       <input type="checkbox" ${t.done?'checked':''} onclick="toggleTodo('${t.id}')">
       <span class="tt-text">${esc(t.text)}</span>
       <button class="tt-del" onclick="deleteTodo('${t.id}')" title="削除">🗑</button>
     </div>`).join('') : '<div class="tt-empty">この日のやりたいことはまだありません。下に入力してEnter。</div>';
+  const lbl=$('todoDateLabel'); if(lbl) lbl.textContent=fmtTodoDate(todoDate);
+  const host=$('todoList'); if(host) host.innerHTML=rowsHtml;
+  // Wardタブにも同じ内容を表示(データは共通)
+  const lblW=$('todoDateLabelW'); if(lblW) lblW.textContent=fmtTodoDate(todoDate);
+  const hostW=$('todoListW'); if(hostW) hostW.innerHTML=rowsHtml;
 }
 function addTodo(){
   const el=$('todoInput'); if(!el) return;
+  const text=el.value.trim(); if(!text) return;
+  state.todos.push({id:uid(), date:todoDate, text, done:false, createdAt:now(), updatedAt:now(), deleted:false});
+  el.value=''; saveState(); renderTodos();
+}
+function addTodoW(){
+  const el=$('todoInputW'); if(!el) return;
   const text=el.value.trim(); if(!text) return;
   state.todos.push({id:uid(), date:todoDate, text, done:false, createdAt:now(), updatedAt:now(), deleted:false});
   el.value=''; saveState(); renderTodos();
@@ -2103,6 +2126,7 @@ function wardSortedList(){
   });
 }
 function renderWard(){
+  renderTodos();
   const lbl=$('wardDateLabel'); if(lbl) lbl.textContent=fmtWardDate(wardDate);
   const tgl=$('wardViewToggle'); if(tgl) tgl.textContent = wardView==='table'?'≡ カード':'⊞ 表';
   const list=wardSortedList();
@@ -2192,15 +2216,16 @@ function renderWardTable(list){
   const rows=list.map((w,i)=>{
     const isDis=(w.status==='discharged'||w.active===false);
     const isPlan=(w.status==='planned');
-    const nm=w.name||(w.pid?displayPid(w):(w.dx||'患者'));
-    const idsub=(w.name&&w.pid)?displayPid(w):'';
+    const nm=w.name||(w.dx||'患者');
+    const idstr=w.pid?displayPid(w):'';
     const labs=wardNextExam(w,'採血'), xray=wardNextExam(w,'レントゲン');
     const rx=wardStandingUntil(w,'rx'), drip=wardStandingUntil(w,'drip');
     const todayTasks=wardTasksOf(w,wardDate).filter(t=>!t.done).length;
     const stbadge=isDis?'<span class="wt-badge dis">退院</span>':(isPlan?`<span class="wt-badge plan">予定${w.admitDate?' '+esc(fmtDue(w.admitDate)):''}</span>`:'');
     return `<tr onclick="openWardCardFromTable('${w.id}')" class="${isDis?'row-dis':''} ${isPlan?'row-plan':''}">
       <td class="wt-num">${i+1}</td>
-      <td class="wt-name"><div>${esc(nm)}</div>${idsub?`<div class="wt-sub">${esc(idsub)}</div>`:''}${stbadge}</td>
+      <td class="wt-name"><div>${esc(nm)}</div>${stbadge}</td>
+      <td class="wt-id">${idstr?esc(idstr):'—'}</td>
       <td class="wt-dx">${esc(w.dx||'')}</td>
       <td>${labs?`<span class="wt-when">${esc(fmtDue(labs))}</span>`:'—'}</td>
       <td>${xray?`<span class="wt-when">${esc(fmtDue(xray))}</span>`:'—'}</td>
@@ -2211,7 +2236,7 @@ function renderWardTable(list){
   }).join('');
   host.innerHTML=`<div class="ward-table-wrap"><table class="ward-table">
     <thead><tr>
-      <th>#</th><th>名前(ID)</th><th>病名</th><th>採血</th><th>レントゲン</th><th>処方期限</th><th>点滴期限</th><th>本日</th>
+      <th>#</th><th>名前</th><th>ID</th><th>病名</th><th>採血</th><th>レントゲン</th><th>処方期限</th><th>点滴期限</th><th>本日</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
