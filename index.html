@@ -116,12 +116,20 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .today-todo .tt-title{font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
 .today-todo .tt-datenav{display:flex;align-items:center;gap:6px}
 .today-todo .tt-datenav span{font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;min-width:92px;text-align:center;letter-spacing:.01em}
+.tt-hist-btn{font-size:11.5px;padding:4px 10px;border-radius:7px;border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);cursor:pointer}
+.th-group{margin-bottom:12px}
+.th-date{font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
+.th-item{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line)}
+.th-state{font-size:10.5px;padding:1px 7px;border-radius:999px;flex-shrink:0}
+.th-state.del{background:var(--shu-soft);color:var(--shu)}
+.th-state.done{background:var(--pine-soft);color:var(--pine)}
+.th-text{flex:1;font-size:13.5px}
 .tt-item{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--line)}
 .tt-item:last-of-type{border-bottom:none}
 .tt-item input[type=checkbox]{width:18px;height:18px;flex-shrink:0;accent-color:var(--pine);cursor:pointer}
 .tt-item .tt-text{flex:1;font-size:14px;line-height:1.35;letter-spacing:.01em}
 .tt-item.done .tt-text{text-decoration:line-through;color:var(--ink-soft)}
-.tt-item .tt-del{background:none;border:none;color:var(--ink-soft);font-size:16px;cursor:pointer;padding:0 2px;flex-shrink:0;opacity:.6}
+.tt-item .tt-del{background:none;border:none;color:var(--ink-soft);font-size:16px;cursor:pointer;padding:4px 6px;flex-shrink:0;opacity:.85}
 .tt-item .tt-del:hover{opacity:1}
 .tt-input{width:100%;margin-top:9px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);font-size:13.5px;letter-spacing:.01em;font-family:inherit}
 .tt-input::placeholder{color:var(--ink-soft);opacity:.7}
@@ -144,6 +152,11 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .pl-meta .pl-pri{background:var(--shu-soft);color:var(--shu);padding:1px 7px;border-radius:999px;font-weight:600}
 .pl-meta .pl-prog{color:var(--pine)}
 .pl-status{flex-shrink:0;font-size:12px;padding:5px 7px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--ink);font-family:inherit}
+.pl-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.pl-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.pl-btn.shu{color:var(--shu);border-color:var(--shu)}
+.pl-btn.del{color:var(--ink-soft);margin-left:auto}
+.pl-btn.del:hover{color:var(--shu);border-color:var(--shu)}
 .pl-empty{font-size:12.5px;color:var(--ink-soft);padding:2px 2px 4px}
 .ward-datebar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .ward-datebar .ward-date-label{font-size:12px;color:var(--ink-soft)}
@@ -433,6 +446,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 </header>
 
 <nav class="tabs">
+  <button id="tabWard" onclick="switchTab('ward')"><span class="tab-label" data-tab="ward">Ward</span></button>
   <button id="tabPlans" class="active" onclick="switchTab('plans')"><span class="tab-label" data-tab="plans">Plan</span></button>
   <button id="tabCases" onclick="switchTab('cases')"><span class="tab-label" data-tab="cases">Case</span></button>
   <button id="tabNotes" onclick="switchTab('notes')"><span class="tab-label" data-tab="notes">Note</span></button>
@@ -443,7 +457,6 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   <button id="tabStudy" onclick="switchTab('study')"><span class="tab-label" data-tab="study">CT</span></button>
   <button id="tabImg" onclick="switchTab('img')"><span class="tab-label" data-tab="img">CT/DDx</span></button>
   <button id="tabSafety" onclick="switchTab('safety')"><span class="tab-label" data-tab="safety">Safety</span></button>
-  <button id="tabWard" onclick="switchTab('ward')"><span class="tab-label" data-tab="ward">Ward</span></button>
 </nav>
 
 <main>
@@ -456,6 +469,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
           <button class="cal-nav" onclick="todoDateMove(-1)">◀</button>
           <span id="todoDateLabel" onclick="todoDateToday()" title="タップで今日へ"></span>
           <button class="cal-nav" onclick="todoDateMove(1)">▶</button>
+          <button class="tt-hist-btn" onclick="openTodoHistory()" title="履歴を見る">履歴</button>
         </div>
       </div>
       <div id="todoList"></div>
@@ -1017,6 +1031,19 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   </div>
 </div>
 
+<!-- ===== todo history modal ===== -->
+<div class="overlay" id="todoHistOverlay">
+  <div class="modal" style="max-width:420px">
+    <h3>やりたいこと 履歴</h3>
+    <div class="hint" style="margin:-6px 0 10px">削除・完了したものを日付順に表示します。「戻す」で今日以外もそのままの日付に復活します。</div>
+    <div id="todoHistBody" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('todoHistOverlay')">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== ward exam date picker modal ===== -->
 <div class="overlay" id="orderExamOverlay">
   <div class="modal" style="max-width:340px">
@@ -1160,9 +1187,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.41.0
+   Med OS v2.42.0
 ========================================================= */
-const APP_VERSION = 'v2.41.0';
+const APP_VERSION = 'v2.42.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1440,7 +1467,7 @@ function groupMgmtRemove(tab, i){
 }
 
 /* ---------- タブ名のカスタマイズ ---------- */
-const TAB_ORDER=['plans','cases','notes','tx','ddx','papers','gallery','study','img','safety','ward'];
+const TAB_ORDER=['ward','plans','cases','notes','tx','ddx','papers','gallery','study','img','safety'];
 const TAB_DEFAULT={plans:'Plan',cases:'Case',notes:'Note',tx:'Tx',ddx:'ER/DDx',papers:'Papers',gallery:'CR',study:'CT',img:'CT/DDx',safety:'Safety',ward:'Ward'};
 function tabLabelRecord(){
   let r=state.meta.find(m=>m.id==='tabLabels');
@@ -1759,7 +1786,7 @@ function renderTodos(){
     <div class="tt-item ${t.done?'done':''}">
       <input type="checkbox" ${t.done?'checked':''} onclick="toggleTodo('${t.id}')">
       <span class="tt-text">${esc(t.text)}</span>
-      <button class="tt-del" onclick="deleteTodo('${t.id}')" title="削除">×</button>
+      <button class="tt-del" onclick="deleteTodo('${t.id}')" title="削除">🗑</button>
     </div>`).join('') : '<div class="tt-empty">この日のやりたいことはまだありません。下に入力してEnter。</div>';
 }
 function addTodo(){
@@ -1775,6 +1802,36 @@ function toggleTodo(id){
 function deleteTodo(id){
   const t=state.todos.find(x=>x.id===id); if(!t) return;
   t.deleted=true; t.updatedAt=now(); saveState(); renderTodos();
+  toast('削除しました(履歴から戻せます)');
+}
+function openTodoHistory(){
+  renderTodoHistory();
+  $('todoHistOverlay').classList.add('open');
+}
+function renderTodoHistory(){
+  // 削除済み or 完了済み を日付順(新しい順)に
+  const all=(state.todos||[]).filter(t=>t.deleted || t.done)
+    .sort((a,b)=>(a.date||'')<(b.date||'')?1:-1);
+  const host=$('todoHistBody'); if(!host) return;
+  if(!all.length){ host.innerHTML='<div class="tt-empty">履歴はまだありません。</div>'; return; }
+  // 日付ごとにグループ化
+  const groups={};
+  all.forEach(t=>{ (groups[t.date]=groups[t.date]||[]).push(t); });
+  host.innerHTML=Object.keys(groups).map(date=>{
+    const items=groups[date].map(t=>`
+      <div class="th-item">
+        <span class="th-state ${t.deleted?'del':'done'}">${t.deleted?'削除':'完了'}</span>
+        <span class="th-text">${esc(t.text)}</span>
+        <button class="pl-btn" onclick="restoreTodo('${t.id}')">戻す</button>
+      </div>`).join('');
+    return `<div class="th-group"><div class="th-date">${esc(fmtTodoDate(date))}</div>${items}</div>`;
+  }).join('');
+}
+function restoreTodo(id){
+  const t=state.todos.find(x=>x.id===id); if(!t) return;
+  t.deleted=false; t.done=false; t.updatedAt=now();
+  saveState(); renderTodoHistory(); renderTodos();
+  toast('戻しました');
 }
 function todoDateMove(n){
   const d=new Date(todoDate+'T00:00:00'); d.setDate(d.getDate()+n);
@@ -2138,10 +2195,15 @@ function renderPlans(){
           ${linked.length?`<span class="pl-link">📎 ${linked.length}</span>`:''}
           ${p.priority==='high'?`<span class="pl-pri">優先</span>`:''}
         </div>
+        <div class="pl-actions" onclick="event.stopPropagation()">
+          <select class="pl-status" onchange="quickStatus('${p.id}',this.value)">
+            ${PLAN_STATUS.map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${PLAN_STATUS_LABEL[s]}</option>`).join('')}
+          </select>
+          <button class="pl-btn" onclick="openPlanModal('${p.id}')">編集</button>
+          <button class="pl-btn shu" onclick="openCaseModal(null,'${p.id}')">＋症例</button>
+          <button class="pl-btn del" onclick="deletePlanQuick('${p.id}')">削除</button>
+        </div>
       </div>
-      <select class="pl-status" onclick="event.stopPropagation()" onchange="quickStatus('${p.id}',this.value)">
-        ${PLAN_STATUS.map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${PLAN_STATUS_LABEL[s]}</option>`).join('')}
-      </select>
     </div>`);
   }
   $('colTodo').innerHTML=cols.todo.join('')||'<div class="pl-empty">なし</div>';
@@ -2177,6 +2239,11 @@ function quickStatus(id,status){
   const p=state.plans.find(x=>x.id===id); if(!p) return;
   p.status=status; p.updatedAt=now();
   saveState(); renderPlans();
+}
+function deletePlanQuick(id){
+  const p=state.plans.find(x=>x.id===id); if(!p) return;
+  if(!confirm('この計画を削除しますか?')) return;
+  p.deleted=true; p.updatedAt=now(); saveState(); renderPlans(); toast('削除しました');
 }
 function openPlanModal(id){
   editingPlanId=id||null;
