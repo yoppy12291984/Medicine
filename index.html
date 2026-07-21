@@ -1024,6 +1024,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       </div>
       <div class="form-row"><label>部屋・ベッド(任意)</label><input type="text" id="wRoom" placeholder="例 502-A"></div>
     </div>
+    <div class="form-row"><label>入院予定日(入院予定の場合)</label><input type="date" id="wAdmitDate" class="big-date"></div>
     <div class="form-grid">
       <div class="form-row"><label>年齢</label><input type="text" id="wAge" placeholder="例 72歳"></div>
       <div class="form-row"><label>性別</label>
@@ -1206,9 +1207,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.49.0
+   Med OS v2.50.0
 ========================================================= */
-const APP_VERSION = 'v2.49.0';
+const APP_VERSION = 'v2.50.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -2050,7 +2051,7 @@ function renderWard(){
     const isPlan=(w.status==='planned');
     const headMain = w.name ? esc(w.name) : (w.pid?'🪪 '+esc(displayPid(w)):'🛏 '+esc(w.dx||'患者'));
     const statusBadge = isDis?`<span class="wc-room" style="color:var(--shu)">退院</span>`
-      : isPlan?`<span class="wc-room" style="color:var(--amber)">入院予定</span>` : '';
+      : isPlan?`<span class="wc-room" style="color:var(--amber)">入院予定${w.admitDate?' '+esc(fmtDue(w.admitDate)):''}</span>` : '';
     return `<div class="ward-card ${isDis?'discharged':''} ${isPlan?'planned':''}">
       <div class="wc-top">
         <div style="flex:1">
@@ -2116,6 +2117,7 @@ function openWardModal(id){
   $('wName').value=w?.name||'';
   $('wPid').value=w?.pid||''; $('wRoom').value=w?.room||'';
   $('wStatus').value=w?.status||(w&&w.active===false?'discharged':'admitted');
+  $('wAdmitDate').value=w?.admitDate||'';
   $('wAge').value=w?.age||''; $('wSex').value=w?.sex||'';
   $('wDx').value=w?.dx||''; $('wNote').value=w?.note||'';
   $('wDeleteBtn').style.display=w?'':'none';
@@ -2128,6 +2130,7 @@ function saveWard(){
   if(!pid && !dx && !name){ toast('名前・ID・病名のいずれかを入力してください'); return; }
   const status=$('wStatus').value;
   const data={ name, pid, room:$('wRoom').value.trim(), status, active:(status!=='discharged'),
+    admitDate:$('wAdmitDate').value||'',
     age:$('wAge').value.trim(), sex:$('wSex').value, dx, note:$('wNote').value, updatedAt:now() };
   if(editingWardId) Object.assign(state.ward.find(x=>x.id===editingWardId),data);
   else state.ward.push(Object.assign({id:uid(),active:true,checks:{},tasks:[],createdAt:now(),deleted:false},data));
