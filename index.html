@@ -998,8 +998,18 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   </div>
 </div>
 
-<!-- ===== ward exam date picker (hidden native input) ===== -->
-<input type="date" id="examDatePicker" onchange="onExamDatePicked()" style="position:fixed;left:-9999px;top:0;opacity:0;width:1px;height:1px">
+<!-- ===== ward exam date picker modal ===== -->
+<div class="overlay" id="orderExamOverlay">
+  <div class="modal" style="max-width:340px">
+    <h3 id="orderExamTitle">いつ予定しますか?</h3>
+    <div class="form-row"><label>日付</label><input type="date" id="orderExamDate" class="big-date"></div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('orderExamOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="confirmOrderExam()">この日に予定</button>
+    </div>
+  </div>
+</div>
 
 <!-- ===== ward task edit modal ===== -->
 <div class="overlay" id="wardTaskOverlay">
@@ -1131,9 +1141,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.37.0
+   Med OS v2.38.0
 ========================================================= */
-const APP_VERSION = 'v2.37.0';
+const APP_VERSION = 'v2.38.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1787,22 +1797,19 @@ function renderWardOrderMgmt(){
 let pendingOrder = null; // {wid, label}
 function orderWardExam(wid, label){
   pendingOrder = {wid, label};
-  const el=$('examDatePicker');
-  el.value = wardDate;
-  // ネイティブの日付ピッカーを直接開く(確認画面なし)
-  if(el.showPicker){ try{ el.showPicker(); return; }catch(e){} }
-  el.focus(); el.click();
+  const t=$('orderExamTitle'); if(t) t.textContent = label + 'をいつ予定しますか?';
+  $('orderExamDate').value = wardDate;
+  $('orderExamOverlay').classList.add('open');
 }
-function onExamDatePicked(){
-  if(!pendingOrder) return;
-  const el=$('examDatePicker');
-  const date=el.value; if(!date){ pendingOrder=null; return; }
-  const w=state.ward.find(x=>x.id===pendingOrder.wid); if(!w){ pendingOrder=null; return; }
+function confirmOrderExam(){
+  if(!pendingOrder){ closeOverlay('orderExamOverlay'); return; }
+  const date=$('orderExamDate').value || wardDate;
+  const w=state.ward.find(x=>x.id===pendingOrder.wid); if(!w){ pendingOrder=null; closeOverlay('orderExamOverlay'); return; }
   if(!w.tasks) w.tasks=[];
   w.tasks.push({id:uid(), date, text:pendingOrder.label, done:false, createdAt:now()});
   w.updatedAt=now(); saveState();
   const lbl=pendingOrder.label; pendingOrder=null;
-  renderWard();
+  closeOverlay('orderExamOverlay'); renderWard();
   toast(`${lbl}を ${fmtDue(date)} に予定`);
 }
 // カレンダー等からタスクを編集
