@@ -133,6 +133,17 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .ward-datebar .ward-showdis input{width:auto}
 .ward-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:11px}
 .ward-card.discharged{opacity:.55}
+.ward-card.planned{border-color:var(--amber);border-style:dashed}
+.cal-countwrap{display:flex;justify-content:center;margin-top:4px}
+.cal-count{font-size:11px;font-weight:700;min-width:20px;height:20px;padding:0 5px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:#fff}
+.cal-count.open{background:var(--amber)}
+.cal-count.overdue{background:var(--shu)}
+.cal-count.done{background:var(--pine)}
+.dp-patient{margin-bottom:10px}
+.dp-phead{font-size:13px;font-weight:700;padding:4px 6px;cursor:pointer;color:var(--ink)}
+.dp-task{display:flex;align-items:center;gap:8px;padding:5px 6px;font-size:13.5px}
+.dp-task input[type=checkbox]{width:17px;height:17px;flex-shrink:0;accent-color:var(--pine)}
+.dp-task.done span{text-decoration:line-through;color:var(--ink-soft)}
 .ward-card .wc-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
 .ward-card .wc-id{font-weight:700;font-size:15px}
 .ward-card .wc-demo{font-size:12.5px;color:var(--ink-soft);margin-left:2px}
@@ -959,9 +970,15 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <div class="overlay" id="wardOverlay">
   <div class="modal">
     <h3 id="wardModalTitle">患者を追加</h3>
-    <div class="hint" style="margin:-6px 0 12px">⚠ 個人が特定されない形(院内ID・匿名)で。氏名は入れないでください。</div>
+    <div class="hint" style="margin:-6px 0 12px">⚠ 個人が特定されない形で。実名は避け、偽名・イニシャル・院内IDで。</div>
     <div class="form-grid">
+      <div class="form-row"><label>名前(偽名可・任意)</label><input type="text" id="wName" placeholder="例 A氏 / タナカ(仮)"></div>
       <div class="form-row"><label>患者ID(任意)</label><input type="text" id="wPid" placeholder="院内IDなど・空欄でも可"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>状態</label>
+        <select id="wStatus"><option value="admitted">入院中</option><option value="planned">入院予定</option><option value="discharged">退院</option></select>
+      </div>
       <div class="form-row"><label>部屋・ベッド(任意)</label><input type="text" id="wRoom" placeholder="例 502-A"></div>
     </div>
     <div class="form-grid">
@@ -981,15 +998,21 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   </div>
 </div>
 
-<!-- ===== ward exam date picker ===== -->
-<div class="overlay" id="orderExamOverlay">
-  <div class="modal" style="max-width:340px">
-    <h3 id="orderExamTitle">いつ予定しますか?</h3>
-    <div class="form-row"><label>日付</label><input type="date" id="orderExamDate" class="big-date"></div>
+<!-- ===== ward exam date picker (hidden native input) ===== -->
+<input type="date" id="examDatePicker" onchange="onExamDatePicked()" style="position:fixed;left:-9999px;top:0;opacity:0;width:1px;height:1px">
+
+<!-- ===== ward task edit modal ===== -->
+<div class="overlay" id="wardTaskOverlay">
+  <div class="modal" style="max-width:360px">
+    <h3>予定を編集</h3>
+    <div class="form-row"><label>内容</label><input type="text" id="wtEditText"></div>
+    <div class="form-row"><label>日付</label><input type="date" id="wtEditDate" class="big-date"></div>
+    <label class="ward-showdis" style="margin:2px 0 4px"><input type="checkbox" id="wtEditDone"> 完了にする</label>
     <div class="modal-actions">
+      <button class="btn danger" onclick="wardTaskModalDelete()">削除</button>
       <div class="spacer"></div>
-      <button class="btn" onclick="closeOverlay('orderExamOverlay')">キャンセル</button>
-      <button class="btn primary" onclick="confirmOrderExam()">この日に予定</button>
+      <button class="btn" onclick="closeOverlay('wardTaskOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="wardTaskModalSave()">保存</button>
     </div>
   </div>
 </div>
@@ -1108,9 +1131,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.36.0
+   Med OS v2.37.0
 ========================================================= */
-const APP_VERSION = 'v2.36.0';
+const APP_VERSION = 'v2.37.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1764,20 +1787,51 @@ function renderWardOrderMgmt(){
 let pendingOrder = null; // {wid, label}
 function orderWardExam(wid, label){
   pendingOrder = {wid, label};
-  $('orderExamTitle').textContent = label + 'をいつ予定しますか?';
-  $('orderExamDate').value = wardDate;
-  $('orderExamOverlay').classList.add('open');
+  const el=$('examDatePicker');
+  el.value = wardDate;
+  // ネイティブの日付ピッカーを直接開く(確認画面なし)
+  if(el.showPicker){ try{ el.showPicker(); return; }catch(e){} }
+  el.focus(); el.click();
 }
-function confirmOrderExam(){
+function onExamDatePicked(){
   if(!pendingOrder) return;
-  const w=state.ward.find(x=>x.id===pendingOrder.wid); if(!w) return;
-  const date=$('orderExamDate').value || wardDate;
+  const el=$('examDatePicker');
+  const date=el.value; if(!date){ pendingOrder=null; return; }
+  const w=state.ward.find(x=>x.id===pendingOrder.wid); if(!w){ pendingOrder=null; return; }
   if(!w.tasks) w.tasks=[];
   w.tasks.push({id:uid(), date, text:pendingOrder.label, done:false, createdAt:now()});
   w.updatedAt=now(); saveState();
   const lbl=pendingOrder.label; pendingOrder=null;
-  closeOverlay('orderExamOverlay'); renderWard();
+  renderWard();
   toast(`${lbl}を ${fmtDue(date)} に予定`);
+}
+// カレンダー等からタスクを編集
+let editingWardTask=null; // {wid, tid}
+function openWardTaskEdit(wid, tid){
+  const w=state.ward.find(x=>x.id===wid); if(!w) return;
+  const t=(w.tasks||[]).find(x=>x.id===tid); if(!t) return;
+  editingWardTask={wid, tid};
+  $('wtEditText').value=t.text||'';
+  $('wtEditDate').value=t.date||wardDate;
+  $('wtEditDone').checked=!!t.done;
+  $('wardTaskOverlay').classList.add('open');
+}
+function wardTaskModalSave(){
+  if(!editingWardTask) return;
+  const w=state.ward.find(x=>x.id===editingWardTask.wid); if(!w) return;
+  const t=(w.tasks||[]).find(x=>x.id===editingWardTask.tid); if(!t) return;
+  t.text=$('wtEditText').value.trim()||t.text;
+  t.date=$('wtEditDate').value||t.date;
+  t.done=$('wtEditDone').checked;
+  w.updatedAt=now(); saveState(); editingWardTask=null;
+  closeOverlay('wardTaskOverlay'); renderWard(); toast('保存しました');
+}
+function wardTaskModalDelete(){
+  if(!editingWardTask) return;
+  const w=state.ward.find(x=>x.id===editingWardTask.wid); if(!w) return;
+  const t=(w.tasks||[]).find(x=>x.id===editingWardTask.tid); if(!t) return;
+  t.deleted=true; w.updatedAt=now(); saveState(); editingWardTask=null;
+  closeOverlay('wardTaskOverlay'); renderWard(); toast('削除しました');
 }
 function liveWard(){ return (state.ward||[]).filter(w=>!w.deleted); }
 function fmtWardDate(d){
@@ -1821,11 +1875,11 @@ function deleteWardTask(wid, tid){
 function dischargeWard(id){
   const w=state.ward.find(x=>x.id===id); if(!w) return;
   if(!confirm('この患者を退院にしてリストから外しますか?(記録は残ります)')) return;
-  w.active=false; w.dischargedAt=now(); w.updatedAt=now(); saveState(); renderWard(); toast('退院にしました');
+  w.status='discharged'; w.active=false; w.dischargedAt=now(); w.updatedAt=now(); saveState(); renderWard(); toast('退院にしました');
 }
 function readmitWard(id){
   const w=state.ward.find(x=>x.id===id); if(!w) return;
-  w.active=true; w.dischargedAt=null; w.updatedAt=now(); saveState(); renderWard();
+  w.status='admitted'; w.active=true; w.dischargedAt=null; w.updatedAt=now(); saveState(); renderWard();
 }
 function wardDateMove(n){
   const d=new Date(wardDate+'T00:00:00'); d.setDate(d.getDate()+n);
@@ -1837,12 +1891,14 @@ function renderWard(){
   const showDis=$('wardShowDischarged') && $('wardShowDischarged').checked;
   const q=($('wardSearch')?$('wardSearch').value:'').trim().toLowerCase();
   let list=liveWard().filter(w=>{
-    if(!showDis && w.active===false) return false;
-    if(q){ const hay=[w.pid,w.dx,w.note,w.room,w.age].join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
+    const dis=(w.status==='discharged'||w.active===false);
+    if(!showDis && dis) return false;
+    if(q){ const hay=[w.name,w.pid,w.dx,w.note,w.room,w.age].join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
     return true;
   }).sort((a,b)=>{
-    if((a.active===false)!==(b.active===false)) return a.active===false?1:-1;
-    return (a.pid||'').localeCompare(b.pid||'','ja');
+    const rank=w=>(w.status==='discharged'||w.active===false)?2:(w.status==='planned'?0:1);
+    if(rank(a)!==rank(b)) return rank(a)-rank(b);
+    return ((a.name||a.pid||a.dx||'')).localeCompare((b.name||b.pid||b.dx||''),'ja');
   });
   $('wardGrid').innerHTML = list.length ? list.map(w=>{
     const demo=[w.age,(w.sex&&SEX_LABEL[w.sex])].filter(Boolean).join('・');
@@ -1855,17 +1911,23 @@ function renderWard(){
       </div>`).join('');
     // 別日の予定タスク数(先の日付に入っているもの)
     const future=(w.tasks||[]).filter(t=>!t.deleted && t.date>wardDate && !t.done).length;
-    return `<div class="ward-card ${w.active===false?'discharged':''}">
+    const isDis=(w.status==='discharged'||w.active===false);
+    const isPlan=(w.status==='planned');
+    const headMain = w.name ? esc(w.name) : (w.pid?'🪪 '+esc(displayPid(w)):'🛏 '+esc(w.dx||'患者'));
+    const statusBadge = isDis?`<span class="wc-room" style="color:var(--shu)">退院</span>`
+      : isPlan?`<span class="wc-room" style="color:var(--amber)">入院予定</span>` : '';
+    return `<div class="ward-card ${isDis?'discharged':''} ${isPlan?'planned':''}">
       <div class="wc-top">
         <div style="flex:1">
-          ${w.pid?`<span class="wc-id">🪪 ${esc(displayPid(w))}</span>`:`<span class="wc-id">🛏 ${esc(w.dx||'患者')}</span>`}
+          <span class="wc-id">${headMain}</span>
+          ${(w.name&&w.pid)?`<span class="wc-demo">🪪${esc(displayPid(w))}</span>`:''}
           ${demo?`<span class="wc-demo">${esc(demo)}</span>`:''}
           ${w.room?`<span class="wc-room">${esc(w.room)}</span>`:''}
-          ${w.active===false?`<span class="wc-room" style="color:var(--shu)">退院</span>`:''}
+          ${statusBadge}
         </div>
         <button class="wc-edit" onclick="openWardModal('${w.id}')">編集</button>
       </div>
-      ${(w.pid&&w.dx)?`<div class="wc-dx">${esc(w.dx)}</div>`:''}
+      ${w.dx?`<div class="wc-dx">${esc(w.dx)}</div>`:''}
       <div class="ward-checks">${checks}</div>
       <div class="ward-order-row">
         <span class="wo-label">検査を予定:</span>
@@ -1882,19 +1944,29 @@ function renderWard(){
       </div>
       ${future?`<div class="hint" style="margin-top:5px">先の日付に未完了タスク ${future}件</div>`:''}
       <div class="wc-actions">
-        ${w.active===false
-          ? `<button class="btn" onclick="readmitWard('${w.id}')">再入院に戻す</button>`
+        ${isDis
+          ? `<button class="btn" onclick="setWardStatus('${w.id}','admitted')">再入院に戻す</button>`
+          : isPlan
+          ? `<button class="btn primary" onclick="setWardStatus('${w.id}','admitted')">入院にする</button>`
           : `<button class="btn" onclick="dischargeWard('${w.id}')">✓ 退院にする</button>`}
       </div>
     </div>`;
   }).join('') : '<div class="empty">病棟患者はまだいません。＋で追加。</div>';
   renderWardCal();
 }
+function setWardStatus(id, st){
+  const w=state.ward.find(x=>x.id===id); if(!w) return;
+  w.status=st; w.active=(st!=='discharged');
+  if(st==='discharged') w.dischargedAt=now(); else w.dischargedAt=null;
+  w.updatedAt=now(); saveState(); renderWard();
+}
 function openWardModal(id){
   editingWardId=id||null;
   const w=id?state.ward.find(x=>x.id===id):null;
   $('wardModalTitle').textContent=w?'患者を編集':'患者を追加';
+  $('wName').value=w?.name||'';
   $('wPid').value=w?.pid||''; $('wRoom').value=w?.room||'';
+  $('wStatus').value=w?.status||(w&&w.active===false?'discharged':'admitted');
   $('wAge').value=w?.age||''; $('wSex').value=w?.sex||'';
   $('wDx').value=w?.dx||''; $('wNote').value=w?.note||'';
   $('wDeleteBtn').style.display=w?'':'none';
@@ -1903,9 +1975,11 @@ function openWardModal(id){
 function saveWard(){
   const pid=$('wPid').value.trim();
   const dx=$('wDx').value.trim();
-  if(!pid && !dx){ toast('患者IDか病名のどちらかを入力してください'); return; }
-  const data={ pid, room:$('wRoom').value.trim(), age:$('wAge').value.trim(), sex:$('wSex').value,
-    dx, note:$('wNote').value, updatedAt:now() };
+  const name=$('wName').value.trim();
+  if(!pid && !dx && !name){ toast('名前・ID・病名のいずれかを入力してください'); return; }
+  const status=$('wStatus').value;
+  const data={ name, pid, room:$('wRoom').value.trim(), status, active:(status!=='discharged'),
+    age:$('wAge').value.trim(), sex:$('wSex').value, dx, note:$('wNote').value, updatedAt:now() };
   if(editingWardId) Object.assign(state.ward.find(x=>x.id===editingWardId),data);
   else state.ward.push(Object.assign({id:uid(),active:true,checks:{},tasks:[],createdAt:now(),deleted:false},data));
   saveState(); closeOverlay('wardOverlay'); renderWard(); toast('保存しました');
@@ -1948,31 +2022,39 @@ function renderWardCal(){
     const dt=new Date(cy,cm,cd);
     const ds=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
     const list=byDate[ds]||[];
-    const labels=list.slice(0,3).map(({w,task})=>{
-      const cls=task.done?'done':(ds<today?'overdue':'open');
-      return `<span class="cal-ev ${cls}" title="${esc(displayPid(w))}: ${esc(task.text)}">${esc(task.text)}</span>`;
-    }).join('');
-    const more=list.length>3?`<span class="cal-more">+${list.length-3}</span>`:'';
+    const undone=list.filter(x=>!x.task.done).length;
+    const hasOverdue=list.some(x=>!x.task.done && ds<today);
+    const countBadge = list.length
+      ? `<span class="cal-count ${hasOverdue?'overdue':(list.every(x=>x.task.done)?'done':'open')}">${list.length}</span>`
+      : '';
     cells+=`<div class="cal-cell ${other} ${ds===today?'today':''} ${ds===wardCalSelected?'selected':''}" onclick="wardCalSelect('${ds}')">
-      <span class="num">${cd}</span><div class="cal-evs">${labels}${more}</div></div>`;
+      <span class="num">${cd}</span><div class="cal-countwrap">${countBadge}</div></div>`;
   }
   const grid=$('wardCalGrid'); if(grid) grid.innerHTML=cells;
   const panel=$('wardCalDayPanel'); if(!panel) return;
   if(wardCalSelected && (byDate[wardCalSelected]||[]).length){
     panel.classList.add('open');
-    panel.innerHTML=`<div class="dp-title">📅 ${fmtDue(wardCalSelected)} の患者タスク</div>`+
-      byDate[wardCalSelected].map(({w,task})=>
-        `<div class="dp-item">
-          <span onclick="openWardModal('${w.id}')" style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer">
-            <span class="st ${task.done?'done':''}">${task.done?'済':'未'}</span>
-            <span class="hint" style="margin:0">${w.pid?'🪪'+esc(displayPid(w)):'🛏 '+esc(w.dx||'患者')}</span>
-            <span>${esc(task.text)}</span>
-          </span>
-          <button class="wt-del" onclick="deleteWardTask('${w.id}','${task.id}')" title="削除">×</button>
-        </div>`).join('');
+    // 患者ごとにまとめる
+    const groups={};
+    byDate[wardCalSelected].forEach(({w,task})=>{ (groups[w.id]=groups[w.id]||{w, tasks:[]}).tasks.push(task); });
+    panel.innerHTML=`<div class="dp-title">📅 ${fmtDue(wardCalSelected)} の予定</div>`+
+      Object.keys(groups).map(wid=>{
+        const {w,tasks}=groups[wid];
+        const head=w.name?esc(w.name):(w.pid?'🪪'+esc(displayPid(w)):'🛏 '+esc(w.dx||'患者'));
+        const sub=[w.pid?esc(displayPid(w)):'', w.dx?esc(w.dx):''].filter(Boolean).join(' / ');
+        const items=tasks.map(t=>
+          `<div class="dp-task ${t.done?'done':''}">
+            <input type="checkbox" ${t.done?'checked':''} onclick="toggleWardTask('${w.id}','${t.id}')">
+            <span onclick="openWardTaskEdit('${w.id}','${t.id}')" style="flex:1;cursor:pointer">${esc(t.text)}</span>
+            <button class="wt-del" onclick="deleteWardTask('${w.id}','${t.id}')">×</button>
+          </div>`).join('');
+        return `<div class="dp-patient">
+          <div class="dp-phead" onclick="openWardModal('${w.id}')">${head}${sub?`<span class="hint" style="margin:0 0 0 6px">${sub}</span>`:''}</div>
+          ${items}</div>`;
+      }).join('');
   }else if(wardCalSelected){
     panel.classList.add('open');
-    panel.innerHTML=`<div class="dp-title">📅 ${fmtDue(wardCalSelected)} — 患者タスクはありません</div>`;
+    panel.innerHTML=`<div class="dp-title">📅 ${fmtDue(wardCalSelected)} — 予定はありません</div>`;
   }else{
     panel.classList.remove('open'); panel.innerHTML='';
   }
