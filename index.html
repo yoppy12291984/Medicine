@@ -154,9 +154,11 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .ward-task .wt-txt{flex:1}
 .ward-task .wt-date{font-size:11px;color:var(--amber);background:var(--amber-soft);border-radius:4px;padding:0 5px;flex-shrink:0}
 .ward-task .wt-del{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:15px;flex-shrink:0}
-.ward-addtask{display:flex;gap:6px;margin-top:8px;align-items:center}
-.ward-addtask input[type=text]{flex:1;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-size:13px;font-family:inherit}
-.ward-addtask input[type=date]{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-size:12px;font-family:inherit;width:140px}
+.ward-addtask{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.ward-addtask input[type=text]{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-size:13.5px;font-family:inherit}
+.ward-addtask .wt-daterow{display:flex;gap:8px;align-items:center}
+.big-date{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-size:14px;font-family:inherit;min-height:22px}
+.ward-addtask .wt-daterow .btn{flex-shrink:0;padding:8px 16px}
 .ward-card .wc-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .ward-card .wc-actions .btn{padding:6px 12px;font-size:12.5px}
 .ward-note-box{background:var(--wash);border-radius:8px;padding:8px 11px;margin-top:8px;font-size:12.5px}
@@ -979,6 +981,19 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   </div>
 </div>
 
+<!-- ===== ward exam date picker ===== -->
+<div class="overlay" id="orderExamOverlay">
+  <div class="modal" style="max-width:340px">
+    <h3 id="orderExamTitle">いつ予定しますか?</h3>
+    <div class="form-row"><label>日付</label><input type="date" id="orderExamDate" class="big-date"></div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn" onclick="closeOverlay('orderExamOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="confirmOrderExam()">この日に予定</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== detail modal (shared) ===== -->
 <div class="overlay" id="detailOverlay">
   <div class="modal" id="detailBody"></div>
@@ -1066,6 +1081,15 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
       <div class="hint">▲▼でタブの順番を入れ替え、右の欄で表示名を変えられます。空欄で既定名に戻ります。変更は全端末に同期されます。</div>
     </div>
     <div class="form-row">
+      <label>病棟「検査を予定」ボタンの管理</label>
+      <div class="cat-list" id="wardOrderList"></div>
+      <div class="cat-add-row">
+        <input type="text" id="wardOrderNew" placeholder="検査名を追加(例 血ガス)" onkeydown="if(event.key==='Enter'){addWardOrder(this.value);this.value='';}">
+        <button class="btn" onclick="addWardOrder($('wardOrderNew').value);$('wardOrderNew').value=''">追加</button>
+      </div>
+      <div class="hint">病棟の各患者カードに出る「検査を予定」ボタンを編集できます。</div>
+    </div>
+    <div class="form-row">
       <label>画像タグの管理(症例集・勉強用・画像 共通)</label>
       <div class="cat-list" id="imgTagList"></div>
       <div class="hint">画像系タブで使われているタグの一覧です。名前をタップすると、そのタグが付いた全画像で一括リネームされます。×で全画像から削除します。</div>
@@ -1084,9 +1108,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.35.0
+   Med OS v2.36.0
 ========================================================= */
-const APP_VERSION = 'v2.35.0';
+const APP_VERSION = 'v2.36.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1716,15 +1740,44 @@ const WARD_CHECKS = [
   {key:'drip', label:'点滴', icon:'💧'}
 ];
 // 「いつやるか」を予定として入れる検査ボタン
-const WARD_ORDERS = ['採血','レントゲン','CT','心電図','エコー','培養','MRI'];
+const WARD_ORDERS_DEFAULT = ['採血','レントゲン','CT','心電図','エコー','培養','MRI'];
+function wardOrdersRecord(){
+  let r=state.meta.find(m=>m.id==='wardOrders');
+  if(!r){ r={id:'wardOrders', list:WARD_ORDERS_DEFAULT.slice(), updatedAt:now()}; state.meta.push(r); }
+  if(!Array.isArray(r.list)) r.list=WARD_ORDERS_DEFAULT.slice();
+  return r;
+}
+function wardOrders(){ return wardOrdersRecord().list; }
+function addWardOrder(name){
+  const v=(name||'').trim(); if(!v) return;
+  const r=wardOrdersRecord(); if(r.list.includes(v)) return;
+  r.list.push(v); r.updatedAt=now(); saveState(); renderWardOrderMgmt(); renderWard();
+}
+function removeWardOrder(name){
+  const r=wardOrdersRecord(); r.list=r.list.filter(x=>x!==name); r.updatedAt=now();
+  saveState(); renderWardOrderMgmt(); renderWard();
+}
+function renderWardOrderMgmt(){
+  const host=$('wardOrderList'); if(!host) return;
+  host.innerHTML=wardOrders().map(o=>`<div class="cat-chip">${esc(o)}<button onclick="removeWardOrder('${esc(o)}')">×</button></div>`).join('')||'<span class="hint">ボタンがありません。下で追加してください。</span>';
+}
+let pendingOrder = null; // {wid, label}
 function orderWardExam(wid, label){
-  const w=state.ward.find(x=>x.id===wid); if(!w) return;
-  const dtEl=$('wtDate_'+wid);
-  const date=(dtEl&&dtEl.value)?dtEl.value:wardDate;
+  pendingOrder = {wid, label};
+  $('orderExamTitle').textContent = label + 'をいつ予定しますか?';
+  $('orderExamDate').value = wardDate;
+  $('orderExamOverlay').classList.add('open');
+}
+function confirmOrderExam(){
+  if(!pendingOrder) return;
+  const w=state.ward.find(x=>x.id===pendingOrder.wid); if(!w) return;
+  const date=$('orderExamDate').value || wardDate;
   if(!w.tasks) w.tasks=[];
-  w.tasks.push({id:uid(), date, text:label, done:false, createdAt:now()});
-  w.updatedAt=now(); saveState(); renderWard();
-  toast(`${label}を ${fmtDue(date)} に予定`);
+  w.tasks.push({id:uid(), date, text:pendingOrder.label, done:false, createdAt:now()});
+  w.updatedAt=now(); saveState();
+  const lbl=pendingOrder.label; pendingOrder=null;
+  closeOverlay('orderExamOverlay'); renderWard();
+  toast(`${lbl}を ${fmtDue(date)} に予定`);
 }
 function liveWard(){ return (state.ward||[]).filter(w=>!w.deleted); }
 function fmtWardDate(d){
@@ -1763,7 +1816,7 @@ function toggleWardTask(wid, tid){
 function deleteWardTask(wid, tid){
   const w=state.ward.find(x=>x.id===wid); if(!w) return;
   const t=(w.tasks||[]).find(x=>x.id===tid); if(!t) return;
-  t.deleted=true; w.updatedAt=now(); saveState(); renderWard();
+  t.deleted=true; w.updatedAt=now(); saveState(); renderWard(); renderWardCal();
 }
 function dischargeWard(id){
   const w=state.ward.find(x=>x.id===id); if(!w) return;
@@ -1816,13 +1869,16 @@ function renderWard(){
       <div class="ward-checks">${checks}</div>
       <div class="ward-order-row">
         <span class="wo-label">検査を予定:</span>
-        ${WARD_ORDERS.map(o=>`<button class="wo-btn" onclick="orderWardExam('${w.id}','${o}')">${o}</button>`).join('')}
+        ${wardOrders().map(o=>`<button class="wo-btn" onclick="orderWardExam('${w.id}','${esc(o)}')">${esc(o)}</button>`).join('')}
       </div>
       ${w.note?`<div class="ward-note-box">${md(w.note)}</div>`:''}
       <div class="ward-tasks">${tasks||''}</div>
       <div class="ward-addtask">
         <input type="text" id="wtInput_${w.id}" placeholder="この患者のやること(自由入力)" onkeydown="if(event.key==='Enter')addWardTask('${w.id}')">
-        <input type="date" id="wtDate_${w.id}" value="${wardDate}" title="タスクの日付">
+        <div class="wt-daterow">
+          <input type="date" id="wtDate_${w.id}" value="${wardDate}" class="big-date" title="タスクの日付">
+          <button class="btn" onclick="addWardTask('${w.id}')">追加</button>
+        </div>
       </div>
       ${future?`<div class="hint" style="margin-top:5px">先の日付に未完了タスク ${future}件</div>`:''}
       <div class="wc-actions">
@@ -1906,10 +1962,14 @@ function renderWardCal(){
     panel.classList.add('open');
     panel.innerHTML=`<div class="dp-title">📅 ${fmtDue(wardCalSelected)} の患者タスク</div>`+
       byDate[wardCalSelected].map(({w,task})=>
-        `<div class="dp-item" onclick="openWardModal('${w.id}')">
-          <span class="st ${task.done?'done':''}">${task.done?'済':'未'}</span>
-          <span class="hint" style="margin:0">🪪${esc(displayPid(w))}</span>
-          <span>${esc(task.text)}</span></div>`).join('');
+        `<div class="dp-item">
+          <span onclick="openWardModal('${w.id}')" style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer">
+            <span class="st ${task.done?'done':''}">${task.done?'済':'未'}</span>
+            <span class="hint" style="margin:0">${w.pid?'🪪'+esc(displayPid(w)):'🛏 '+esc(w.dx||'患者')}</span>
+            <span>${esc(task.text)}</span>
+          </span>
+          <button class="wt-del" onclick="deleteWardTask('${w.id}','${task.id}')" title="削除">×</button>
+        </div>`).join('');
   }else if(wardCalSelected){
     panel.classList.add('open');
     panel.innerHTML=`<div class="dp-title">📅 ${fmtDue(wardCalSelected)} — 患者タスクはありません</div>`;
@@ -3420,6 +3480,7 @@ function openSettings(){
   renderStatusList();
   renderGroupMgmt();
   renderTabLabelList();
+  renderWardOrderMgmt();
   renderImgTagList();
   $('settingsOverlay').classList.add('open');
 }
