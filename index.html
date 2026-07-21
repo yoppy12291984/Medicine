@@ -32,7 +32,7 @@ html[data-theme="dark"]{
   --shadow-lg:0 10px 34px rgba(0,0,0,.5);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+html,body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden;width:100%;max-width:100%;overscroll-behavior-x:none}
 html{transition:none}
 body{transition:background .25s,color .25s}
 button{font-family:var(--font-body);cursor:pointer;color:var(--ink)}
@@ -59,7 +59,7 @@ nav.tabs::-webkit-scrollbar{display:none}
 nav.tabs button{flex:1 0 auto;min-width:72px;padding:11px 14px;background:none;border:none;font-size:13.5px;font-weight:500;color:var(--ink-soft);border-bottom:2px solid transparent;letter-spacing:.06em;white-space:nowrap}
 nav.tabs button.active{color:var(--pine);border-bottom-color:var(--pine);font-weight:700}
 
-main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
+main{max-width:1100px;margin:0 auto;padding:16px 14px 90px;overflow-x:hidden}
 
 /* ---------- calendar ---------- */
 .cal{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 8px;margin-bottom:14px}
@@ -112,6 +112,8 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .plan-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;margin-bottom:10px;box-shadow:var(--shadow)}
 .plan-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .today-todo{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:14px}
+#viewPlans{display:flex;flex-direction:column}
+#viewPlans>.cal{order:99;margin-top:14px}
 .today-todo .tt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .today-todo .tt-title{font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
 .today-todo .tt-datenav{display:flex;align-items:center;gap:6px}
@@ -1239,9 +1241,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.54.0
+   Med OS v2.56.0
 ========================================================= */
-const APP_VERSION = 'v2.54.0';
+const APP_VERSION = 'v2.56.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
