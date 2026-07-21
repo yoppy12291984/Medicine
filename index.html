@@ -196,6 +196,8 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .wo-btn:hover{background:var(--pine);color:#fff}
 .wo-btn.scheduled{background:var(--amber);color:#fff;border-color:var(--amber)}
 .wo-btn.scheduled:hover{background:var(--amber);opacity:.9}
+.wo-btn.standing{background:var(--amber);color:#fff;border-color:var(--amber)}
+.wo-btn.standing:hover{background:var(--amber);opacity:.9}
 .wo-btn .wo-when{font-size:10px;margin-left:5px;opacity:.95;font-weight:700}
 .ward-task{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:13.5px}
 .ward-task input[type=checkbox]{width:17px;height:17px;flex-shrink:0;accent-color:var(--pine);cursor:pointer}
@@ -1204,9 +1206,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.48.0
+   Med OS v2.49.0
 ========================================================= */
-const APP_VERSION = 'v2.48.0';
+const APP_VERSION = 'v2.49.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1887,23 +1889,48 @@ function renderWardOrderMgmt(){
   const host=$('wardOrderList'); if(!host) return;
   host.innerHTML=wardOrders().map(o=>`<div class="cat-chip">${esc(o)}<button onclick="removeWardOrder('${esc(o)}')">×</button></div>`).join('')||'<span class="hint">ボタンがありません。下で追加してください。</span>';
 }
-let pendingOrder = null; // {wid, label}
+let pendingOrder = null; // {wid, label, type, key}
+// 継続オーダー(期限管理)の種類
+const WARD_STANDING = [
+  {key:'rx', label:'定期処方'},
+  {key:'drip', label:'点滴'}
+];
 function orderWardExam(wid, label){
-  pendingOrder = {wid, label};
+  pendingOrder = {wid, label, type:'exam'};
   const el=$('orderExamDate');
   el.value = wardDate;
   const t=$('orderExamTitle'); if(t) t.textContent = label + 'の日付を選択';
   $('orderExamOverlay').classList.add('open');
-  // カレンダーを自動で開こうと試みる。失敗する端末では、見えている日付欄をタップして開けばよい
   requestAnimationFrame(()=>{
     try{ if(el.showPicker) el.showPicker(); }catch(e){}
   });
 }
-// カレンダーで日付を選んだ瞬間に予定を登録して閉じる(確認不要)
+function orderWardStanding(wid, key){
+  const s=WARD_STANDING.find(x=>x.key===key); if(!s) return;
+  const w=state.ward.find(x=>x.id===wid);
+  pendingOrder = {wid, label:s.label, type:'standing', key};
+  const el=$('orderExamDate');
+  el.value = (w&&w.orders&&w.orders[key]) || wardDate;
+  const t=$('orderExamTitle'); if(t) t.textContent = s.label + 'をいつまで出しますか?';
+  $('orderExamOverlay').classList.add('open');
+  requestAnimationFrame(()=>{
+    try{ if(el.showPicker) el.showPicker(); }catch(e){}
+  });
+}
+// カレンダーで日付を選んだ瞬間に登録して閉じる(確認不要)
 function onExamDateChange(){
   if(!pendingOrder){ closeOverlay('orderExamOverlay'); return; }
   const date=$('orderExamDate').value; if(!date){ pendingOrder=null; closeOverlay('orderExamOverlay'); return; }
   const w=state.ward.find(x=>x.id===pendingOrder.wid); if(!w){ pendingOrder=null; closeOverlay('orderExamOverlay'); return; }
+  if(pendingOrder.type==='standing'){
+    if(!w.orders) w.orders={};
+    w.orders[pendingOrder.key]=date;
+    w.updatedAt=now(); saveState();
+    const lbl=pendingOrder.label; pendingOrder=null;
+    closeOverlay('orderExamOverlay'); renderWard();
+    toast(`${lbl}を ${fmtDue(date)} まで登録`);
+    return;
+  }
   if(!w.tasks) w.tasks=[];
   w.tasks.push({id:uid(), date, text:pendingOrder.label, done:false, createdAt:now()});
   w.updatedAt=now(); saveState();
@@ -1911,17 +1938,7 @@ function onExamDateChange(){
   closeOverlay('orderExamOverlay'); renderWard();
   toast(`${lbl}を ${fmtDue(date)} に予定`);
 }
-function confirmOrderExam(){
-  if(!pendingOrder){ closeOverlay('orderExamOverlay'); return; }
-  const date=$('orderExamDate').value || wardDate;
-  const w=state.ward.find(x=>x.id===pendingOrder.wid); if(!w){ pendingOrder=null; closeOverlay('orderExamOverlay'); return; }
-  if(!w.tasks) w.tasks=[];
-  w.tasks.push({id:uid(), date, text:pendingOrder.label, done:false, createdAt:now()});
-  w.updatedAt=now(); saveState();
-  const lbl=pendingOrder.label; pendingOrder=null;
-  closeOverlay('orderExamOverlay'); renderWard();
-  toast(`${lbl}を ${fmtDue(date)} に予定`);
-}
+function confirmOrderExam(){ onExamDateChange(); }
 // カレンダー等からタスクを編集
 let editingWardTask=null; // {wid, tid}
 function openWardTaskEdit(wid, tid){
@@ -2021,7 +2038,6 @@ function renderWard(){
   });
   $('wardGrid').innerHTML = list.length ? list.map(w=>{
     const demo=[w.age,(w.sex&&SEX_LABEL[w.sex])].filter(Boolean).join('・');
-    const checks=WARD_CHECKS.map(c=>`<div class="ward-check ${wardCheckOn(w,wardDate,c.key)?'on':''}" onclick="toggleWardCheck('${w.id}','${c.key}')">${c.label}</div>`).join('');
     const tasks=wardTasksOf(w,wardDate).map(t=>`
       <div class="ward-task ${t.done?'done':''}">
         <input type="checkbox" ${t.done?'checked':''} onclick="toggleWardTask('${w.id}','${t.id}')">
@@ -2047,7 +2063,6 @@ function renderWard(){
         <button class="wc-edit" onclick="openWardModal('${w.id}')">編集</button>
       </div>
       ${w.dx?`<div class="wc-dx">${esc(w.dx)}</div>`:''}
-      <div class="ward-checks">${checks}</div>
       <div class="ward-order-row">
         <span class="wo-label">検査を予定:</span>
         ${wardOrders().map(o=>{
@@ -2057,6 +2072,14 @@ function renderWard(){
           const has=upcoming.length>0;
           const nextD=has?fmtDue(upcoming[0].date):'';
           return `<button class="wo-btn ${has?'scheduled':''}" onclick="orderWardExam('${w.id}','${esc(o)}')">${esc(o)}${has?`<span class="wo-when">${esc(nextD)}${upcoming.length>1?' +'+(upcoming.length-1):''}</span>`:''}</button>`;
+        }).join('')}
+      </div>
+      <div class="ward-order-row">
+        <span class="wo-label">オーダー期限:</span>
+        ${WARD_STANDING.map(s=>{
+          const until=(w.orders&&w.orders[s.key])||'';
+          const valid=until && until>=todayStr(); // 期限日まで有効、翌日から消える
+          return `<button class="wo-btn ${valid?'standing':''}" onclick="orderWardStanding('${w.id}','${s.key}')">${s.label}${valid?`<span class="wo-when">〜${esc(fmtDue(until))}まで済み</span>`:''}</button>`;
         }).join('')}
       </div>
       ${w.note?`<div class="ward-note-box">${md(w.note)}</div>`:''}
