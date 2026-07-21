@@ -71,24 +71,24 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .cal-wd{font-size:11px;color:var(--ink-soft);text-align:center;padding:2px 0;font-weight:700}
 .cal-wd.sun{color:var(--shu)} .cal-wd.sat{color:#3D6B9E}
-.cal-cell{min-height:58px;border-radius:7px;padding:3px 4px;font-size:12px;position:relative;cursor:pointer;border:1px solid transparent;overflow:hidden}
+.cal-cell{min-height:70px;border-radius:7px;padding:3px 4px;font-size:12px;position:relative;cursor:pointer;border:1px solid transparent;overflow:hidden}
 .cal-cell:hover{background:var(--paper)}
 .cal-cell.other{opacity:.32}
 .cal-cell.today{border-color:var(--pine);font-weight:700}
 .cal-cell.selected{background:var(--pine-soft);border-color:var(--pine)}
-.cal-cell .num{display:block;text-align:right;color:var(--ink-soft)}
+.cal-cell .num{display:block;text-align:left;color:var(--ink-soft);font-size:11px;line-height:1.2}
 .cal-cell.today .num{color:var(--pine)}
 .cal-dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:2px}
 .cal-dots i{width:7px;height:7px;border-radius:50%;display:block}
 .cal-dots i.overdue{background:var(--shu)}
 .cal-dots i.open{background:var(--amber)}
 .cal-dots i.done{background:var(--pine)}
-.cal-evs{display:flex;flex-direction:column;gap:2px;margin-top:2px}
-.cal-ev{font-size:9px;line-height:1.25;padding:1px 3px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;border-left:2px solid transparent}
+.cal-evs{display:flex;flex-direction:column;gap:2px;margin-top:3px}
+.cal-ev{font-size:10.5px;line-height:1.3;padding:2px 4px;border-radius:4px;overflow:hidden;max-width:100%;border-left:2px solid transparent;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
 .cal-ev.open{background:var(--amber-soft);border-left-color:var(--amber);color:var(--ink)}
 .cal-ev.overdue{background:var(--shu-soft);border-left-color:var(--shu);color:var(--shu)}
 .cal-ev.done{background:var(--wash);border-left-color:var(--pine);color:var(--ink-soft);text-decoration:line-through}
-.cal-more{font-size:9px;color:var(--ink-soft);padding-left:3px}
+.cal-more{font-size:10px;color:var(--ink-soft);padding-left:3px}
 .cal-day-panel{border-top:1px dashed var(--line);margin-top:8px;padding:8px 4px 4px;display:none}
 .cal-day-panel.open{display:block}
 .cal-day-panel .dp-title{font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
@@ -144,6 +144,10 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px}
 .ward-check.on{background:var(--pine-soft);border-color:var(--pine);color:var(--pine);font-weight:600}
 .ward-check .wk-dot{font-size:11px}
 .ward-tasks{margin-top:8px}
+.ward-order-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+.ward-order-row .wo-label{font-size:11.5px;color:var(--ink-soft);margin-right:2px}
+.wo-btn{font-size:12px;padding:4px 11px;border-radius:999px;border:1px solid var(--pine);background:var(--pine-soft);color:var(--pine);cursor:pointer;font-weight:600}
+.wo-btn:hover{background:var(--pine);color:#fff}
 .ward-task{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:13.5px}
 .ward-task input[type=checkbox]{width:17px;height:17px;flex-shrink:0;accent-color:var(--pine);cursor:pointer}
 .ward-task.done span{text-decoration:line-through;color:var(--ink-soft)}
@@ -955,7 +959,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
     <h3 id="wardModalTitle">患者を追加</h3>
     <div class="hint" style="margin:-6px 0 12px">⚠ 個人が特定されない形(院内ID・匿名)で。氏名は入れないでください。</div>
     <div class="form-grid">
-      <div class="form-row"><label>患者ID</label><input type="text" id="wPid" placeholder="院内IDなど"></div>
+      <div class="form-row"><label>患者ID(任意)</label><input type="text" id="wPid" placeholder="院内IDなど・空欄でも可"></div>
       <div class="form-row"><label>部屋・ベッド(任意)</label><input type="text" id="wRoom" placeholder="例 502-A"></div>
     </div>
     <div class="form-grid">
@@ -1080,9 +1084,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.33.0
+   Med OS v2.35.0
 ========================================================= */
-const APP_VERSION = 'v2.33.0';
+const APP_VERSION = 'v2.35.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1711,6 +1715,17 @@ const WARD_CHECKS = [
   {key:'rx', label:'定期処方', icon:'💊'},
   {key:'drip', label:'点滴', icon:'💧'}
 ];
+// 「いつやるか」を予定として入れる検査ボタン
+const WARD_ORDERS = ['採血','レントゲン','CT','心電図','エコー','培養','MRI'];
+function orderWardExam(wid, label){
+  const w=state.ward.find(x=>x.id===wid); if(!w) return;
+  const dtEl=$('wtDate_'+wid);
+  const date=(dtEl&&dtEl.value)?dtEl.value:wardDate;
+  if(!w.tasks) w.tasks=[];
+  w.tasks.push({id:uid(), date, text:label, done:false, createdAt:now()});
+  w.updatedAt=now(); saveState(); renderWard();
+  toast(`${label}を ${fmtDue(date)} に予定`);
+}
 function liveWard(){ return (state.ward||[]).filter(w=>!w.deleted); }
 function fmtWardDate(d){
   const dt=new Date(d+'T00:00:00');
@@ -1790,19 +1805,23 @@ function renderWard(){
     return `<div class="ward-card ${w.active===false?'discharged':''}">
       <div class="wc-top">
         <div style="flex:1">
-          <span class="wc-id">🪪 ${esc(displayPid(w))}</span>
+          ${w.pid?`<span class="wc-id">🪪 ${esc(displayPid(w))}</span>`:`<span class="wc-id">🛏 ${esc(w.dx||'患者')}</span>`}
           ${demo?`<span class="wc-demo">${esc(demo)}</span>`:''}
           ${w.room?`<span class="wc-room">${esc(w.room)}</span>`:''}
           ${w.active===false?`<span class="wc-room" style="color:var(--shu)">退院</span>`:''}
         </div>
         <button class="wc-edit" onclick="openWardModal('${w.id}')">編集</button>
       </div>
-      ${w.dx?`<div class="wc-dx">${esc(w.dx)}</div>`:''}
+      ${(w.pid&&w.dx)?`<div class="wc-dx">${esc(w.dx)}</div>`:''}
       <div class="ward-checks">${checks}</div>
+      <div class="ward-order-row">
+        <span class="wo-label">検査を予定:</span>
+        ${WARD_ORDERS.map(o=>`<button class="wo-btn" onclick="orderWardExam('${w.id}','${o}')">${o}</button>`).join('')}
+      </div>
       ${w.note?`<div class="ward-note-box">${md(w.note)}</div>`:''}
       <div class="ward-tasks">${tasks||''}</div>
       <div class="ward-addtask">
-        <input type="text" id="wtInput_${w.id}" placeholder="この患者のやること" onkeydown="if(event.key==='Enter')addWardTask('${w.id}')">
+        <input type="text" id="wtInput_${w.id}" placeholder="この患者のやること(自由入力)" onkeydown="if(event.key==='Enter')addWardTask('${w.id}')">
         <input type="date" id="wtDate_${w.id}" value="${wardDate}" title="タスクの日付">
       </div>
       ${future?`<div class="hint" style="margin-top:5px">先の日付に未完了タスク ${future}件</div>`:''}
@@ -1827,9 +1846,10 @@ function openWardModal(id){
 }
 function saveWard(){
   const pid=$('wPid').value.trim();
-  if(!pid){ toast('患者IDを入力してください'); return; }
+  const dx=$('wDx').value.trim();
+  if(!pid && !dx){ toast('患者IDか病名のどちらかを入力してください'); return; }
   const data={ pid, room:$('wRoom').value.trim(), age:$('wAge').value.trim(), sex:$('wSex').value,
-    dx:$('wDx').value.trim(), note:$('wNote').value, updatedAt:now() };
+    dx, note:$('wNote').value, updatedAt:now() };
   if(editingWardId) Object.assign(state.ward.find(x=>x.id===editingWardId),data);
   else state.ward.push(Object.assign({id:uid(),active:true,checks:{},tasks:[],createdAt:now(),deleted:false},data));
   saveState(); closeOverlay('wardOverlay'); renderWard(); toast('保存しました');
