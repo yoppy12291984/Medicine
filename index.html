@@ -493,7 +493,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   <section id="viewPlans">
     <div class="today-todo">
       <div class="tt-head">
-        <span class="tt-title">今日のやりたいこと</span>
+        <span class="tt-title">今日やること</span>
         <div class="tt-datenav">
           <button class="cal-nav" onclick="todoDateMove(-1)">◀</button>
           <span id="todoDateLabel" onclick="todoDateToday()" title="タップで今日へ"></span>
@@ -502,7 +502,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
         </div>
       </div>
       <div id="todoList"></div>
-      <input type="text" id="todoInput" class="tt-input" placeholder="やりたいことを入力してEnter" onkeydown="if(event.key==='Enter')addTodo()">
+      <input type="text" id="todoInput" class="tt-input" placeholder="やることを入力してEnter" onkeydown="if(event.key==='Enter')addTodo()">
     </div>
     <div class="cal">
       <div class="cal-head">
@@ -681,7 +681,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   <section id="viewWard" style="display:none">
     <div class="today-todo">
       <div class="tt-head">
-        <span class="tt-title">今日のやりたいこと</span>
+        <span class="tt-title">今日やること</span>
         <div class="tt-datenav">
           <button class="cal-nav" onclick="todoDateMove(-1)">◀</button>
           <span id="todoDateLabelW" onclick="todoDateToday()" title="タップで今日へ"></span>
@@ -690,7 +690,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
         </div>
       </div>
       <div id="todoListW"></div>
-      <input type="text" id="todoInputW" class="tt-input" placeholder="やりたいことを入力してEnter" onkeydown="if(event.key==='Enter')addTodoW()">
+      <input type="text" id="todoInputW" class="tt-input" placeholder="やることを入力してEnter" onkeydown="if(event.key==='Enter')addTodoW()">
     </div>
     <div class="ward-datebar">
       <span class="ward-date-label">対象日</span>
@@ -1097,7 +1097,7 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <!-- ===== todo history modal ===== -->
 <div class="overlay" id="todoHistOverlay">
   <div class="modal" style="max-width:420px">
-    <h3>やりたいこと 履歴</h3>
+    <h3>やること 履歴</h3>
     <div class="hint" style="margin:-6px 0 10px">削除・完了したものを日付順に表示します。「戻す」で今日以外もそのままの日付に復活します。</div>
     <div id="todoHistBody" style="max-height:60vh;overflow-y:auto"></div>
     <div class="modal-actions">
@@ -1255,9 +1255,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.57.0
+   Med OS v2.60.0
 ========================================================= */
-const APP_VERSION = 'v2.57.0';
+const APP_VERSION = 'v2.60.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1853,7 +1853,7 @@ function renderTodos(){
       <input type="checkbox" ${t.done?'checked':''} onclick="toggleTodo('${t.id}')">
       <span class="tt-text">${esc(t.text)}</span>
       <button class="tt-del" onclick="deleteTodo('${t.id}')" title="削除">🗑</button>
-    </div>`).join('') : '<div class="tt-empty">この日のやりたいことはまだありません。下に入力してEnter。</div>';
+    </div>`).join('') : '<div class="tt-empty">この日のやることはまだありません。下に入力してEnter。</div>';
   const lbl=$('todoDateLabel'); if(lbl) lbl.textContent=fmtTodoDate(todoDate);
   const host=$('todoList'); if(host) host.innerHTML=rowsHtml;
   // Wardタブにも同じ内容を表示(データは共通)
@@ -1911,8 +1911,10 @@ function restoreTodo(id){
   toast('戻しました');
 }
 function todoDateMove(n){
-  const d=new Date(todoDate+'T00:00:00'); d.setDate(d.getDate()+n);
-  todoDate=d.toISOString().slice(0,10); renderTodos();
+  let base=/^\d{4}-\d{2}-\d{2}$/.test(todoDate)?todoDate:todayStr();
+  const d=new Date(base+'T00:00:00'); d.setDate(d.getDate()+n);
+  todoDate=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  renderTodos();
 }
 function todoDateToday(){ todoDate=todayStr(); renderTodos(); }
 
