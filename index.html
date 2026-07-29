@@ -200,6 +200,10 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px;overflow-x:hidden}
 .wo-btn.scheduled:hover{background:var(--amber);opacity:.9}
 .wo-btn.standing{background:var(--amber);color:#fff;border-color:var(--amber)}
 .wo-btn.standing:hover{background:var(--amber);opacity:.9}
+.wo-btn.soon{background:var(--shu);color:#fff;border-color:var(--shu)}
+.wo-btn.expired{background:var(--shu);color:#fff;border-color:var(--shu);animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.55}}
+.wo-btn.none{background:var(--wash);color:var(--ink-soft);border-color:var(--line)}
 .wo-btn .wo-when{font-size:10px;margin-left:5px;opacity:.95;font-weight:700}
 .ward-task{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:13.5px}
 .ward-task input[type=checkbox]{width:17px;height:17px;flex-shrink:0;accent-color:var(--pine);cursor:pointer}
@@ -226,6 +230,8 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px;overflow-x:hidden}
 .ward-table .wt-dx{color:var(--ink-soft);max-width:180px;overflow:hidden;text-overflow:ellipsis}
 .ward-table .wt-when{color:var(--amber);font-weight:600}
 .ward-table .wt-until{color:var(--amber);font-weight:600;font-size:12px}
+.ward-table .wt-alert{color:var(--shu);font-weight:700;font-size:12px}
+.ward-table .wt-none{color:var(--ink-soft);font-size:12px}
 .ward-table .wt-tasks{text-align:center;font-weight:700}
 .ward-table .wt-badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:999px;margin-top:3px}
 .ward-table .wt-badge.dis{background:var(--shu-soft);color:var(--shu)}
@@ -1113,6 +1119,10 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
     <div class="epm-title" id="orderExamTitle">日付を選択</div>
     <input type="date" id="orderExamDate" class="big-date" onchange="onExamDateChange()">
     <div class="epm-hint">日付をタップして選ぶと予定に入ります</div>
+    <div id="standingExtra" style="display:none;margin-top:10px;display:flex;gap:8px">
+      <button class="btn" onclick="setStandingNone()">この患者は不要</button>
+      <button class="btn" onclick="clearStanding()">解除(未設定に戻す)</button>
+    </div>
   </div>
 </div>
 
@@ -1255,9 +1265,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.60.0
+   Med OS v2.61.0
 ========================================================= */
-const APP_VERSION = 'v2.60.0';
+const APP_VERSION = 'v2.61.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1987,6 +1997,7 @@ function orderWardExam(wid, label){
   const el=$('orderExamDate');
   el.value = wardDate;
   const t=$('orderExamTitle'); if(t) t.textContent = label + 'の日付を選択';
+  const ex=$('standingExtra'); if(ex) ex.style.display='none';
   $('orderExamOverlay').classList.add('open');
   requestAnimationFrame(()=>{
     try{ if(el.showPicker) el.showPicker(); }catch(e){}
@@ -1997,12 +2008,31 @@ function orderWardStanding(wid, key){
   const w=state.ward.find(x=>x.id===wid);
   pendingOrder = {wid, label:s.label, type:'standing', key};
   const el=$('orderExamDate');
-  el.value = (w&&w.orders&&w.orders[key]) || wardDate;
+  const cur=(w&&w.orders&&w.orders[key]);
+  el.value = (cur && cur!=='none') ? cur : wardDate;
   const t=$('orderExamTitle'); if(t) t.textContent = s.label + 'をいつまで出しますか?';
+  const ex=$('standingExtra'); if(ex) ex.style.display='flex';
   $('orderExamOverlay').classList.add('open');
   requestAnimationFrame(()=>{
     try{ if(el.showPicker) el.showPicker(); }catch(e){}
   });
+}
+function setStandingNone(){
+  if(!pendingOrder||pendingOrder.type!=='standing'){ closeOverlay('orderExamOverlay'); return; }
+  const w=state.ward.find(x=>x.id===pendingOrder.wid); if(!w){ pendingOrder=null; closeOverlay('orderExamOverlay'); return; }
+  if(!w.orders) w.orders={};
+  w.orders[pendingOrder.key]='none';
+  w.updatedAt=now(); saveState();
+  const lbl=pendingOrder.label; pendingOrder=null;
+  closeOverlay('orderExamOverlay'); renderWard(); toast(`${lbl}は不要に設定`);
+}
+function clearStanding(){
+  if(!pendingOrder||pendingOrder.type!=='standing'){ closeOverlay('orderExamOverlay'); return; }
+  const w=state.ward.find(x=>x.id===pendingOrder.wid); if(!w){ pendingOrder=null; closeOverlay('orderExamOverlay'); return; }
+  if(w.orders) delete w.orders[pendingOrder.key];
+  w.updatedAt=now(); saveState();
+  pendingOrder=null;
+  closeOverlay('orderExamOverlay'); renderWard(); toast('未設定に戻しました');
 }
 // カレンダーで日付を選んだ瞬間に登録して閉じる(確認不要)
 function onExamDateChange(){
@@ -2177,9 +2207,13 @@ function renderWard(){
       <div class="ward-order-row">
         <span class="wo-label">オーダー期限:</span>
         ${wardStanding().map(s=>{
-          const until=(w.orders&&w.orders[s.key])||'';
-          const valid=until && until>=todayStr(); // 期限日まで有効、翌日から消える
-          return `<button class="wo-btn ${valid?'standing':''}" onclick="orderWardStanding('${w.id}','${s.key}')">${s.label}${valid?`<span class="wo-when">〜${esc(fmtDue(until))}まで済み</span>`:''}</button>`;
+          const st=wardStandingStatus(w, s.key);
+          let cls='', txt='';
+          if(st.state==='none'){ cls='none'; txt='<span class="wo-when">不要</span>'; }
+          else if(st.state==='valid'){ cls='standing'; txt=`<span class="wo-when">〜${esc(fmtDue(st.until))}まで</span>`; }
+          else if(st.state==='soon'){ cls='soon'; txt=`<span class="wo-when">そろそろ切れ 〜${esc(fmtDue(st.until))}</span>`; }
+          else if(st.state==='expired'){ cls='expired'; txt='<span class="wo-when">期限切れ</span>'; }
+          return `<button class="wo-btn ${cls}" onclick="orderWardStanding('${w.id}','${s.key}')">${esc(s.label)}${txt}</button>`;
         }).join('')}
       </div>
       ${w.note?`<div class="ward-note-box">${md(w.note)}</div>`:''}
@@ -2210,7 +2244,21 @@ function wardNextExam(w, label){
 }
 function wardStandingUntil(w, key){
   const until=(w.orders&&w.orders[key])||'';
+  if(until==='none') return '';
   return (until && until>=todayStr())?until:'';
+}
+// オーダーの状態を返す: {state:'none'|'valid'|'soon'|'expired'|'unset', until, daysLeft}
+function wardStandingStatus(w, key){
+  const v=(w.orders&&w.orders[key])||'';
+  if(v==='none') return {state:'none'};
+  if(!v) return {state:'unset'};
+  const today=todayStr();
+  if(v<today) return {state:'expired', until:v};
+  // 残り日数
+  const d1=new Date(today+'T00:00:00'), d2=new Date(v+'T00:00:00');
+  const days=Math.round((d2-d1)/86400000);
+  if(days<=3) return {state:'soon', until:v, daysLeft:days};
+  return {state:'valid', until:v, daysLeft:days};
 }
 function renderWardTable(list){
   const host=$('wardTable'); if(!host) return;
@@ -2221,7 +2269,14 @@ function renderWardTable(list){
     const nm=w.name||(w.dx||'患者');
     const idstr=w.pid?displayPid(w):'';
     const labs=wardNextExam(w,'採血'), xray=wardNextExam(w,'レントゲン');
-    const rx=wardStandingUntil(w,'rx'), drip=wardStandingUntil(w,'drip');
+    const cellStanding=(key)=>{
+      const st=wardStandingStatus(w,key);
+      if(st.state==='none') return '<span class="wt-none">不要</span>';
+      if(st.state==='unset') return '—';
+      if(st.state==='expired') return '<span class="wt-alert">期限切れ</span>';
+      if(st.state==='soon') return `<span class="wt-alert">そろそろ〜${esc(fmtDue(st.until))}</span>`;
+      return `<span class="wt-until">〜${esc(fmtDue(st.until))}</span>`;
+    };
     const todayTasks=wardTasksOf(w,wardDate).filter(t=>!t.done).length;
     const stbadge=isDis?'<span class="wt-badge dis">退院</span>':(isPlan?`<span class="wt-badge plan">予定${w.admitDate?' '+esc(fmtDue(w.admitDate)):''}</span>`:'');
     return `<tr onclick="openWardCardFromTable('${w.id}')" class="${isDis?'row-dis':''} ${isPlan?'row-plan':''}">
@@ -2231,8 +2286,8 @@ function renderWardTable(list){
       <td class="wt-dx">${esc(w.dx||'')}</td>
       <td>${labs?`<span class="wt-when">${esc(fmtDue(labs))}</span>`:'—'}</td>
       <td>${xray?`<span class="wt-when">${esc(fmtDue(xray))}</span>`:'—'}</td>
-      <td>${rx?`<span class="wt-until">〜${esc(fmtDue(rx))}</span>`:'—'}</td>
-      <td>${drip?`<span class="wt-until">〜${esc(fmtDue(drip))}</span>`:'—'}</td>
+      <td>${cellStanding('rx')}</td>
+      <td>${cellStanding('drip')}</td>
       <td class="wt-tasks">${todayTasks?todayTasks:'—'}</td>
     </tr>`;
   }).join('');
