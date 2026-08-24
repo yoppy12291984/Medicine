@@ -114,11 +114,11 @@ main{max-width:1100px;margin:0 auto;padding:16px 14px 90px;overflow-x:hidden}
 .today-todo{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:14px}
 #viewPlans{display:flex;flex-direction:column}
 #viewPlans>.cal{order:99;margin-top:14px}
-.today-todo .tt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.today-todo .tt-title{font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
-.today-todo .tt-datenav{display:flex;align-items:center;gap:6px}
-.today-todo .tt-datenav span{font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;min-width:92px;text-align:center;letter-spacing:.01em}
-.tt-hist-btn{font-size:11.5px;padding:4px 10px;border-radius:7px;border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);cursor:pointer}
+.today-todo .tt-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.today-todo .tt-title{font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;flex-shrink:0}
+.today-todo .tt-datenav{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+.today-todo .tt-datenav span{font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;min-width:82px;text-align:center;letter-spacing:.01em;white-space:nowrap}
+.tt-hist-btn{font-size:11.5px;padding:4px 9px;border-radius:7px;border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);cursor:pointer;white-space:nowrap;flex-shrink:0}
 .th-group{margin-bottom:12px}
 .th-date{font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
 .th-item{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line)}
@@ -1289,9 +1289,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.64.0
+   Med OS v2.65.0
 ========================================================= */
-const APP_VERSION = 'v2.64.0';
+const APP_VERSION = 'v2.65.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
