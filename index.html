@@ -1143,11 +1143,16 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <div class="overlay" id="orderExamOverlay" onclick="if(event.target===this){pendingOrder=null;closeOverlay('orderExamOverlay');}">
   <div class="modal exam-picker-modal">
     <div class="epm-title" id="orderExamTitle">日付を選択</div>
-    <input type="date" id="orderExamDate" class="big-date" onchange="onExamDateChange()">
-    <div class="epm-hint">日付をタップして選ぶと予定に入ります</div>
-    <div id="standingExtra" style="display:none;margin-top:10px;display:flex;gap:8px">
+    <input type="date" id="orderExamDate" class="big-date">
+    <div class="epm-hint">日付を選んで「この日に予定」を押してください</div>
+    <div id="standingExtra" style="margin-top:10px;display:none;gap:8px">
       <button class="btn" onclick="setStandingNone()">この患者は不要</button>
       <button class="btn" onclick="clearStanding()">解除(未設定に戻す)</button>
+    </div>
+    <div class="modal-actions" style="margin-top:12px">
+      <div class="spacer"></div>
+      <button class="btn" onclick="pendingOrder=null;closeOverlay('orderExamOverlay')">キャンセル</button>
+      <button class="btn primary" onclick="confirmOrderExam()">この日に予定</button>
     </div>
   </div>
 </div>
@@ -1291,9 +1296,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.67.0
+   Med OS v2.68.0
 ========================================================= */
-const APP_VERSION = 'v2.67.0';
+const APP_VERSION = 'v2.68.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -2056,13 +2061,10 @@ function renderWardStandingMgmt(){
 function orderWardExam(wid, label){
   pendingOrder = {wid, label, type:'exam'};
   const el=$('orderExamDate');
-  el.value = ''; // 空にしておくと当日を選んでもchangeが発火する
+  el.value = wardDate; // 初期値=対象日(通常は今日)。変えたい場合はタップして選ぶ
   const t=$('orderExamTitle'); if(t) t.textContent = label + 'の日付を選択';
   const ex=$('standingExtra'); if(ex) ex.style.display='none';
   $('orderExamOverlay').classList.add('open');
-  requestAnimationFrame(()=>{
-    try{ if(el.showPicker) el.showPicker(); }catch(e){}
-  });
 }
 function orderWardStanding(wid, key){
   const s=wardStanding().find(x=>x.key===key); if(!s) return;
@@ -2070,13 +2072,10 @@ function orderWardStanding(wid, key){
   pendingOrder = {wid, label:s.label, type:'standing', key};
   const el=$('orderExamDate');
   const cur=(w&&w.orders&&w.orders[key]);
-  el.value = (cur && cur!=='none') ? cur : '';
+  el.value = (cur && cur!=='none') ? cur : wardDate;
   const t=$('orderExamTitle'); if(t) t.textContent = s.label + 'をいつまで出しますか?';
   const ex=$('standingExtra'); if(ex) ex.style.display='flex';
   $('orderExamOverlay').classList.add('open');
-  requestAnimationFrame(()=>{
-    try{ if(el.showPicker) el.showPicker(); }catch(e){}
-  });
 }
 function setStandingNone(){
   if(!pendingOrder||pendingOrder.type!=='standing'){ closeOverlay('orderExamOverlay'); return; }
