@@ -489,8 +489,8 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 </header>
 
 <nav class="tabs">
-  <button id="tabWard" onclick="switchTab('ward')"><span class="tab-label" data-tab="ward">Ward</span></button>
-  <button id="tabPlans" class="active" onclick="switchTab('plans')"><span class="tab-label" data-tab="plans">Plan</span></button>
+  <button id="tabWard" class="active" onclick="switchTab('ward')"><span class="tab-label" data-tab="ward">Ward</span></button>
+  <button id="tabPlans" onclick="switchTab('plans')"><span class="tab-label" data-tab="plans">Plan</span></button>
   <button id="tabCases" onclick="switchTab('cases')"><span class="tab-label" data-tab="cases">Case</span></button>
   <button id="tabNotes" onclick="switchTab('notes')"><span class="tab-label" data-tab="notes">Note</span></button>
   <button id="tabTx" onclick="switchTab('tx')"><span class="tab-label" data-tab="tx">Tx</span></button>
@@ -1291,9 +1291,9 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 <script>
 'use strict';
 /* =========================================================
-   Med OS v2.66.0
+   Med OS v2.67.0
 ========================================================= */
-const APP_VERSION = 'v2.66.0';
+const APP_VERSION = 'v2.67.0';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -1349,7 +1349,7 @@ function planChecklist(p){
 const WD = ['日','月','火','水','木','金','土'];
 
 let state = { cases:[], plans:[], notes:[], treatments:[], ddx:[], papers:[], images:[], safety:[], todos:[], ward:[], meta:[], settings:{ gasUrl:'', lastSync:null, lastWeight:'', globalWeight:'', theme:'', autoSync:true } };
-let activeTab = 'plans';
+let activeTab = 'ward';
 let editingPlanId=null, editingCaseId=null, editingNoteId=null, editingTxId=null;
 let activeTags=new Set(), activeFolder='', activeTxTags=new Set();
 let calBase = new Date(); calBase.setDate(1);
@@ -2056,7 +2056,7 @@ function renderWardStandingMgmt(){
 function orderWardExam(wid, label){
   pendingOrder = {wid, label, type:'exam'};
   const el=$('orderExamDate');
-  el.value = wardDate;
+  el.value = ''; // 空にしておくと当日を選んでもchangeが発火する
   const t=$('orderExamTitle'); if(t) t.textContent = label + 'の日付を選択';
   const ex=$('standingExtra'); if(ex) ex.style.display='none';
   $('orderExamOverlay').classList.add('open');
@@ -2070,7 +2070,7 @@ function orderWardStanding(wid, key){
   pendingOrder = {wid, label:s.label, type:'standing', key};
   const el=$('orderExamDate');
   const cur=(w&&w.orders&&w.orders[key]);
-  el.value = (cur && cur!=='none') ? cur : wardDate;
+  el.value = (cur && cur!=='none') ? cur : '';
   const t=$('orderExamTitle'); if(t) t.textContent = s.label + 'をいつまで出しますか?';
   const ex=$('standingExtra'); if(ex) ex.style.display='flex';
   $('orderExamOverlay').classList.add('open');
@@ -4179,7 +4179,7 @@ const _vb=$('verBadge'); if(_vb) _vb.textContent=APP_VERSION;
 applyTabLabels(); applyTabOrder();
 applyTheme(state.settings.theme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 updateSyncStatus();
-render();
+switchTab(activeTab);
 
 // 起動時に他端末の変更を取り込む
 autoPull();
