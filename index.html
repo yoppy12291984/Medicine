@@ -1341,7 +1341,7 @@ const appTabPrefs=createTabPreferences({app:"Medicine",tabs:[{"id":"ward","selec
 /* =========================================================
    Med OS v2.68.0
 ========================================================= */
-const APP_VERSION = 'v2.68.1';
+const APP_VERSION = 'v2.68.2';
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
@@ -4224,6 +4224,41 @@ applyTabLabels(); applyTabOrder();
 applyTheme(state.settings.theme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 updateSyncStatus();
 appTabPrefs.boot();
+// 本文の横スワイプだけをタブ移動に使う。入力・ダイアログ・横スクロールは優先する。
+function installMedicineSwipe(){
+ let gesture=null;
+ const current=()=>activeTab;
+ const visibleTabs=()=>orderedTabs().filter(id=>appTabPrefs.visible().includes(id));
+ function blocked(target){
+  if(document.querySelector('dialog[open],.overlay.open')||document.activeElement?.matches('input,textarea,select,[contenteditable="true"]'))return true;
+  if(!target.closest('#viewWard,#viewPlans,#viewCases,#viewNotes,#viewTx,#viewDdx,#viewPapers,#viewGallery,#viewStudy,#viewImg,#viewSafety'))return true;
+  if(target.closest('input,textarea,select,button,a,[contenteditable="true"],canvas,[draggable="true"]'))return true;
+  for(let el=target;el&&el!==document.body;el=el.parentElement){
+   if(el.scrollWidth>el.clientWidth+5&&/auto|scroll/.test(getComputedStyle(el).overflowX))return true;
+  }
+  return false;
+ }
+ document.addEventListener('touchstart',e=>{
+  gesture=null;if(e.touches.length!==1||blocked(e.target))return;
+  const t=e.touches[0];if(t.clientX<24||t.clientX>window.innerWidth-24)return;
+  gesture={x:t.clientX,y:t.clientY,id:t.identifier,time:Date.now(),tab:current()};
+ },{passive:true});
+ document.addEventListener('touchmove',e=>{
+  if(!gesture)return;if(e.touches.length!==1){gesture=null;return;}
+  const t=e.touches[0];if(Math.abs(t.clientY-gesture.y)>24&&Math.abs(t.clientY-gesture.y)>Math.abs(t.clientX-gesture.x))gesture=null;
+ },{passive:true});
+ document.addEventListener('touchcancel',()=>{gesture=null;},{passive:true});
+ document.addEventListener('touchend',e=>{
+  const start=gesture;gesture=null;if(!start||e.touches.length||Date.now()-start.time>1000||current()!==start.tab)return;
+  const t=Array.from(e.changedTouches).find(t=>t.identifier===start.id);if(!t)return;
+  const dx=t.clientX-start.x,dy=t.clientY-start.y;
+  if(Math.abs(dx)<65||Math.abs(dx)<Math.abs(dy)*1.6||document.querySelector('dialog[open],.overlay.open'))return;
+  const order=visibleTabs(),next=order.indexOf(start.tab)+(dx<0?1:-1);
+  if(next>=0&&next<order.length){switchTab(order[next]);const btn=document.querySelector('.tabs button.active');if(btn)btn.scrollIntoView({inline:'nearest',block:'nearest'});}
+ },{passive:true});
+}
+
+installMedicineSwipe();
 
 // 起動時に他端末の変更を取り込む
 autoPull();
