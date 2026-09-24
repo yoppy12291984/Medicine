@@ -24,3 +24,8 @@
 ### 2026-09-24 Med左右スワイプ（v2.68.2）
 本文の左スワイプで次、右で前の可視タブへ移動。orderedTabsとappTabPrefs.visibleを併用。入力・モーダル・横スクロール表・縦スクロール・複数指・画面端を除外。tools/medicine-swipe-source.cjsでRoutine共通処理をMedへ適用。tools/medicine-swipe.test.cjs成功、構文確認済み。実iPhone/iPad操作感は未確認。GAS変更なし。
 
+
+
+### 2026-09-24 患者編集の上スワイプ（v2.68.3）
+wardOverlayのヘッダーに上スワイプ領域。フォームの縦スクロールと分離。60px以上の上方向で終了し、値が開いた時と違えばインラインで編集継続/保存せず閉じるを確認。patientDismissResetをopenWardModalから呼ぶ。tools/patient-dismiss.test.cjsで未保存保護・上方向のみ・再表示リセット確認。実iPad/iPhoneジェスチャーは未確認。
+
