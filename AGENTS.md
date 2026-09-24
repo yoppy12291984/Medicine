@@ -19,3 +19,8 @@
 ### 2026-09-24 タブ表示と起動先の共通設定
 設定内に「タブと起動時の画面」を追加。app-tab-preferences-v1:<app>で端末別に保存し、記録・GAS・認証は維持。最低1つのコンテンツタブを残し、非表示の起動先は表示中タブに退避。Ledgersの設定タブは常設。Memoryのアルバム内詳細表示は維持。公開HTMLに共通処理を同梱。共通ソースはRihoko OS/app-rollout/tab-preferences.js、生成はtools/suite-tab-preferences.cjs。ブラウザーで非表示・復元・指定起動先の再読込保持を確認。
 
+
+
+### 2026-09-24 Med左右スワイプ（v2.68.2）
+本文の左スワイプで次、右で前の可視タブへ移動。orderedTabsとappTabPrefs.visibleを併用。入力・モーダル・横スクロール表・縦スクロール・複数指・画面端を除外。tools/medicine-swipe-source.cjsでRoutine共通処理をMedへ適用。tools/medicine-swipe.test.cjs成功、構文確認済み。実iPhone/iPad操作感は未確認。GAS変更なし。
+
