@@ -56,7 +56,7 @@ header{background:var(--surface);border-bottom:1px solid var(--line);padding:12p
 .icon-btn:hover{background:var(--pine-soft)}
 .icon-btn.syncing{opacity:.6;pointer-events:none}
 
-nav.tabs{display:flex;gap:2px;padding:0 12px;justify-content:flex-start;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:57px;z-index:40;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+nav.tabs{display:flex;gap:2px;padding:0 12px;justify-content:flex-start;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:var(--med-header-height,69px);z-index:40;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 nav.tabs::-webkit-scrollbar{display:none}
 nav.tabs button{flex:0 0 auto;min-width:0;min-height:44px;padding:8px 12px 9px;background:none;border:none;font-size:13.5px;font-weight:500;color:var(--ink-soft);border-bottom:2px solid transparent;letter-spacing:.06em;white-space:nowrap}
 nav.tabs button.active{color:var(--pine);border-bottom-color:var(--pine);font-weight:700}
@@ -476,6 +476,19 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:200;background:var(--pine);color:#fff;font-size:13px;border-radius:20px;padding:8px 18px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow-lg)}
 .toast.show{opacity:.94}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Keep all header actions inside narrow screens. */
+header .icon-btn{flex-shrink:0;min-height:44px;white-space:nowrap;justify-content:center}
+header .app-title{white-space:nowrap}
+header #settingsBtn,header #themeBtn{width:44px;padding:0}
+@media(max-width:700px){
+ header{display:grid;grid-template-columns:minmax(0,1fr) 44px max-content max-content 44px;gap:4px;padding:8px}
+ header .header-spacer{display:none}
+ header .app-title{font-size:16px;gap:6px}
+ header .ver-badge{display:none}
+ header .icon-btn{padding:7px 8px}
+ header .sync-status{grid-column:1/-1;grid-row:2;min-height:15px;white-space:nowrap;line-height:15px;text-align:right}
+}
 </style>
 </head>
 <body>
@@ -486,8 +499,8 @@ html[data-theme="dark"] .form-row input[type=date]::-webkit-calendar-picker-indi
   <div class="sync-status" id="syncStatus">未同期</div>
   <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="テーマ切替"></button>
   <button class="icon-btn" onclick="openImport()">Import</button>
-  <button class="icon-btn" id="syncBtn" onclick="syncNow()">⇅ Sync</button>
-  <button class="icon-btn" onclick="openSettings()">⚙</button>
+  <button class="icon-btn" id="syncBtn" onclick="syncNow()">Sync</button>
+  <button class="icon-btn" id="settingsBtn" onclick="openSettings()" aria-label="設定" title="設定">⚙</button>
 </header>
 
 <nav class="tabs">
@@ -1341,7 +1354,9 @@ const appTabPrefs=createTabPreferences({app:"Medicine",tabs:[{"id":"ward","selec
 /* =========================================================
    Med OS v2.68.0
 ========================================================= */
-const APP_VERSION = 'v2.68.4';
+const APP_VERSION = 'v2.68.5';
+const headerObserver=new ResizeObserver(()=>document.documentElement.style.setProperty('--med-header-height',document.querySelector('header').getBoundingClientRect().height+'px'));
+headerObserver.observe(document.querySelector('header'));
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
 /* =========================================================
