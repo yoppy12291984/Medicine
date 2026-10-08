@@ -1354,7 +1354,7 @@ const appTabPrefs=createTabPreferences({app:"Medicine",tabs:[{"id":"ward","selec
 /* =========================================================
    Med OS v2.68.0
 ========================================================= */
-const APP_VERSION = 'v2.68.5';
+const APP_VERSION = 'v2.68.6';
 const headerObserver=new ResizeObserver(()=>document.documentElement.style.setProperty('--med-header-height',document.querySelector('header').getBoundingClientRect().height+'px'));
 headerObserver.observe(document.querySelector('header'));
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
@@ -4197,6 +4197,15 @@ function closeOverlay(id){ $(id).classList.remove('open'); }
 document.querySelectorAll('.overlay').forEach(ov=>{
   ov.addEventListener('mousedown',e=>{ if(e.target===ov) ov.classList.remove('open'); });
 });
+// PCでは日付欄の文字部分を押してもフォーカスだけになるブラウザがあるため、
+// 欄のどこをクリックしても標準カレンダーを開く。動的に描画する病棟タスク欄にも効くよう委譲する。
+document.addEventListener('click',e=>{
+  const input=e.target.closest&&e.target.closest('input[type="date"]');
+  if(!input||input.disabled||input.readOnly) return;
+  const desktop=!window.matchMedia||window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if(!desktop||typeof input.showPicker!=='function') return;
+  try{ input.showPicker(); }catch(_){ /* 非対応・既に開いている場合は標準動作に任せる */ }
+},true);
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape') document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open'));
 });
