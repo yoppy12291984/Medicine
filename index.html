@@ -1431,6 +1431,17 @@ const now = () => {
   return t;
 };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Event arguments never contain unescaped user text inside executable HTML.
+const jsAttr = value => String(value ?? '').split('').map(unit => '\\u'+unit.charCodeAt(0).toString(16).padStart(4,'0')).join('');
+document.addEventListener('click', event => {
+ const button=event.target.closest('[data-ward-remove-exam],[data-ward-exam],[data-ward-remove-standing],[data-ward-standing],[data-group-tab]');
+ if(!button)return;
+ if(button.hasAttribute('data-ward-remove-exam'))removeWardOrder(button.dataset.wardRemoveExam);
+ else if(button.hasAttribute('data-ward-exam'))orderWardExam(button.dataset.wardId,button.dataset.wardExam);
+ else if(button.hasAttribute('data-ward-remove-standing'))removeWardStanding(button.dataset.wardRemoveStanding);
+ else if(button.hasAttribute('data-ward-standing'))orderWardStanding(button.dataset.wardId,button.dataset.wardStanding);
+ else setGroupFilter(button.dataset.groupTab,button.dataset.groupValue);
+});
 const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 
 function toast(msg){
@@ -1589,8 +1600,8 @@ function entGroups(e){ return Array.isArray(e.groups)?e.groups:[]; }
 function groupChipsHtml(tab, active){
   const gs=getGroups(tab);
   if(!gs.length) return '';
-  return `<button class="chip ${!active?'on':''}" onclick="setGroupFilter('${tab}','')">すべて</button>`+
-    gs.map(g=>`<button class="chip ${active===g?'on':''}" onclick="setGroupFilter('${tab}','${esc(g).replace(/'/g,"\\'")}')">${esc(g)}</button>`).join('');
+  return `<button class="chip ${!active?'on':''}" onclick="setGroupFilter('${jsAttr(tab)}','')">すべて</button>`+
+    gs.map(g=>`<button class="chip ${active===g?'on':''}" data-group-tab="${esc(tab)}" data-group-value="${esc(g)}">${esc(g)}</button>`).join('');
 }
 const groupFilters = {};
 function setGroupFilter(tab, g){
@@ -1610,13 +1621,13 @@ function renderGroupMgmt(){
   const host=$('groupMgmtList'); if(!host) return;
   host.innerHTML = Object.keys(GROUP_TABS).map(tab=>{
     const gs=getGroups(tab);
-    const chips=gs.map((g,i)=>`<span class="cat-item">${esc(g)}<button onclick="groupMgmtRemove('${tab}',${i})" title="削除">×</button></span>`).join('')
+    const chips=gs.map((g,i)=>`<span class="cat-item">${esc(g)}<button onclick="groupMgmtRemove('${jsAttr(tab)}',${i})" title="削除">×</button></span>`).join('')
       || '<span class="hint" style="margin:0">なし</span>';
     return `<div style="margin-bottom:12px">
       <div style="font-weight:700;font-size:13px;margin-bottom:5px">${esc(tabLabel(tab))}</div>
       <div class="cat-add-row" style="margin-bottom:5px">
         <input type="text" id="newGroup_${tab}" placeholder="グループを追加(例 ICU)">
-        <button class="btn" onclick="groupMgmtAdd('${tab}')">追加</button>
+        <button class="btn" onclick="groupMgmtAdd('${jsAttr(tab)}')">追加</button>
       </div>
       <div class="cat-list">${chips}</div>
     </div>`;
@@ -1689,11 +1700,11 @@ function renderTabLabelList(){
     const downDis=idx===order.length-1?'disabled':'';
     return `<div class="tab-order-row">
       <div class="tab-order-btns">
-        <button class="btn" ${upDis} onclick="moveTab('${t}',-1)" title="上へ">▲</button>
-        <button class="btn" ${downDis} onclick="moveTab('${t}',1)" title="下へ">▼</button>
+        <button class="btn" ${upDis} onclick="moveTab('${jsAttr(t)}',-1)" title="上へ">▲</button>
+        <button class="btn" ${downDis} onclick="moveTab('${jsAttr(t)}',1)" title="下へ">▼</button>
       </div>
       <span class="hint" style="margin:0;min-width:52px">${esc(TAB_DEFAULT[t])}</span>
-      <input type="text" value="${esc(cur)}" placeholder="${esc(TAB_DEFAULT[t])}" oninput="setTabLabel('${t}',this.value)">
+      <input type="text" value="${esc(cur)}" placeholder="${esc(TAB_DEFAULT[t])}" oninput="setTabLabel('${jsAttr(t)}',this.value)">
     </div>`;
   }).join('');
 }
@@ -1850,7 +1861,7 @@ function renderCalendar(){
       return `<span class="cal-ev ${cls}" title="${esc(p.theme)}">${esc(k)}${esc(p.theme)}</span>`;
     }).join('');
     const more = list.length>3 ? `<span class="cal-more">+${list.length-3}</span>` : '';
-    cells += `<div class="cal-cell ${other} ${ds===today?'today':''} ${ds===calSelected?'selected':''}" onclick="calSelect('${ds}')">
+    cells += `<div class="cal-cell ${other} ${ds===today?'today':''} ${ds===calSelected?'selected':''}" onclick="calSelect('${jsAttr(ds)}')">
       <span class="num">${cd}</span><div class="cal-evs">${labels}${more}</div></div>`;
   }
   $('calGrid').innerHTML = cells;
@@ -1860,7 +1871,7 @@ function renderCalendar(){
     panel.classList.add('open');
     panel.innerHTML = `<div class="dp-title">📅 ${fmtDue(calSelected)} 期日の予定</div>` +
       dues[calSelected].map(p =>
-        `<div class="dp-item" onclick="openPlanModal('${p.id}')">
+        `<div class="dp-item" onclick="openPlanModal('${jsAttr(p.id)}')">
            <span class="st ${esc(p.status)}">${PLAN_STATUS_LABEL[p.status]||''}</span>
            ${p.kind&&PLAN_KIND_LABEL[p.kind]?`<span class="kind-badge ${PLAN_KIND_CLASS[p.kind]}">${PLAN_KIND_LABEL[p.kind]}</span>`:''}
            <span>${esc(p.theme)}</span>${p.pid?`<span class="hint" style="margin:0">🪪${esc(displayPid(p))}</span>`:''}</div>`).join('');
@@ -1898,7 +1909,7 @@ function planChecklistHtml(p){
   const done=list.filter(x=>x.done).length;
   const rows=list.map((it,i)=>`
     <label class="ck ${it.done?'done':''}" onclick="event.stopPropagation()">
-      <input type="checkbox" ${it.done?'checked':''} onchange="togglePlanCheck('${p.id}',${i})">
+      <input type="checkbox" ${it.done?'checked':''} onchange="togglePlanCheck('${jsAttr(p.id)}',${i})">
       <span>${esc(it.text)}</span>
     </label>`).join('');
   return `<div class="ck-progress">✓ ${done}/${list.length} 完了</div><div class="checklist">${rows}</div>`;
@@ -1950,9 +1961,9 @@ function renderTodos(){
   const list=todosOf(todoDate);
   const rowsHtml = list.length ? list.map(t=>`
     <div class="tt-item ${t.done?'done':''}">
-      <input type="checkbox" ${t.done?'checked':''} onclick="toggleTodo('${t.id}')">
+      <input type="checkbox" ${t.done?'checked':''} onclick="toggleTodo('${jsAttr(t.id)}')">
       <span class="tt-text">${esc(t.text)}</span>
-      <button class="tt-del" onclick="deleteTodo('${t.id}')" title="削除">🗑</button>
+      <button class="tt-del" onclick="deleteTodo('${jsAttr(t.id)}')" title="削除">🗑</button>
     </div>`).join('') : '<div class="tt-empty">この日のやることはまだありません。下に入力してEnter。</div>';
   const lbl=$('todoDateLabel'); if(lbl) lbl.textContent=fmtTodoDate(todoDate);
   const host=$('todoList'); if(host) host.innerHTML=rowsHtml;
@@ -2034,7 +2045,7 @@ function renderTodoHistory(){
       <div class="th-item">
         <span class="th-state ${t.deleted?'del':'done'}">${t.deleted?'削除':'完了'}</span>
         <span class="th-text">${esc(t.text)}</span>
-        <button class="pl-btn" onclick="restoreTodo('${t.id}')">戻す</button>
+        <button class="pl-btn" onclick="restoreTodo('${jsAttr(t.id)}')">戻す</button>
       </div>`).join('');
     return `<div class="th-group"><div class="th-date">${esc(fmtTodoDate(date))}</div>${items}</div>`;
   }).join('');
@@ -2083,7 +2094,7 @@ function removeWardOrder(name){
 }
 function renderWardOrderMgmt(){
   const host=$('wardOrderList'); if(!host) return;
-  host.innerHTML=wardOrders().map(o=>`<div class="cat-chip">${esc(o)}<button onclick="removeWardOrder('${esc(o)}')" style="color:var(--shu);font-weight:700;padding:0 4px" title="削除">✕</button></div>`).join('')||'<span class="hint">ボタンがありません。下で追加してください。</span>';
+  host.innerHTML=wardOrders().map(o=>`<div class="cat-chip">${esc(o)}<button data-ward-remove-exam="${esc(o)}" style="color:var(--shu);font-weight:700;padding:0 4px" title="削除">✕</button></div>`).join('')||'<span class="hint">ボタンがありません。下で追加してください。</span>';
 }
 let pendingOrder = null; // {wid, label, type, key}
 // 継続オーダー(期限管理)の種類
@@ -2115,7 +2126,7 @@ function removeWardStanding(key){
 }
 function renderWardStandingMgmt(){
   const host=$('wardStandingList'); if(!host) return;
-  host.innerHTML=wardStanding().map(s=>`<div class="cat-chip">${esc(s.label)}<button onclick="removeWardStanding('${s.key}')" style="color:var(--shu);font-weight:700;padding:0 4px" title="削除">✕</button></div>`).join('')||'<span class="hint">項目がありません。下で追加してください。</span>';
+  host.innerHTML=wardStanding().map(s=>`<div class="cat-chip">${esc(s.label)}<button data-ward-remove-standing="${esc(s.key)}" style="color:var(--shu);font-weight:700;padding:0 4px" title="削除">✕</button></div>`).join('')||'<span class="hint">項目がありません。下で追加してください。</span>';
 }
 function orderWardExam(wid, label){
   pendingOrder = {wid, label, type:'exam'};
@@ -2296,9 +2307,9 @@ function renderWard(){
     const demo=[w.age,(w.sex&&SEX_LABEL[w.sex])].filter(Boolean).join('・');
     const tasks=wardTasksOf(w,wardDate).map(t=>`
       <div class="ward-task ${t.done?'done':''}">
-        <input type="checkbox" ${t.done?'checked':''} onclick="toggleWardTask('${w.id}','${t.id}')">
+        <input type="checkbox" ${t.done?'checked':''} onclick="toggleWardTask('${jsAttr(w.id)}','${jsAttr(t.id)}')">
         <span class="wt-txt">${esc(t.text)}</span>
-        <button class="wt-del" onclick="deleteWardTask('${w.id}','${t.id}')">×</button>
+        <button class="wt-del" onclick="deleteWardTask('${jsAttr(w.id)}','${jsAttr(t.id)}')">×</button>
       </div>`).join('');
     // 別日の予定タスク数(先の日付に入っているもの)
     const future=(w.tasks||[]).filter(t=>!t.deleted && t.date>wardDate && !t.done).length;
@@ -2318,7 +2329,7 @@ function renderWard(){
           ${w.room?`<span class="wc-room">${esc(w.room)}</span>`:''}
           ${statusBadge}
         </div>
-        <button class="wc-edit" onclick="openWardModal('${w.id}')">編集</button>
+        <button class="wc-edit" onclick="openWardModal('${jsAttr(w.id)}')">編集</button>
       </div>
       ${w.dx?`<div class="wc-dx">${esc(w.dx)}</div>`:''}
       <div class="ward-order-row">
@@ -2329,7 +2340,7 @@ function renderWard(){
             .sort((a,b)=>a.date<b.date?-1:1);
           const has=upcoming.length>0;
           const nextD=has?fmtDue(upcoming[0].date):'';
-          return `<button class="wo-btn ${has?'scheduled':''}" onclick="orderWardExam('${w.id}','${esc(o)}')">${esc(o)}${has?`<span class="wo-when">${esc(nextD)}${upcoming.length>1?' +'+(upcoming.length-1):''}</span>`:''}</button>`;
+          return `<button class="wo-btn ${has?'scheduled':''}" data-ward-exam="${esc(o)}" data-ward-id="${esc(w.id)}">${esc(o)}${has?`<span class="wo-when">${esc(nextD)}${upcoming.length>1?' +'+(upcoming.length-1):''}</span>`:''}</button>`;
         }).join('')}
       </div>
       <div class="ward-order-row">
@@ -2341,25 +2352,25 @@ function renderWard(){
           else if(st.state==='valid'){ cls='standing'; txt=`<span class="wo-when">〜${esc(fmtDue(st.until))}まで</span>`; }
           else if(st.state==='soon'){ cls='soon'; txt=`<span class="wo-when">そろそろ切れ 〜${esc(fmtDue(st.until))}</span>`; }
           else if(st.state==='expired'){ cls='expired'; txt='<span class="wo-when">期限切れ</span>'; }
-          return `<button class="wo-btn ${cls}" onclick="orderWardStanding('${w.id}','${s.key}')">${esc(s.label)}${txt}</button>`;
+          return `<button class="wo-btn ${cls}" data-ward-standing="${esc(s.key)}" data-ward-id="${esc(w.id)}">${esc(s.label)}${txt}</button>`;
         }).join('')}
       </div>
       ${w.note?`<div class="ward-note-box">${md(w.note)}</div>`:''}
       <div class="ward-tasks">${tasks||''}</div>
       <div class="ward-addtask">
-        <input type="text" id="wtInput_${w.id}" placeholder="この患者のやること(自由入力)" onkeydown="if(event.key==='Enter')addWardTask('${w.id}')">
+        <input type="text" id="wtInput_${w.id}" placeholder="この患者のやること(自由入力)" onkeydown="if(event.key==='Enter')addWardTask('${jsAttr(w.id)}')">
         <div class="wt-daterow">
           <input type="date" id="wtDate_${w.id}" value="${wardDate}" class="big-date" title="タスクの日付">
-          <button class="btn" onclick="addWardTask('${w.id}')">追加</button>
+          <button class="btn" onclick="addWardTask('${jsAttr(w.id)}')">追加</button>
         </div>
       </div>
       ${future?`<div class="hint" style="margin-top:5px">先の日付に未完了タスク ${future}件</div>`:''}
       <div class="wc-actions">
         ${isDis
-          ? `<button class="btn" onclick="setWardStatus('${w.id}','admitted')">再入院に戻す</button>`
+          ? `<button class="btn" onclick="setWardStatus('${jsAttr(w.id)}','admitted')">再入院に戻す</button>`
           : isPlan
-          ? `<button class="btn primary" onclick="setWardStatus('${w.id}','admitted')">入院にする</button>`
-          : `<button class="btn" onclick="dischargeWard('${w.id}')">✓ 退院にする</button>`}
+          ? `<button class="btn primary" onclick="setWardStatus('${jsAttr(w.id)}','admitted')">入院にする</button>`
+          : `<button class="btn" onclick="dischargeWard('${jsAttr(w.id)}')">✓ 退院にする</button>`}
       </div>
     </div>`;
   }).join('') : '<div class="empty">病棟患者はまだいません。＋で追加。</div>';
@@ -2407,7 +2418,7 @@ function renderWardTable(list){
     };
     const todayTasks=wardTasksOf(w,wardDate).filter(t=>!t.done).length;
     const stbadge=isDis?'<span class="wt-badge dis">退院</span>':(isPlan?`<span class="wt-badge plan">予定${w.admitDate?' '+esc(fmtDue(w.admitDate)):''}</span>`:'');
-    return `<tr onclick="openWardCardFromTable('${w.id}')" class="${isDis?'row-dis':''} ${isPlan?'row-plan':''}">
+    return `<tr onclick="openWardCardFromTable('${jsAttr(w.id)}')" class="${isDis?'row-dis':''} ${isPlan?'row-plan':''}">
       <td class="wt-num">${i+1}</td>
       <td class="wt-wing">${esc(w.wing||'—')}</td>
       <td class="wt-name"><div>${esc(nm)}</div>${stbadge}</td>
@@ -2514,7 +2525,7 @@ function renderWardCal(){
     const countBadge = list.length
       ? `<span class="cal-count ${hasOverdue?'overdue':(list.every(x=>x.task.done)?'done':'open')}">${list.length}</span>`
       : '';
-    cells+=`<div class="cal-cell ${other} ${ds===today?'today':''} ${ds===wardCalSelected?'selected':''}" onclick="wardCalSelect('${ds}')">
+    cells+=`<div class="cal-cell ${other} ${ds===today?'today':''} ${ds===wardCalSelected?'selected':''}" onclick="wardCalSelect('${jsAttr(ds)}')">
       <span class="num">${cd}</span><div class="cal-countwrap">${countBadge}</div></div>`;
   }
   const grid=$('wardCalGrid'); if(grid) grid.innerHTML=cells;
@@ -2531,12 +2542,12 @@ function renderWardCal(){
         const sub=[w.pid?esc(displayPid(w)):'', w.dx?esc(w.dx):''].filter(Boolean).join(' / ');
         const items=tasks.map(t=>
           `<div class="dp-task ${t.done?'done':''}">
-            <input type="checkbox" ${t.done?'checked':''} onclick="toggleWardTask('${w.id}','${t.id}')">
-            <span onclick="openWardTaskEdit('${w.id}','${t.id}')" style="flex:1;cursor:pointer">${esc(t.text)}</span>
-            <button class="wt-del" onclick="deleteWardTask('${w.id}','${t.id}')">×</button>
+            <input type="checkbox" ${t.done?'checked':''} onclick="toggleWardTask('${jsAttr(w.id)}','${jsAttr(t.id)}')">
+            <span onclick="openWardTaskEdit('${jsAttr(w.id)}','${jsAttr(t.id)}')" style="flex:1;cursor:pointer">${esc(t.text)}</span>
+            <button class="wt-del" onclick="deleteWardTask('${jsAttr(w.id)}','${jsAttr(t.id)}')">×</button>
           </div>`).join('');
         return `<div class="dp-patient">
-          <div class="dp-phead" onclick="openWardModal('${w.id}')">${head}${sub?`<span class="hint" style="margin:0 0 0 6px">${sub}</span>`:''}</div>
+          <div class="dp-phead" onclick="openWardModal('${jsAttr(w.id)}')">${head}${sub?`<span class="hint" style="margin:0 0 0 6px">${sub}</span>`:''}</div>
           ${items}</div>`;
       }).join('');
   }else if(wardCalSelected){
@@ -2557,7 +2568,7 @@ function renderPlans(){
   const kinds=['study','opd','conf','surg','other'];
   const counts={}; livePlans().forEach(p=>{ const k=p.kind||'study'; counts[k]=(counts[k]||0)+1; });
   $('planKindChips').innerHTML=`<button class="chip ${activePlanKind===''?'on':''}" onclick="setPlanKind('')">すべて</button>`+
-    kinds.filter(k=>counts[k]).map(k=>`<button class="chip ${activePlanKind===k?'on':''}" onclick="setPlanKind('${k}')">${PLAN_KIND_LABEL[k]} ${counts[k]}</button>`).join('');
+    kinds.filter(k=>counts[k]).map(k=>`<button class="chip ${activePlanKind===k?'on':''}" onclick="setPlanKind('${jsAttr(k)}')">${PLAN_KIND_LABEL[k]} ${counts[k]}</button>`).join('');
   const cols={todo:[],doing:[],done:[]};
   const plans = livePlans().filter(p=>!activePlanKind||(p.kind||'study')===activePlanKind).slice().sort((a,b)=>{
     const da=a.due||'9999', db_=b.due||'9999';
@@ -2570,8 +2581,8 @@ function renderPlans(){
     const cl=planChecklist(p); const cldone=cl.filter(x=>x.done).length;
     cols[PLAN_STATUS.includes(p.status)?p.status:'todo'].push(`
     <div class="pl-item">
-      <input type="checkbox" class="pl-check" ${p.status==='done'?'checked':''} onclick="event.stopPropagation();togglePlanDone('${p.id}')" title="完了にする">
-      <div class="pl-body" onclick="openPlanModal('${p.id}')">
+      <input type="checkbox" class="pl-check" ${p.status==='done'?'checked':''} onclick="event.stopPropagation();togglePlanDone('${jsAttr(p.id)}')" title="完了にする">
+      <div class="pl-body" onclick="openPlanModal('${jsAttr(p.id)}')">
         <div class="pl-theme ${p.status==='done'?'pl-themedone':''}">${esc(p.theme)}</div>
         <div class="pl-meta">
           ${p.kind&&PLAN_KIND_LABEL[p.kind]?`<span class="kind-badge ${PLAN_KIND_CLASS[p.kind]}">${PLAN_KIND_LABEL[p.kind]}</span>`:''}
@@ -2582,12 +2593,12 @@ function renderPlans(){
           ${p.priority==='high'?`<span class="pl-pri">優先</span>`:''}
         </div>
         <div class="pl-actions" onclick="event.stopPropagation()">
-          <select class="pl-status" onchange="quickStatus('${p.id}',this.value)">
+          <select class="pl-status" onchange="quickStatus('${jsAttr(p.id)}',this.value)">
             ${PLAN_STATUS.map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${PLAN_STATUS_LABEL[s]}</option>`).join('')}
           </select>
-          <button class="pl-btn" onclick="openPlanModal('${p.id}')">編集</button>
-          <button class="pl-btn shu" onclick="openCaseModal(null,'${p.id}')">＋症例</button>
-          <button class="pl-btn del" onclick="deletePlanQuick('${p.id}')">削除</button>
+          <button class="pl-btn" onclick="openPlanModal('${jsAttr(p.id)}')">編集</button>
+          <button class="pl-btn shu" onclick="openCaseModal(null,'${jsAttr(p.id)}')">＋症例</button>
+          <button class="pl-btn del" onclick="deletePlanQuick('${jsAttr(p.id)}')">削除</button>
         </div>
       </div>
     </div>`);
@@ -2607,7 +2618,7 @@ function renderPlans(){
     const rows=plans.map(p=>{
       const cl=planChecklist(p);
       const done=cl.filter(x=>x.done).length;
-      return `<tr onclick="openPlanModal('${p.id}')">
+      return `<tr onclick="openPlanModal('${jsAttr(p.id)}')">
         <td class="t-title">${p.status==='done'?'✓ ':''}${esc(p.theme)}</td>
         <td class="t-date">${p.pid?esc(displayPid(p)):''}</td>
         <td>${p.kind&&PLAN_KIND_LABEL[p.kind]?`<span class="kind-badge ${PLAN_KIND_CLASS[p.kind]}">${PLAN_KIND_LABEL[p.kind]}</span>`:''}</td>
@@ -2641,7 +2652,7 @@ function renderPlanHistory(){
     <div class="th-item">
       <span class="th-state del">削除</span>
       <span class="th-text">${esc(p.theme)}${p.kind&&PLAN_KIND_LABEL[p.kind]?` <span class="hint" style="margin:0">${PLAN_KIND_LABEL[p.kind]}</span>`:''}</span>
-      <button class="pl-btn" onclick="restorePlan('${p.id}')">戻す</button>
+      <button class="pl-btn" onclick="restorePlan('${jsAttr(p.id)}')">戻す</button>
     </div>`).join('');
 }
 function restorePlan(id){
@@ -2751,7 +2762,7 @@ function renderCases(){
       const st=statusLabel(c.status);
       const isConf=(c.source==='conf');
       return `
-      <div class="case-card" onclick="openCaseDetail('${c.id}')">
+      <div class="case-card" onclick="openCaseDetail('${jsAttr(c.id)}')">
         <div class="card-top">
           ${c.category?`<div class="cat">${esc(c.category)}</div>`:''}
           <div class="spacer"></div>
@@ -2773,7 +2784,7 @@ function renderCases(){
     const rows=list.map(c=>{
       const st=statusLabel(c.status);
       const isConf=(c.source==='conf');
-      return `<tr onclick="openCaseDetail('${c.id}')">
+      return `<tr onclick="openCaseDetail('${jsAttr(c.id)}')">
         <td class="t-title">${esc(c.title)}</td>
         <td class="t-date">${c.age?esc(c.age):''}</td>
         <td class="t-date">${c.sex&&SEX_LABEL[c.sex]?SEX_LABEL[c.sex]:''}</td>
@@ -2851,16 +2862,16 @@ function dtableSel(kind, headers, rows, ids){
   const s=selSet(kind);
   const allChecked=ids.length&&ids.every(id=>s.has(id));
   const bar=`<div class="sel-bar">
-    <label class="sel-all"><input type="checkbox" ${allChecked?'checked':''} onclick="selAll('${kind}',${JSON.stringify(ids).replace(/"/g,'&quot;')})"> 全選択</label>
+    <label class="sel-all"><input type="checkbox" ${allChecked?'checked':''} onclick="selAll('${jsAttr(kind)}',${JSON.stringify(ids).replace(/"/g,'&quot;')})"> 全選択</label>
     <span class="sel-count">${s.size?s.size+'件選択中':''}</span>
-    <button class="btn danger sel-del" ${s.size?'':'disabled'} onclick="bulkDelete('${kind}')">🗑 選択を削除</button>
+    <button class="btn danger sel-del" ${s.size?'':'disabled'} onclick="bulkDelete('${jsAttr(kind)}')">🗑 選択を削除</button>
   </div>`;
   if(!rows.length) return bar+'<div class="empty">まだありません。＋で追加。</div>';
   // 各<tr ...>の直後にチェックボックスのtdを差し込む
   const body=rows.map((tr,idx)=>{
     const id=ids[idx];
     const checked=s.has(id)?'checked':'';
-    const cell=`<td class="sel-cell" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onclick="toggleSel('${kind}','${id}',event)"></td>`;
+    const cell=`<td class="sel-cell" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onclick="toggleSel('${jsAttr(kind)}','${jsAttr(id)}',event)"></td>`;
     let out=tr.replace(/^(\s*<tr[^>]*>)/, `$1${cell}`);
     if(s.has(id)) out=out.replace(/^(\s*<tr)/, `$1 class="row-sel"`);
     return out;
@@ -2960,7 +2971,7 @@ function openCaseDetail(id){
     <div class="modal-actions">
       <div class="spacer"></div>
       <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
-      <button class="btn primary" onclick="openCaseModal('${c.id}')">編集</button>
+      <button class="btn primary" onclick="openCaseModal('${jsAttr(c.id)}')">編集</button>
     </div>`;
   $('detailOverlay').classList.add('open');
 }
@@ -2988,7 +2999,7 @@ function renderNotes(){
   const cardView=applyViewMode('note','noteGrid','noteTable','noteViewToggle');
   if(cardView){
   $('noteGrid').innerHTML=list.map(n=>`
-    <div class="case-card note-card" onclick="openNoteDetail('${n.id}')">
+    <div class="case-card note-card" onclick="openNoteDetail('${jsAttr(n.id)}')">
       <div class="card-top">
         ${n.folder?`<div class="folder-label" style="margin:0">📁 ${esc(n.folder)}</div>`:'<div></div>'}
         <div class="spacer"></div>
@@ -2998,7 +3009,7 @@ function renderNotes(){
       <div class="preview">${esc((n.body||'').slice(0,140))}</div>
     </div>`).join('')||'<div class="empty">ノートはまだありません。＋で追加。</div>';
   }else{
-    const rows=list.map(n=>`<tr onclick="openNoteDetail('${n.id}')">
+    const rows=list.map(n=>`<tr onclick="openNoteDetail('${jsAttr(n.id)}')">
       <td class="t-cat">${n.folder?'📁 '+esc(n.folder):''}</td>
       <td class="t-cat">${entGroups(n).length?esc(entGroups(n)[0]):''}</td>
       <td class="t-title">${esc(n.title)}</td>
@@ -3051,7 +3062,7 @@ function openNoteDetail(id){
     <div class="modal-actions">
       <div class="spacer"></div>
       <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
-      <button class="btn primary" onclick="openNoteModal('${n.id}')">編集</button>
+      <button class="btn primary" onclick="openNoteModal('${jsAttr(n.id)}')">編集</button>
     </div>`;
   $('detailOverlay').classList.add('open');
 }
@@ -3132,8 +3143,8 @@ function renderTx(){
   $('txGrid').innerHTML=list.map(t=>{
     const ds=parseDoses(t.doses);
     return `
-    <div class="case-card tx-card ${t.pinned?'pinned':''}" onclick="openTxDetail('${t.id}')">
-      <button class="pin-btn card-pin ${t.pinned?'on':''}" onclick="event.stopPropagation();togglePin('${t.id}')" title="ピン留め">📌</button>
+    <div class="case-card tx-card ${t.pinned?'pinned':''}" onclick="openTxDetail('${jsAttr(t.id)}')">
+      <button class="pin-btn card-pin ${t.pinned?'on':''}" onclick="event.stopPropagation();togglePin('${jsAttr(t.id)}')" title="ピン留め">📌</button>
       <div class="card-top">
         <div class="cat" style="color:var(--shu)">💊 治療・投薬</div>
         <div class="spacer"></div>
@@ -3152,7 +3163,7 @@ function renderTx(){
     const rows=list.map(t=>{
       const ds=parseDoses(t.doses);
       const drugs=ds.map(d=>d.drug).filter(Boolean).join('、');
-      return `<tr onclick="openTxDetail('${t.id}')">
+      return `<tr onclick="openTxDetail('${jsAttr(t.id)}')">
         <td class="t-title">${t.pinned?'📌 ':''}${esc(t.title)}</td>
         <td class="t-cat">${entGroups(t).length?esc(entGroups(t)[0]):''}</td>
         <td class="t-date">${t.pid?esc(displayPid(t)):''}</td>
@@ -3246,7 +3257,7 @@ function renderDdx(){
   $('ddxGrid').innerHTML=list.map(d=>{
     const killers=(d.killer||[]);
     return `
-    <div class="case-card ddx-card" onclick="openDdxDetail('${d.id}')">
+    <div class="case-card ddx-card" onclick="openDdxDetail('${jsAttr(d.id)}')">
       <div class="card-top">
         <div class="cat" style="color:var(--shu)">🩺 主訴</div>
         <div class="spacer"></div>
@@ -3260,7 +3271,7 @@ function renderDdx(){
     </div>`;
   }).join('')||'<div class="empty">主訴の鑑別はまだありません。＋で追加。</div>';
   }else{
-    const rows=list.map(d=>`<tr onclick="openDdxDetail('${d.id}')">
+    const rows=list.map(d=>`<tr onclick="openDdxDetail('${jsAttr(d.id)}')">
       <td class="t-title">${esc(d.title)}</td>
       <td class="t-cat">${entGroups(d).length?esc(entGroups(d)[0]):''}</td>
       <td class="t-conf" style="color:var(--shu)">${(d.killer||[]).length?'🚨 '+(d.killer||[]).length:''}</td>
@@ -3341,7 +3352,7 @@ function openDdxDetail(id){
     <div class="modal-actions">
       <div class="spacer"></div>
       <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
-      <button class="btn primary" onclick="openDdxModal('${d.id}')">編集</button>
+      <button class="btn primary" onclick="openDdxModal('${jsAttr(d.id)}')">編集</button>
     </div>`;
   $('detailOverlay').classList.add('open');
 }
@@ -3378,8 +3389,8 @@ function renderPapers(){
   const cardView=applyViewMode('paper','paperGrid','paperTable','paperViewToggle');
   if(cardView){
   $('paperGrid').innerHTML=list.map(p=>`
-    <div class="case-card ${p.star?'pinned':''}" onclick="openPaperDetail('${p.id}')">
-      <button class="pin-btn card-pin ${p.star?'on':''}" onclick="event.stopPropagation();togglePaperStar('${p.id}')" title="スター">★</button>
+    <div class="case-card ${p.star?'pinned':''}" onclick="openPaperDetail('${jsAttr(p.id)}')">
+      <button class="pin-btn card-pin ${p.star?'on':''}" onclick="event.stopPropagation();togglePaperStar('${jsAttr(p.id)}')" title="スター">★</button>
       <div class="card-top">
         <div class="cat" style="color:var(--gold)">📄 論文</div>
         <div class="spacer"></div>
@@ -3392,7 +3403,7 @@ function renderPapers(){
       <div class="tags" style="margin-top:6px">${(p.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
     </div>`).join('')||'<div class="empty">論文はまだありません。＋で追加。</div>';
   }else{
-    const rows=list.map(p=>`<tr onclick="openPaperDetail('${p.id}')">
+    const rows=list.map(p=>`<tr onclick="openPaperDetail('${jsAttr(p.id)}')">
       <td class="t-title">${p.star?'★ ':''}${esc(p.title)}</td>
       <td class="t-cat">${entGroups(p).length?esc(entGroups(p)[0]):''}</td>
       <td class="t-date">${esc(p.citation||'')}</td>
@@ -3465,7 +3476,7 @@ function openPaperDetail(id){
       ${p.citation?`<div style="font-size:12.5px;color:var(--ink-soft)">${esc(p.citation)}</div>`:''}
       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(p.tags||[]).map(x=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(x)}</span>`).join('')}</div>
     </div>
-    <button class="pin-btn ${p.star?'on':''}" onclick="togglePaperStar('${p.id}');openPaperDetail('${p.id}')" title="スター" style="font-size:22px">★</button>
+    <button class="pin-btn ${p.star?'on':''}" onclick="togglePaperStar('${jsAttr(p.id)}');openPaperDetail('${jsAttr(p.id)}')" title="スター" style="font-size:22px">★</button>
     </div>
     ${p.conclusion?`<p style="font-weight:700;font-size:15px;background:var(--amber-soft);padding:8px 12px;border-radius:8px">💡 ${esc(p.conclusion)}</p>`:''}
     ${pico}
@@ -3477,7 +3488,7 @@ function openPaperDetail(id){
     <div class="modal-actions">
       <div class="spacer"></div>
       <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
-      <button class="btn primary" onclick="openPaperModal('${p.id}')">編集</button>
+      <button class="btn primary" onclick="openPaperModal('${jsAttr(p.id)}')">編集</button>
     </div>`;
   $('detailOverlay').classList.add('open');
 }
@@ -3525,7 +3536,7 @@ function renderImages(cfg){
   const accent = cfg.use==='typical' ? 'var(--amber)' : 'var(--pine)';
   if(cardView){
     $(cfg.grid).innerHTML=list.map(im=>`
-    <div class="case-card" onclick="openImgDetail('${im.id}')">
+    <div class="case-card" onclick="openImgDetail('${jsAttr(im.id)}')">
       <div class="card-top">
         <div class="cat" style="color:${accent}">🖼 ${esc(im.modality||'画像')}</div>
         <div class="spacer"></div>
@@ -3542,7 +3553,7 @@ function renderImages(cfg){
     </div>`).join('')||`<div class="empty">${cfg.emptyMsg}</div>`;
   }else{
     const showStar=(cfg.use!=='mine');
-    const rows=list.map(im=>`<tr onclick="openImgDetail('${im.id}')">
+    const rows=list.map(im=>`<tr onclick="openImgDetail('${jsAttr(im.id)}')">
       <td class="t-title">${esc(im.title)}</td>
       <td class="t-date">${im.age?esc(im.age):''}</td>
       <td class="t-date">${im.sex&&SEX_LABEL[im.sex]?SEX_LABEL[im.sex]:''}</td>
@@ -3656,7 +3667,7 @@ function openImgDetail(id){
     <div class="modal-actions">
       <div class="spacer"></div>
       <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
-      <button class="btn primary" onclick="openImgModal('${im.id}')">編集</button>
+      <button class="btn primary" onclick="openImgModal('${jsAttr(im.id)}')">編集</button>
     </div>`;
   $('detailOverlay').classList.add('open');
 }
@@ -3706,7 +3717,7 @@ function renderSafety(){
   const cardView=applyViewMode('safety','safetyGrid','safetyTable','safetyViewToggle');
   if(cardView){
   $('safetyGrid').innerHTML=list.map(s=>`
-    <div class="case-card" onclick="openSafetyDetail('${s.id}')">
+    <div class="case-card" onclick="openSafetyDetail('${jsAttr(s.id)}')">
       <div class="card-top">
         <div class="cat" style="color:var(--shu)">🛡 医療安全</div>
         <div class="spacer"></div>
@@ -3720,7 +3731,7 @@ function renderSafety(){
       <div class="tags" style="margin-top:6px">${(s.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
     </div>`).join('')||'<div class="empty">医療安全の記録はまだありません。＋で追加。</div>';
   }else{
-    const rows=list.map(s=>`<tr onclick="openSafetyDetail('${s.id}')">
+    const rows=list.map(s=>`<tr onclick="openSafetyDetail('${jsAttr(s.id)}')">
       <td class="t-title">${esc(s.title)}</td>
       <td class="t-cat">${entGroups(s).length?esc(entGroups(s)[0]):''}</td>
       <td><span class="sev-badge ${sevClass(s.severity)}">${SEV_LABEL[s.severity]||''}</span></td>
@@ -3788,7 +3799,7 @@ function openSafetyDetail(id){
     <div class="modal-actions">
       <div class="spacer"></div>
       <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
-      <button class="btn primary" onclick="openSafetyModal('${s.id}')">編集</button>
+      <button class="btn primary" onclick="openSafetyModal('${jsAttr(s.id)}')">編集</button>
     </div>`;
   $('detailOverlay').classList.add('open');
 }
@@ -3862,11 +3873,11 @@ function openTxDetail(id){
       ${t.pid?`<div class="pid" style="margin-top:3px">🪪 ${esc(displayPid(t))}</div>`:''}
       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${(t.tags||[]).map(x=>`<span style="font-size:11px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px">${esc(x)}</span>`).join('')}</div>
     </div>
-    <button class="pin-btn ${t.pinned?'on':''}" onclick="togglePin('${t.id}');openTxDetail('${t.id}')" title="ピン留め" style="font-size:22px">📌</button>
+    <button class="pin-btn ${t.pinned?'on':''}" onclick="togglePin('${jsAttr(t.id)}');openTxDetail('${jsAttr(t.id)}')" title="ピン留め" style="font-size:22px">📌</button>
     </div>
     <div class="weight-box">
       <label>体重</label>
-      <input type="number" id="dwWeight" min="1" max="300" step="0.1" value="${w}" placeholder="60" oninput="updateDoseTable('${t.id}')"> kg
+      <input type="number" id="dwWeight" min="1" max="300" step="0.1" value="${w}" placeholder="60" oninput="updateDoseTable('${jsAttr(t.id)}')"> kg
       <span class="hint" style="margin:0">共通体重と連動</span>
     </div>
     <div id="doseTableWrap">${doseTableHtml(t, parseFloat(w)||NaN)}</div>
@@ -3878,7 +3889,7 @@ function openTxDetail(id){
     <div class="modal-actions">
       <div class="spacer"></div>
       <button class="btn" onclick="closeOverlay('detailOverlay')">閉じる</button>
-      <button class="btn primary" onclick="openTxModal('${t.id}')">編集</button>
+      <button class="btn primary" onclick="openTxModal('${jsAttr(t.id)}')">編集</button>
     </div>`;
   $('detailOverlay').classList.add('open');
 }
