@@ -58,8 +58,10 @@ header{background:var(--surface);border-bottom:1px solid var(--line);padding:12p
 
 nav.tabs{display:flex;gap:2px;padding:0 12px;justify-content:flex-start;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:var(--med-header-height,69px);z-index:40;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 nav.tabs::-webkit-scrollbar{display:none}
-nav.tabs button{flex:0 0 auto;min-width:0;min-height:44px;padding:8px 12px 9px;background:none;border:none;font-size:13.5px;font-weight:500;color:var(--ink-soft);border-bottom:2px solid transparent;letter-spacing:.06em;white-space:nowrap}
-nav.tabs button.active{color:var(--pine);border-bottom-color:var(--pine);font-weight:700}
+nav.tabs button{flex:0 0 auto;min-width:0;min-height:44px;padding:8px 12px 9px;background:none;border:none;font-size:13.5px;font-weight:500;color:var(--ink-soft);border-bottom:2px solid transparent;letter-spacing:0;white-space:nowrap;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;border-radius:8px 8px 0 0;transition:background .15s,color .15s}
+nav.tabs button:hover{background:var(--paper)}
+nav.tabs button:focus-visible{outline:2px solid var(--pine);outline-offset:-3px}
+nav.tabs button.active{background:var(--paper);color:var(--pine);border-bottom-color:var(--pine);font-weight:700}
 
 main{max-width:1100px;margin:0 auto;padding:16px 14px 90px;overflow-x:hidden}
 
@@ -515,9 +517,31 @@ header #settingsBtn,header #themeBtn{width:44px;padding:0}
   <button id="tabStudy" onclick="switchTab('study')"><span class="tab-label" data-tab="study">CT</span></button>
   <button id="tabImg" onclick="switchTab('img')"><span class="tab-label" data-tab="img">CT/DDx</span></button>
   <button id="tabSafety" onclick="switchTab('safety')"><span class="tab-label" data-tab="safety">Safety</span></button>
+<button id="tabMemo" onclick="switchTab('memo')"><span class="tab-label" data-tab="memo">Memo</span></button>
+<button id="tabQuickmemo" onclick="switchTab('quickmemo')"><span class="tab-label" data-tab="quickmemo">簡易メモ</span></button>
 </nav>
 
 <main>
+  <section id="viewQuickmemo" style="display:none">
+    <h2 style="font-size:18px;margin:0 0 6px">簡易メモ</h2>
+    <p class="hint">日付・ID・病名・名前をすぐに記録。保存した項目は下の一覧で直接編集できます。</p>
+    <form id="quickMemoForm" onsubmit="event.preventDefault();addQuickMemo()" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end">
+      <label>日付<input id="quickMemoDate" type="date" required></label>
+      <label>ID<input id="quickMemoPid" type="text" placeholder="ID" autocomplete="off"></label>
+      <label>病名<input id="quickMemoDx" type="text" placeholder="病名" autocomplete="off"></label>
+      <label>名前<input id="quickMemoName" type="text" placeholder="名前" autocomplete="off"></label>
+      <button class="btn primary" type="submit">保存して次へ</button>
+    </form>
+    <p id="quickMemoStatus" class="hint" role="status"></p>
+    <div id="quickMemoList"></div>
+  </section>
+  <section id="viewMemo" style="display:none">
+    <h2 style="font-size:18px;margin:0 0 6px">自由メモ</h2>
+    <p class="hint">感想や気づきを自由に。入力内容はこの端末に自動保存され、同期が有効なら他の端末にも反映されます。</p>
+    <label for="freeMemo" class="hint">メモ</label>
+    <textarea id="freeMemo" placeholder="今日感じたこと、覚えておきたいこと…" oninput="saveFreeMemo()" style="width:100%;min-height:55vh;resize:vertical;padding:18px;line-height:1.9;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink)"></textarea>
+    <p id="memoSaveStatus" class="hint" role="status" aria-live="polite"></p>
+  </section>
   <!-- ===== plans ===== -->
   <section id="viewPlans">
     <div class="today-todo">
@@ -1344,17 +1368,17 @@ function createTabPreferences(cfg){
   select.onchange=()=>{const before=prefs.start;prefs.start=select.value;if(!persist()){prefs.start=before;select.value=initial();status.textContent='保存できませんでした。';}};
   section.append(label,select,status);
  }
- function mount(refresh){const host=document.querySelector(cfg.host);if(host&&section.parentElement!==host){host.append(section);render();}else if(refresh&&host)render();}
+ function mount(refresh){const host=document.querySelector(cfg.host);if(host&&section.parentElement!==host){host.insertBefore(section,host.children[1]||null);render();}else if(refresh&&host)render();}
  function boot(){apply();cfg.go(initial());mount();new MutationObserver(()=>mount(false)).observe(document.body,{childList:true,subtree:true});}
  return {visible,initial,apply,mount,boot};
 }
 
-const appTabPrefs=createTabPreferences({app:"Medicine",tabs:[{"id":"ward","selector":"#tabWard","label":"ward"},{"id":"plans","selector":"#tabPlans","label":"plans"},{"id":"cases","selector":"#tabCases","label":"cases"},{"id":"notes","selector":"#tabNotes","label":"notes"},{"id":"tx","selector":"#tabTx","label":"tx"},{"id":"ddx","selector":"#tabDdx","label":"ddx"},{"id":"papers","selector":"#tabPapers","label":"papers"},{"id":"gallery","selector":"#tabGallery","label":"gallery"},{"id":"study","selector":"#tabStudy","label":"study"},{"id":"img","selector":"#tabImg","label":"img"},{"id":"safety","selector":"#tabSafety","label":"safety"}],host:"#settingsOverlay .modal",default:"ward",current(){return activeTab;},go(id){switchTab(id);}});
+const appTabPrefs=createTabPreferences({app:"Medicine",tabs:[{"id":"ward","selector":"#tabWard","label":"ward"},{"id":"plans","selector":"#tabPlans","label":"plans"},{"id":"cases","selector":"#tabCases","label":"cases"},{"id":"notes","selector":"#tabNotes","label":"notes"},{"id":"tx","selector":"#tabTx","label":"tx"},{"id":"ddx","selector":"#tabDdx","label":"ddx"},{"id":"papers","selector":"#tabPapers","label":"papers"},{"id":"gallery","selector":"#tabGallery","label":"gallery"},{"id":"study","selector":"#tabStudy","label":"study"},{"id":"img","selector":"#tabImg","label":"img"},{"id":"safety","selector":"#tabSafety","label":"safety"},{"id":"memo","selector":"#tabMemo","label":"Memo"},{"id":"quickmemo","selector":"#tabQuickmemo","label":"簡易メモ"}],host:"#settingsOverlay .modal",default:"ward",current(){return activeTab;},go(id){switchTab(id);}});
 
 /* =========================================================
    Med OS v2.68.0
 ========================================================= */
-const APP_VERSION = 'v2.68.6';
+const APP_VERSION = 'v2.69.0';
 const headerObserver=new ResizeObserver(()=>document.documentElement.style.setProperty('--med-header-height',document.querySelector('header').getBoundingClientRect().height+'px'));
 headerObserver.observe(document.querySelector('header'));
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
@@ -1645,8 +1669,8 @@ function groupMgmtRemove(tab, i){
 }
 
 /* ---------- タブ名のカスタマイズ ---------- */
-const TAB_ORDER=['ward','plans','cases','notes','tx','ddx','papers','gallery','study','img','safety'];
-const TAB_DEFAULT={plans:'Plan',cases:'Case',notes:'Note',tx:'Tx',ddx:'ER/DDx',papers:'Papers',gallery:'CR',study:'CT',img:'CT/DDx',safety:'Safety',ward:'Ward'};
+const TAB_ORDER=['ward','plans','cases','notes','tx','ddx','papers','gallery','study','img','safety','memo','quickmemo'];
+const TAB_DEFAULT={quickmemo:'簡易メモ',memo:'Memo',plans:'Plan',cases:'Case',notes:'Note',tx:'Tx',ddx:'ER/DDx',papers:'Papers',gallery:'CR',study:'CT',img:'CT/DDx',safety:'Safety',ward:'Ward'};
 function tabLabelRecord(){
   let r=state.meta.find(m=>m.id==='tabLabels');
   if(!r){ r={id:'tabLabels', map:{}, updatedAt:now()}; state.meta.push(r); }
@@ -1785,11 +1809,93 @@ function md(src){
   return html;
 }
 
+/* ---------- 自由メモ・表示設定 ---------- */
+function persistQuickMemo(){
+  try{saveState();$('quickMemoStatus').textContent='この端末に保存しました';return true;}
+  catch(_){$('quickMemoStatus').textContent='保存できませんでした。入力内容を控えて、端末の空き容量をご確認ください。';return false;}
+}
+function addQuickMemo(){
+  const fields={date:$('quickMemoDate').value,pid:$('quickMemoPid').value.trim(),dx:$('quickMemoDx').value.trim(),name:$('quickMemoName').value.trim()};
+  if(!fields.date||![fields.pid,fields.dx,fields.name].some(Boolean)){$('quickMemoStatus').textContent='日付と、ID・病名・名前のいずれかを入力してください。';return;}
+  const record={id:'quickMemo:'+uid(),kind:'quickMemo',...fields,updatedAt:now(),deleted:false};
+  state.meta.push(record);
+  if(!persistQuickMemo()){state.meta.splice(state.meta.indexOf(record),1);return;}
+  for(const id of ['quickMemoPid','quickMemoDx','quickMemoName'])$(id).value='';
+  renderQuickMemo();$('quickMemoPid').focus();
+}
+function renderQuickMemo(){
+  if(!$('quickMemoDate').value)$('quickMemoDate').value=todayStr();
+  const list=$('quickMemoList');
+  if(list.contains(document.activeElement))return;
+  list.replaceChildren();
+  const records=state.meta.filter(r=>r.kind==='quickMemo'&&!r.deleted).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.updatedAt||'').localeCompare(a.updatedAt||''));
+  if(!records.length){list.textContent='まだメモはありません。';return;}
+  records.forEach(record=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;flex-wrap:wrap;gap:10px;padding:14px 0;border-bottom:1px solid var(--line)';
+    for(const [key,title] of [['date','日付'],['pid','ID'],['dx','病名'],['name','名前']]){
+      const label=document.createElement('label'),input=document.createElement('input');
+      label.textContent=title;label.style.cssText='flex:1 1 140px;min-width:0';
+      input.type=key==='date'?'date':'text';input.value=record[key]||'';input.autocomplete='off';input.style.width='100%';
+      input.onchange=()=>{
+        if(key==='date'&&!input.value){input.value=record.date;return;}
+        record[key]=input.value;record.updatedAt=now();persistQuickMemo();
+      };
+      label.append(input);row.append(label);
+    }
+    const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';
+    remove.onclick=()=>{
+      if(!confirm('この簡易メモを削除しますか？'))return;
+      const previous=record.updatedAt;record.deleted=true;record.updatedAt=now();
+      if(!persistQuickMemo()){record.deleted=false;record.updatedAt=previous;return;}
+      remove.blur();renderQuickMemo();
+    };
+    row.append(remove);list.append(row);
+  });
+}
+function renderFreeMemo(){
+  if(document.activeElement===$('freeMemo'))return;
+  const record=state.meta.find(m=>m.id==='freeMemo');
+  $('freeMemo').value=record?.body||'';
+}
+function saveFreeMemo(){
+  let record=state.meta.find(m=>m.id==='freeMemo');
+  if(!record){record={id:'freeMemo',body:''};state.meta.push(record);}
+  record.body=$('freeMemo').value;record.updatedAt=now();
+  try{saveState();$('memoSaveStatus').textContent='この端末に保存しました';}
+  catch(_){$('memoSaveStatus').textContent='保存できませんでした。内容をコピーして保管し、端末の空き容量をご確認ください。';}
+}
+function renderViewPreferences(){
+  let section=$('viewPreferences');
+  if(!section){section=document.createElement('section');section.id='viewPreferences';$('app-tab-preferences').after(section);}
+  section.innerHTML='<h3>カード／表の初期表示</h3><p class="hint">タブごとに選べます。この端末に自動保存され、次回の起動にも反映します。</p>';
+  const keys={plans:'plan',cases:'cases',notes:'note',tx:'tx',ddx:'ddx',papers:'paper',gallery:'gallery',study:'study',img:'img',safety:'safety'};
+  orderedTabs().filter(t=>keys[t]).forEach(t=>{
+    const key=keys[t],label=document.createElement('label'),select=document.createElement('select');
+    label.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0';
+    label.append(document.createTextNode(tabLabel(t)));
+    for(const [value,text] of [['card','カード'],['table','表']]){const option=document.createElement('option');option.value=value;option.textContent=text;select.append(option);}
+    select.value=initialView(key);select.style.cssText='min-height:44px;width:130px';
+    select.onchange=()=>{
+      const next={...viewDefaults,[key]:select.value};
+      try{localStorage.setItem(VIEW_PREF_KEY,JSON.stringify(next));}
+      catch(_){select.value=initialView(key);toast('表示設定を保存できませんでした');return;}
+      viewDefaults=next;
+      if(key==='cases')caseViewMode=select.value;else viewModes[key]=select.value;
+      render();
+    };
+    label.append(select);section.append(label);
+  });
+}
+
 /* ---------- tabs ---------- */
 function switchTab(tab){
   if(!appTabPrefs.visible().includes(tab))tab=appTabPrefs.initial();
   activeTab=tab;
-  for(const [id,t] of [['tabPlans','plans'],['tabCases','cases'],['tabNotes','notes'],['tabTx','tx'],['tabDdx','ddx'],['tabPapers','papers'],['tabGallery','gallery'],['tabStudy','study'],['tabImg','img'],['tabSafety','safety'],['tabWard','ward']])
+  $('viewQuickmemo').style.display=tab==='quickmemo'?'':'none';
+  $('viewMemo').style.display=tab==='memo'?'':'none';
+  document.querySelector('.fab').style.display=['memo','quickmemo'].includes(tab)?'none':'';
+  for(const [id,t] of [['tabPlans','plans'],['tabCases','cases'],['tabNotes','notes'],['tabTx','tx'],['tabDdx','ddx'],['tabPapers','papers'],['tabGallery','gallery'],['tabStudy','study'],['tabImg','img'],['tabSafety','safety'],['tabWard','ward'],['tabMemo','memo'],['tabQuickmemo','quickmemo']])
     $(id).classList.toggle('active', tab===t);
   $('viewPlans').style.display = tab==='plans'?'':'none';
   $('viewCases').style.display = tab==='cases'?'':'none';
@@ -2801,13 +2907,17 @@ function renderCases(){
     $('caseTable').innerHTML = dtableSel('cases',['症例名','年齢','性別','グループ','院内ID','カテゴリ','区分','ステータス','確度','出会った日','タグ'],rows,list.map(c=>c.id));
   }
 }
-let caseViewMode = 'card';
+const VIEW_PREF_KEY='medicine-view-defaults-v1';
+let viewDefaults={};
+try{const saved=JSON.parse(localStorage.getItem(VIEW_PREF_KEY)||'{}');if(saved&&typeof saved==='object'&&!Array.isArray(saved))viewDefaults=saved;}catch(_){}
+const initialView=k=>viewDefaults[k]==='table'?'table':'card';
+let caseViewMode = initialView('cases');
 function toggleCaseView(){
   caseViewMode = (caseViewMode==='card') ? 'table' : 'card';
   renderCases();
 }
 // 他タブ共通の表/カード切替
-const viewModes = { tx:'card', ddx:'card', paper:'card', img:'card', safety:'card', plan:'card', note:'card', gallery:'card', study:'card' };
+const viewModes = Object.fromEntries(['tx','ddx','paper','img','safety','plan','note','gallery','study'].map(k=>[k,initialView(k)]));
 const _renderByTab = { cases:()=>renderCases(), notes:()=>renderNotes(), tx:()=>renderTx(), ddx:()=>renderDdx(), paper:()=>renderPapers(), papers:()=>renderPapers(), img:()=>renderImg(), safety:()=>renderSafety(), plan:()=>renderPlans(), note:()=>renderNotes(), gallery:()=>renderGallery(), study:()=>renderStudy() };
 function toggleView(tab){
   viewModes[tab] = (viewModes[tab]==='card') ? 'table' : 'card';
@@ -4091,6 +4201,7 @@ function openSettings(){
   renderWardStandingMgmt();
   renderImgTagList();
   appTabPrefs.mount(true);
+  renderViewPreferences();
   $('settingsOverlay').classList.add('open');
 }
 function saveSettings(){
@@ -4221,6 +4332,8 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape') document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open'));
 });
 function render(){
+  if(activeTab==='memo'){renderFreeMemo();return;}
+  if(activeTab==='quickmemo'){renderQuickMemo();return;}
   if(activeTab==='plans') renderPlans();
   else if(activeTab==='cases') renderCases();
   else if(activeTab==='notes') renderNotes();
@@ -4286,7 +4399,7 @@ function installMedicineSwipe(){
  const visibleTabs=()=>orderedTabs().filter(id=>appTabPrefs.visible().includes(id));
  function blocked(target){
   if(document.querySelector('dialog[open],.overlay.open')||document.activeElement?.matches('input,textarea,select,[contenteditable="true"]'))return true;
-  if(!target.closest('#viewWard,#viewPlans,#viewCases,#viewNotes,#viewTx,#viewDdx,#viewPapers,#viewGallery,#viewStudy,#viewImg,#viewSafety'))return true;
+  if(!target.closest('#viewWard,#viewPlans,#viewCases,#viewNotes,#viewTx,#viewDdx,#viewPapers,#viewGallery,#viewStudy,#viewImg,#viewSafety,#viewMemo,#viewQuickmemo'))return true;
   if(target.closest('input,textarea,select,button,a,[contenteditable="true"],canvas,[draggable="true"]'))return true;
   for(let el=target;el&&el!==document.body;el=el.parentElement){
    if(el.scrollWidth>el.clientWidth+5&&/auto|scroll/.test(getComputedStyle(el).overflowX))return true;
