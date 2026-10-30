@@ -518,12 +518,12 @@ header #settingsBtn,header #themeBtn{width:44px;padding:0}
   <button id="tabImg" onclick="switchTab('img')"><span class="tab-label" data-tab="img">CT/DDx</span></button>
   <button id="tabSafety" onclick="switchTab('safety')"><span class="tab-label" data-tab="safety">Safety</span></button>
 <button id="tabMemo" onclick="switchTab('memo')"><span class="tab-label" data-tab="memo">Memo</span></button>
-<button id="tabQuickmemo" onclick="switchTab('quickmemo')"><span class="tab-label" data-tab="quickmemo">簡易メモ</span></button>
+<button id="tabQuickmemo" onclick="switchTab('quickmemo')"><span class="tab-label" data-tab="quickmemo">Sticky</span></button>
 </nav>
 
 <main>
   <section id="viewQuickmemo" style="display:none">
-    <h2 style="font-size:18px;margin:0 0 6px">簡易メモ</h2>
+    <h2 style="font-size:18px;margin:0 0 6px">Sticky</h2>
     <p class="hint">日付・ID・病名・名前をすぐに記録。保存した項目は下の一覧で直接編集できます。</p>
     <form id="quickMemoForm" onsubmit="event.preventDefault();addQuickMemo()" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end">
       <label>日付<input id="quickMemoDate" type="date" required></label>
@@ -538,8 +538,20 @@ header #settingsBtn,header #themeBtn{width:44px;padding:0}
   <section id="viewMemo" style="display:none">
     <h2 style="font-size:18px;margin:0 0 6px">自由メモ</h2>
     <p class="hint">感想や気づきを自由に。入力内容はこの端末に自動保存され、同期が有効なら他の端末にも反映されます。</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+      <span id="memoDateLabel" class="hint"></span>
+      <button class="btn" id="memoViewToggle" onclick="viewModes.memo=viewModes.memo==='table'?'card':'table';renderFreeMemo()">表</button>
+    </div>
+    <div id="memoEditor">
     <label for="freeMemo" class="hint">メモ</label>
     <textarea id="freeMemo" placeholder="今日感じたこと、覚えておきたいこと…" oninput="saveFreeMemo()" style="width:100%;min-height:55vh;resize:vertical;padding:18px;line-height:1.9;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink)"></textarea>
+    </div>
+    <div id="memoTable" style="display:none;overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;text-align:left">
+        <thead><tr><th style="padding:12px;white-space:nowrap">更新日</th><th style="padding:12px">メモ</th><th style="padding:12px">操作</th></tr></thead>
+        <tbody><tr><td id="memoTableDate" style="padding:12px;vertical-align:top;white-space:nowrap"></td><td id="memoTableBody" style="padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;min-width:160px"></td><td style="padding:12px;vertical-align:top"><button class="btn" onclick="viewModes.memo='card';renderFreeMemo();$('freeMemo').focus()">編集</button></td></tr></tbody>
+      </table>
+    </div>
     <p id="memoSaveStatus" class="hint" role="status" aria-live="polite"></p>
   </section>
   <!-- ===== plans ===== -->
@@ -1373,12 +1385,12 @@ function createTabPreferences(cfg){
  return {visible,initial,apply,mount,boot};
 }
 
-const appTabPrefs=createTabPreferences({app:"Medicine",tabs:[{"id":"ward","selector":"#tabWard","label":"ward"},{"id":"plans","selector":"#tabPlans","label":"plans"},{"id":"cases","selector":"#tabCases","label":"cases"},{"id":"notes","selector":"#tabNotes","label":"notes"},{"id":"tx","selector":"#tabTx","label":"tx"},{"id":"ddx","selector":"#tabDdx","label":"ddx"},{"id":"papers","selector":"#tabPapers","label":"papers"},{"id":"gallery","selector":"#tabGallery","label":"gallery"},{"id":"study","selector":"#tabStudy","label":"study"},{"id":"img","selector":"#tabImg","label":"img"},{"id":"safety","selector":"#tabSafety","label":"safety"},{"id":"memo","selector":"#tabMemo","label":"Memo"},{"id":"quickmemo","selector":"#tabQuickmemo","label":"簡易メモ"}],host:"#settingsOverlay .modal",default:"ward",current(){return activeTab;},go(id){switchTab(id);}});
+const appTabPrefs=createTabPreferences({app:"Medicine",tabs:[{"id":"ward","selector":"#tabWard","label":"ward"},{"id":"plans","selector":"#tabPlans","label":"plans"},{"id":"cases","selector":"#tabCases","label":"cases"},{"id":"notes","selector":"#tabNotes","label":"notes"},{"id":"tx","selector":"#tabTx","label":"tx"},{"id":"ddx","selector":"#tabDdx","label":"ddx"},{"id":"papers","selector":"#tabPapers","label":"papers"},{"id":"gallery","selector":"#tabGallery","label":"gallery"},{"id":"study","selector":"#tabStudy","label":"study"},{"id":"img","selector":"#tabImg","label":"img"},{"id":"safety","selector":"#tabSafety","label":"safety"},{"id":"memo","selector":"#tabMemo","label":"Memo"},{"id":"quickmemo","selector":"#tabQuickmemo","label":"Sticky"}],host:"#settingsOverlay .modal",default:"ward",current(){return activeTab;},go(id){switchTab(id);}});
 
 /* =========================================================
    Med OS v2.68.0
 ========================================================= */
-const APP_VERSION = 'v2.69.0';
+const APP_VERSION = 'v2.69.1';
 const headerObserver=new ResizeObserver(()=>document.documentElement.style.setProperty('--med-header-height',document.querySelector('header').getBoundingClientRect().height+'px'));
 headerObserver.observe(document.querySelector('header'));
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
@@ -1670,7 +1682,7 @@ function groupMgmtRemove(tab, i){
 
 /* ---------- タブ名のカスタマイズ ---------- */
 const TAB_ORDER=['ward','plans','cases','notes','tx','ddx','papers','gallery','study','img','safety','memo','quickmemo'];
-const TAB_DEFAULT={quickmemo:'簡易メモ',memo:'Memo',plans:'Plan',cases:'Case',notes:'Note',tx:'Tx',ddx:'ER/DDx',papers:'Papers',gallery:'CR',study:'CT',img:'CT/DDx',safety:'Safety',ward:'Ward'};
+const TAB_DEFAULT={quickmemo:'Sticky',memo:'Memo',plans:'Plan',cases:'Case',notes:'Note',tx:'Tx',ddx:'ER/DDx',papers:'Papers',gallery:'CR',study:'CT',img:'CT/DDx',safety:'Safety',ward:'Ward'};
 function tabLabelRecord(){
   let r=state.meta.find(m=>m.id==='tabLabels');
   if(!r){ r={id:'tabLabels', map:{}, updatedAt:now()}; state.meta.push(r); }
@@ -1845,7 +1857,7 @@ function renderQuickMemo(){
     }
     const remove=document.createElement('button');remove.type='button';remove.className='btn';remove.textContent='削除';
     remove.onclick=()=>{
-      if(!confirm('この簡易メモを削除しますか？'))return;
+      if(!confirm('このStickyを削除しますか？'))return;
       const previous=record.updatedAt;record.deleted=true;record.updatedAt=now();
       if(!persistQuickMemo()){record.deleted=false;record.updatedAt=previous;return;}
       remove.blur();renderQuickMemo();
@@ -1854,22 +1866,33 @@ function renderQuickMemo(){
   });
 }
 function renderFreeMemo(){
-  if(document.activeElement===$('freeMemo'))return;
   const record=state.meta.find(m=>m.id==='freeMemo');
-  $('freeMemo').value=record?.body||'';
+  if(document.activeElement!==$('freeMemo'))$('freeMemo').value=record?.body||'';
+  const table=viewModes.memo==='table';
+  $('memoEditor').style.display=table?'none':'';
+  $('memoTable').style.display=table?'':'none';
+  $('memoViewToggle').textContent=table?'カード':'表';
+  renderMemoDate(record);
+  $('memoTableBody').textContent=record?.body||'まだメモはありません。';
+}
+function renderMemoDate(record){
+  const date=record?.updatedAt?new Date(record.updatedAt):null;
+  const label=date&&!Number.isNaN(date.getTime())?date.getFullYear()+'/'+String(date.getMonth()+1).padStart(2,'0')+'/'+String(date.getDate()).padStart(2,'0'):'未保存';
+  $('memoDateLabel').textContent='更新日：'+label+'（自動）';
+  $('memoTableDate').textContent=label;
 }
 function saveFreeMemo(){
   let record=state.meta.find(m=>m.id==='freeMemo');
   if(!record){record={id:'freeMemo',body:''};state.meta.push(record);}
   record.body=$('freeMemo').value;record.updatedAt=now();
-  try{saveState();$('memoSaveStatus').textContent='この端末に保存しました';}
+  try{saveState();renderMemoDate(record);$('memoSaveStatus').textContent='この端末に保存しました';}
   catch(_){$('memoSaveStatus').textContent='保存できませんでした。内容をコピーして保管し、端末の空き容量をご確認ください。';}
 }
 function renderViewPreferences(){
   let section=$('viewPreferences');
   if(!section){section=document.createElement('section');section.id='viewPreferences';$('app-tab-preferences').after(section);}
   section.innerHTML='<h3>カード／表の初期表示</h3><p class="hint">タブごとに選べます。この端末に自動保存され、次回の起動にも反映します。</p>';
-  const keys={plans:'plan',cases:'cases',notes:'note',tx:'tx',ddx:'ddx',papers:'paper',gallery:'gallery',study:'study',img:'img',safety:'safety'};
+  const keys={plans:'plan',cases:'cases',notes:'note',tx:'tx',ddx:'ddx',papers:'paper',gallery:'gallery',study:'study',img:'img',safety:'safety',memo:'memo'};
   orderedTabs().filter(t=>keys[t]).forEach(t=>{
     const key=keys[t],label=document.createElement('label'),select=document.createElement('select');
     label.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0';
@@ -2917,7 +2940,7 @@ function toggleCaseView(){
   renderCases();
 }
 // 他タブ共通の表/カード切替
-const viewModes = Object.fromEntries(['tx','ddx','paper','img','safety','plan','note','gallery','study'].map(k=>[k,initialView(k)]));
+const viewModes = Object.fromEntries(['tx','ddx','paper','img','safety','plan','note','gallery','study','memo'].map(k=>[k,initialView(k)]));
 const _renderByTab = { cases:()=>renderCases(), notes:()=>renderNotes(), tx:()=>renderTx(), ddx:()=>renderDdx(), paper:()=>renderPapers(), papers:()=>renderPapers(), img:()=>renderImg(), safety:()=>renderSafety(), plan:()=>renderPlans(), note:()=>renderNotes(), gallery:()=>renderGallery(), study:()=>renderStudy() };
 function toggleView(tab){
   viewModes[tab] = (viewModes[tab]==='card') ? 'table' : 'card';
