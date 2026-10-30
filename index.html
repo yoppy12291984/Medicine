@@ -345,6 +345,18 @@ table.dtable .t-date{color:var(--ink-soft);font-size:12px;white-space:nowrap}
 table.dtable .t-tags{display:flex;flex-wrap:wrap;gap:3px}
 table.dtable .t-tags span{font-size:10.5px;color:var(--ink-soft);background:var(--paper);border-radius:4px;padding:1px 6px}
 table.dtable .t-conf{white-space:nowrap}
+/* 論文は本文の読みやすさを優先。狭い画面では列を潰さず横スクロール。 */
+#paperTable table.dtable{table-layout:fixed;min-width:1100px}
+#paperTable .dtable th:nth-child(1){width:3%}
+#paperTable .dtable th:nth-child(2){width:26%}
+#paperTable .dtable th:nth-child(3){width:8%}
+#paperTable .dtable th:nth-child(4){width:18%}
+#paperTable .dtable th:nth-child(5){width:8%}
+#paperTable .dtable th:nth-child(6){width:28%}
+#paperTable .dtable th:nth-child(7){width:9%}
+#paperTable table.dtable td{vertical-align:top;white-space:normal;overflow-wrap:anywhere;line-height:1.65}
+#paperTable table.dtable .t-title{max-width:none}
+#paperTable table.dtable .stamp{position:static;display:inline-block;white-space:normal;line-height:1.4;padding:4px 6px}
 .case-card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 12px;box-shadow:var(--shadow);cursor:pointer}
 .case-card:hover{border-color:var(--pine)}
 .case-card .cat{font-size:11px;letter-spacing:.08em;color:var(--pine);font-weight:700;margin-bottom:2px}
@@ -1390,7 +1402,7 @@ const appTabPrefs=createTabPreferences({app:"Medicine",tabs:[{"id":"ward","selec
 /* =========================================================
    Med OS v2.68.0
 ========================================================= */
-const APP_VERSION = 'v2.69.1';
+const APP_VERSION = 'v2.69.2';
 const headerObserver=new ResizeObserver(()=>document.documentElement.style.setProperty('--med-header-height',document.querySelector('header').getBoundingClientRect().height+'px'));
 headerObserver.observe(document.querySelector('header'));
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
