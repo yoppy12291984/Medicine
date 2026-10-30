@@ -1402,7 +1402,7 @@ const appTabPrefs=createTabPreferences({app:"Medicine",tabs:[{"id":"ward","selec
 /* =========================================================
    Med OS v2.68.0
 ========================================================= */
-const APP_VERSION = 'v2.69.2';
+const APP_VERSION = 'v2.69.3';
 const headerObserver=new ResizeObserver(()=>document.documentElement.style.setProperty('--med-header-height',document.querySelector('header').getBoundingClientRect().height+'px'));
 headerObserver.observe(document.querySelector('header'));
 const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
@@ -3702,15 +3702,16 @@ function renderImages(cfg){
       <td class="t-title">${esc(im.title)}</td>
       <td class="t-date">${im.age?esc(im.age):''}</td>
       <td class="t-date">${im.sex&&SEX_LABEL[im.sex]?SEX_LABEL[im.sex]:''}</td>
+      ${showStar?`<td class="t-date">${im.pid?esc(displayPid(im)):''}</td>`:''}
       <td class="t-cat">${entGroups(im).length?esc(entGroups(im)[0]):''}</td>
       ${showStar?`<td class="t-conf" style="color:var(--amber);white-space:nowrap">${im.difficulty?'★'.repeat(im.difficulty):''}</td>`:''}
-      <td class="t-date">${im.pid?esc(displayPid(im)):''}</td>
+      ${!showStar?`<td class="t-date">${im.pid?esc(displayPid(im)):''}</td>`:''}
       <td class="t-cat">${esc(im.modality||'')}</td>
       <td class="t-title">${esc(im.dx||'')}</td>
       <td class="t-date">${im.encounter?esc(fmtDate(im.encounter)):''}</td>
       <td><div class="t-tags">${(im.tags||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td>
     </tr>`);
-    const headers=showStar?['タイトル','年齢','性別','グループ','難易度','院内ID','モダリティ','診断','出会った日','タグ']:['タイトル','年齢','性別','グループ','院内ID','モダリティ','診断','出会った日','タグ'];
+    const headers=showStar?['タイトル','年齢','性別','ID','グループ','難易度','モダリティ','診断','出会った日','タグ']:['タイトル','年齢','性別','グループ','院内ID','モダリティ','診断','出会った日','タグ'];
     $(cfg.table).innerHTML=dtableSel('images',headers,rows,list.map(im=>im.id));
   }
 }
